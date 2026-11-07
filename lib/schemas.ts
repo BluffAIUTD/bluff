@@ -66,7 +66,7 @@ export type RunStreamEvent =
   | { type: "step"; data: StepEvent }
   | { type: "verdict"; data: Verdict }
   | { type: "error"; data: { code: ErrorCode; message: string; fallbackVerdict?: Verdict } }
-  | { type: "done"; data: { totalMs: number; mode: RunModeValue } };
+  | { type: "done"; data: { totalMs: number; mode: RunModeValue; verdictId?: string; runId?: string } };
 
 // ---- API inputs -------------------------------------------------------------
 export const PageInvestigateSchema = z.object({

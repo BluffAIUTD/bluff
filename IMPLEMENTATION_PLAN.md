@@ -122,7 +122,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: unknown host → synthesize from rules-only scorer, labeled `basic`.
   - Verify: unit test fixtures validate against `VerdictSchema`.
 
-- [ ] **12. Run store + SSE endpoints (P0)**
+- [x] **12. Run store + SSE endpoints (P0)**
   - Objective: `POST /api/investigate/{page,message}`, `GET /api/runs/:id/stream`, `GET /api/runs/:id` (eng §4, §6.1 persistence).
   - Depends: 7, 11, 4.
   - Files: `lib/agent/runs.ts`, `app/api/investigate/page/route.ts`, `.../message/route.ts`, `app/api/runs/[runId]/{route,stream/route}.ts`.
@@ -226,3 +226,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 9 — done — typecheck/lint pass; 12 integration tests pass on seeded Postgres: FKSHP*LLC→fastkicks-shop with '3 days after exposure' (link query <100ms asserted), pre-exposure and >45d never link, 1 other possible match, watch +priority, expected-charge kind, no-candidate null, seeded duplicate/card_test flags, price_drift (needs ≥2 prior), new_subscription, empty/unknown ids. Name score mirrored in TS (documented) with SQL doing the time-window narrowing.
 - Task 10 — done — typecheck/lint clean; 12 tests pass: confidence formula (clamp .97, 0.35 floor, conflict reason ≤120), basicCheck validates against VerdictSchema (scam storefront <40, legit ≥70, no-signal → unsure 40–69, low-confidence forced unsure, monotone), message heuristics flag all 9 scam cards and ≥80% of 15 seeded cards correct (sanity only, NOT a claim).
 - Task 11 — done — typecheck/lint clean; 9 tests pass: 9 fixtures validate against VerdictSchema (3 scam <40, 5 legit ≥70 + signature txn), path-traversal keys rejected, ordered step→verdict→done stream, fixtures labeled 'cached' (never 'live'), unknown host → 'basic', ?fail=timeout|malformed|ratelimit each emit error + basic fallback, pacing 400ms/600–1400ms. Note: mock mode is labeled cached/basic by design since no model ran.
+- Task 12 — done — typecheck/lint/next build pass; 7 route integration tests pass (page run streams step→verdict→done with DB rows, late subscriber replay, ?fail=malformed → error+basic fallback, bad_input shapes incl. >2000 chars, 404s, eval source needs key, session cookie). Hard 15s timeout + crash fallback implemented; done event carries verdictId.
