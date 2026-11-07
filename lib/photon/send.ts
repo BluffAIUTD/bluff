@@ -1,4 +1,5 @@
 import { getConfig } from "../config";
+import { liveSender } from "./live";
 
 export type Sender = { send(phone: string, body: string): Promise<{ providerId: string }> };
 
@@ -10,16 +11,8 @@ export const mockSender: Sender = {
   },
 };
 
-/** Live Photon sender is added in task 21; until then live mode without an adapter fails loudly (status "failed"). */
-let live: Sender | null = null;
-export function registerLiveSender(s: Sender) { live = s; }
-
 export function getSender(): Sender {
-  if (getConfig().photonMode === "live") {
-    if (!live) throw new Error("PHOTON_MODE=live but no live sender is registered");
-    return live;
-  }
-  return mockSender;
+  return getConfig().photonMode === "live" ? liveSender : mockSender;
 }
 
 export const RETRY_DELAYS_MS = [1000, 4000, 10000];

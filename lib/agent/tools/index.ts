@@ -1,14 +1,15 @@
 import { domainIntelTool } from "./domainIntel";
 import { draftDisputeTool } from "./draftDispute";
 import { exposureLookupTool } from "./exposureLookup";
+import { notifyTool } from "./notifyTool";
 import { pageSignalsTool } from "./pageSignals";
 import { submitVerdictTool } from "./submitVerdict";
 import { taxonomyMatchTool } from "./taxonomyMatch";
 import { txnSearchTool } from "./txnSearch";
 import { capJson, type ToolContext, type ToolDef } from "./types";
 
-/** Tool registry. The notify tool (task 21) is appended when it lands. */
-export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, submitVerdictTool];
+/** Tool registry: the 8 tools of engineering_spec §6.1. */
+export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, notifyTool, submitVerdictTool];
 
 export function getTool(name: string): ToolDef | undefined { return TOOLS.find((t) => t.name === name); }
 
