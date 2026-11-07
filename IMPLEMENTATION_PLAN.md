@@ -35,7 +35,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: `.env*` ignored except example; Node 22.
   - Acceptance/verify: `npm run typecheck && npm run lint && npm run build && npm test` pass.
 
-- [ ] **2. Design tokens, fonts, UI primitives (P0)**
+- [x] **2. Design tokens, fonts, UI primitives (P0)**
   - Objective: one design system (eng §2.4, demo §11).
   - Depends: 1.
   - Files: `app/globals.css`, `tailwind.config.ts`, `components/ui/{Badge,ModeBadge,FlagBadge,Skeleton,EmptyState,ErrorState,Toast,Button}.tsx`.
@@ -216,3 +216,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 ## Progress log
 (Updated after every task: date, commit, verification output.)
 - Task 1 — done — typecheck, lint, next build (standalone), vitest all pass.
+- Task 2 — done — typecheck/lint/build pass; 4 component tests pass (mode/flag badges, empty/error states). Visual check deferred to task 43.
