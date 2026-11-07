@@ -65,7 +65,7 @@ export default async function Overview() {
             <ul className="flex flex-col gap-2">
               {o.alerts.map((a) => (
                 <li key={a.id} className="rounded-card border border-line bg-surface p-3 text-sm">
-                  <p>{a.body}</p>
+                  <p>{a.kind === "call" && <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-dim">Phone call</span>}{a.body}</p>
                   <p className="mt-1 text-xs text-dim">{longDateTime(a.createdAt)}{a.status === "failed" && <span className="ml-2 text-scam">Text not delivered</span>}</p>
                 </li>
               ))}

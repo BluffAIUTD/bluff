@@ -18,6 +18,6 @@ export async function loadOverview(db: Db, userId: string, now = new Date()) {
     exposuresThisWeek: exposures.filter((e) => Date.parse(e.createdAt) >= weekAgo).length,
     needsAttention,
     latestExposures: exposures.slice(0, 3),
-    alerts: messages.map((m) => ({ id: m.id, body: m.body, status: m.status, createdAt: m.created_at.toISOString() })),
+    alerts: messages.map((m) => ({ id: m.id, body: m.body, kind: m.kind, status: m.status, createdAt: m.created_at.toISOString() })),
   };
 }

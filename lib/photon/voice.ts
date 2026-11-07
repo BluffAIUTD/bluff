@@ -64,7 +64,7 @@ export async function callForCharge(db: Db, a: { userId: string; txnId: string; 
     return "placed";
   } catch (e) {
     console.error("[voice] call failed; the text alert still stands:", (e as Error).message);
-    await db.query("UPDATE messages SET status='failed' WHERE id=$1", [ins.rows[0].id]);
+    await db.query("UPDATE messages SET status='failed' WHERE id=$1", [ins.rows[0].id]).catch(() => {});
     return "failed";
   }
 }

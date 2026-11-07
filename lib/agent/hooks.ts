@@ -27,5 +27,5 @@ export async function afterRun(db: Db, input: RunInput, verdict: Verdict, verdic
   await sendChargeAlert(db, input.userId, input.txnId, l.exposure_id, verdictId);
   // Highest-risk event (≥ $40 and score < 30): also place a short call. The text above is the fallback if the call fails.
   const t = await one<{ descriptor: string; amount_cents: number }>(db, "SELECT descriptor, amount_cents FROM transactions WHERE id=$1", [input.txnId]);
-  if (t && shouldCall(t.amount_cents, verdict.score)) void callForCharge(db, { userId: input.userId, txnId: input.txnId, exposureId: l.exposure_id, amountCents: t.amount_cents, descriptor: t.descriptor });
+  if (t && shouldCall(t.amount_cents, verdict.score)) void callForCharge(db, { userId: input.userId, txnId: input.txnId, exposureId: l.exposure_id, amountCents: t.amount_cents, descriptor: t.descriptor }).catch((e) => console.error("[voice] call pipeline error", (e as Error).message));
 }

@@ -17,7 +17,8 @@
     "eval:export": "tsx scripts/eval/export_claimb.ts",
     "eval:test": "python3 -m unittest discover -s scripts/eval -p \"test_*.py\"",
     "eval:stretch-seed": "tsx scripts/eval/export_stretch.ts",
-    "prewarm": "tsx scripts/prewarm.ts"
+    "prewarm": "tsx scripts/prewarm.ts",
+    "e2e": "node e2e/run.mjs"
   },
   "engines": {
     "node": ">=20"
