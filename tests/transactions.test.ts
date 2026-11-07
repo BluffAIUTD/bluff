@@ -75,8 +75,8 @@ describe("demo core loop: check → expose → simulate charge → link", () => 
     expect(d.transaction.scripted).toBe(true);
 
     // exposure alert (at check) + charge alert (at link), in the spec's wording
-    expect(await waitFor(async () => Number((await t.pool.query("SELECT count(*) n FROM messages WHERE status='sent'")).rows[0].n) === 2)).toBe(true);
-    const bodies = (await t.pool.query("SELECT body FROM messages ORDER BY created_at")).rows.map((x) => x.body);
+    expect(await waitFor(async () => Number((await t.pool.query("SELECT count(*) n FROM messages WHERE status='sent' AND kind='alert'")).rows[0].n) === 2)).toBe(true);
+    const bodies = (await t.pool.query("SELECT body FROM messages WHERE kind='alert' ORDER BY created_at")).rows.map((x) => x.body);
     expect(bodies[1]).toMatch(/^\$49\.99 from FKSHP\*LLC matches fastkicks-shop, where you entered your card on [A-Z][a-z]{2} \d+\. Reply DISPUTE and I'll draft it\.$/);
   });
 
