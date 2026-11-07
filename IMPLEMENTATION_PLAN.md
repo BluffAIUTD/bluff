@@ -43,7 +43,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: contrast ≥ 4.5:1 for text on ink; focus rings in accent.
   - Verify: typecheck/build; render check in task 40.
 
-- [ ] **3. Shared contract types (P0)**
+- [x] **3. Shared contract types (P0)**
   - Objective: contract-first (eng §12): `Verdict`, SSE events, error shape, API DTOs, shared by UI and API.
   - Depends: 1.
   - Files: `lib/types.ts`, `lib/schemas.ts` (zod), `lib/errors.ts`.
@@ -217,3 +217,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 (Updated after every task: date, commit, verification output.)
 - Task 1 — done — typecheck, lint, next build (standalone), vitest all pass.
 - Task 2 — done — typecheck/lint/build pass; 4 component tests pass (mode/flag badges, empty/error states). Visual check deferred to task 43.
+- Task 3 — done — typecheck/lint pass; 15 tests pass (schema accept/reject, label boundaries 39/40/69/70, error shape).
