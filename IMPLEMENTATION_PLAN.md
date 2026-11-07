@@ -130,7 +130,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: client disconnect cleans listeners; unknown runId 404; empty input `bad_input`; run > 12 s → cached verdict for demo hosts (labeled).
   - Verify: integration test consumes SSE, asserts event order and DB rows.
 
-- [ ] **13. Agent tools (P0)**
+- [x] **13. Agent tools (P0)**
   - Objective: the 8 tools of eng §6.1 as typed functions each returning ≤ 1 KB.
   - Depends: 9, 12.
   - Files: `lib/agent/tools/{domainIntel,pageSignals,taxonomyMatch,exposureLookup,txnSearch,draftDispute,notify,submitVerdict}.ts`, `lib/agent/tools/index.ts`.
@@ -227,3 +227,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 10 — done — typecheck/lint clean; 12 tests pass: confidence formula (clamp .97, 0.35 floor, conflict reason ≤120), basicCheck validates against VerdictSchema (scam storefront <40, legit ≥70, no-signal → unsure 40–69, low-confidence forced unsure, monotone), message heuristics flag all 9 scam cards and ≥80% of 15 seeded cards correct (sanity only, NOT a claim).
 - Task 11 — done — typecheck/lint clean; 9 tests pass: 9 fixtures validate against VerdictSchema (3 scam <40, 5 legit ≥70 + signature txn), path-traversal keys rejected, ordered step→verdict→done stream, fixtures labeled 'cached' (never 'live'), unknown host → 'basic', ?fail=timeout|malformed|ratelimit each emit error + basic fallback, pacing 400ms/600–1400ms. Note: mock mode is labeled cached/basic by design since no model ran.
 - Task 12 — done — typecheck/lint/next build pass; 7 route integration tests pass (page run streams step→verdict→done with DB rows, late subscriber replay, ?fail=malformed → error+basic fallback, bad_input shapes incl. >2000 chars, 404s, eval source needs key, session cookie). Hard 15s timeout + crash fallback implemented; done event carries verdictId.
+- Task 13 — done — typecheck/lint clean; full suite 108 tests pass. Tools: domain_intel (registry→RDAP 2s timeout behind flag→unknown, allowlist), page_signals (reads only whitelisted storefront slugs from disk: no SSRF), taxonomy_match (embeddings with 2s timeout, keyword fallback), exposure_lookup, txn_search (+merchant_daily series), submit_verdict (server-side confidence, forced unsure <0.5, validation errors), registry caps output at 1KB & converts errors. Bug found+fixed via test: link candidates now require name evidence (time alone scored 0.3 for every recent exposure). draft_dispute/notify tools are registered in tasks 18/21.

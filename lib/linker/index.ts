@@ -3,6 +3,9 @@ import { many, one } from "../db";
 import { normalizeDescriptor } from "./normalize";
 import { LINK_THRESHOLD, MAX_DAYS, linkScore } from "./score";
 
+/** A candidate needs some name evidence; the 0.3·time term alone would make every recent exposure a "candidate". */
+const MIN_NAME = 0.25;
+
 export type LinkCandidate = {
   exposureId: string; host: string; label: string; exposureAt: string; exposureScore: number; exposureVerdict: string;
   fieldTypes: string[]; watch: boolean;
@@ -45,7 +48,7 @@ export async function findCandidates(db: Db, userId: string, txn: TxnLike, minSc
   const scored: LinkCandidate[] = [];
   for (const e of rows) {
     const s = linkScore({ descriptor: txn.descriptor, descriptorNorm: norm, label: e.label, exposureAt: e.created_at, txnAt: txn.ts, watch: e.watch });
-    if (!s || s.score < minScore) continue;
+    if (!s || s.score < minScore || s.name.score < MIN_NAME) continue; // time alone is never evidence
     scored.push({
       exposureId: e.id, host: e.host, label: e.label, exposureAt: e.created_at.toISOString(), exposureScore: e.score, exposureVerdict: e.verdict,
       fieldTypes: e.field_types, watch: e.watch, matchScore: Number(s.score.toFixed(3)), nameScore: Number(s.name.score.toFixed(3)),
