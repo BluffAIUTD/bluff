@@ -19,7 +19,8 @@
     "eval:stretch-seed": "tsx scripts/eval/export_stretch.ts",
     "prewarm": "tsx scripts/prewarm.ts",
     "e2e": "node e2e/run.mjs",
-    "deploy:caddy": "node scripts/deploy/gen-caddyfile.mjs"
+    "deploy:caddy": "node scripts/deploy/gen-caddyfile.mjs",
+    "demo:script": "node scripts/demo-script.mjs"
   },
   "engines": {
     "node": ">=20"
