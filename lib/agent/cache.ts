@@ -18,6 +18,16 @@ export async function findReusablePageVerdict(db: Db, userId: string, host: stri
   return { verdict: { ...r.payload, mode: "cached" }, ageMinutes: Math.max(0, Math.round((now.getTime() - r.created_at.getTime()) / 60_000)) };
 }
 
+/** Persist the trace of a successful LIVE run of a scripted charge (survives demo reset). */
+export async function saveReplayTrace(db: Db, scriptId: string, steps: Omit<StepEvent, "seq">[], verdict: Verdict) {
+  if (verdict.mode !== "live") return;
+  await db.query(
+    `INSERT INTO replay_traces (script_id, steps, verdict) VALUES ($1,$2,$3)
+     ON CONFLICT (script_id) DO UPDATE SET steps=EXCLUDED.steps, verdict=EXCLUDED.verdict, created_at=now()`,
+    [scriptId, JSON.stringify(steps), JSON.stringify(verdict)],
+  );
+}
+
 export type Replay = { steps: Omit<StepEvent, "seq">[]; verdict: Verdict; replayOf: string | null; source: "run" | "fixture" };
 
 /**
@@ -39,6 +49,10 @@ export async function findReplay(db: Db, userId: string, txnId: string, scriptId
     if (v && st.length) {
       return { verdict: { ...v.payload, mode: "replayed" }, replayOf: run.id, source: "run", steps: st.map((s) => ({ kind: s.kind, tool: s.tool, inputSummary: s.input_summary, outputSummary: s.output_summary, ms: s.ms })) };
     }
+  }
+  if (scriptId) {
+    const saved = await one<{ steps: Omit<StepEvent, "seq">[]; verdict: Verdict }>(db, "SELECT steps, verdict FROM replay_traces WHERE script_id=$1", [scriptId]);
+    if (saved) return { verdict: { ...saved.verdict, mode: "replayed" }, steps: saved.steps, replayOf: null, source: "run" };
   }
   const fx = scriptId ? loadFixture(scriptId) : null;
   if (fx) return { verdict: { ...fx.verdict, mode: "replayed" }, steps: fx.steps, replayOf: null, source: "fixture" };

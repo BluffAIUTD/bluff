@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { getPool } from "../db";
 import type { RunStreamEvent, StepEvent, Verdict } from "../schemas";
-import { findReplay, findReusablePageVerdict } from "./cache";
+import { findReplay, findReusablePageVerdict, saveReplayTrace } from "./cache";
 import { afterRun } from "./hooks";
 import { selectRunner } from "./index";
 import { basicVerdictFor } from "./mock";
@@ -63,7 +63,7 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
   };
 
   const emit = (e: RunStreamEvent) => {
-    if (e.type === "step") { seq = Math.max(seq, e.data.seq + 1); persistStep(e.data); }
+    if (e.type === "step") { seq = Math.max(seq, e.data.seq + 1); persistStep(e.data); trace.push({ kind: e.data.kind, tool: e.data.tool, inputSummary: e.data.inputSummary, outputSummary: e.data.outputSummary, ms: e.data.ms }); }
     // `done` is emitted by us (after persistence) so it can carry the verdict id.
     if (e.type === "done") return;
     // A failed charge run is first offered a replay / rules verdict, so hold the error until we know.
@@ -72,6 +72,7 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
   };
   const emitStep = (s: Omit<StepEvent, "seq">) => emit({ type: "step", data: { seq, ...s } });
 
+  const trace: Omit<StepEvent, "seq">[] = [];
   let result: RunResult | null = null;
   let errorHandled = false;
 
@@ -146,6 +147,10 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
     );
   } catch (e) {
     console.error("[runs] persistence failed", (e as Error).message);
+  }
+  if (input.kind === "txn" && result.mode === "live" && !result.error) {
+    const sid = (await db.query("SELECT script_id FROM transactions WHERE id=$1", [input.txnId]).catch(() => ({ rows: [] }))).rows[0]?.script_id as string | undefined;
+    if (sid) await saveReplayTrace(db, sid, trace, result.verdict).catch((e) => console.error("[runs] replay save failed", (e as Error).message));
   }
   await afterRun(db, input, result.verdict, verdictId).catch((e) => console.error("[runs] afterRun failed", (e as Error).message));
   push(runId, { type: "done", data: { totalMs: Date.now() - t0, mode: result.mode, verdictId, runId } });
