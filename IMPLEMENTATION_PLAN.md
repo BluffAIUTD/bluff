@@ -104,7 +104,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Acceptance: `FKSHP*LLC` links to `fastkicks-shop` exposure; SQL link < 50 ms (measured, logged in test).
   - Verify: integration tests on seeded DB for each flag and each edge case.
 
-- [ ] **10. Confidence + rules-only scorer (P0)**
+- [x] **10. Confidence + rules-only scorer (P0)**
   - Objective: eng §6.4 and §6.6 deterministic path used as the "basic check" fallback and as a baseline.
   - Depends: 3.
   - Files: `lib/rules/{weights,confidence,basicCheck}.ts`, tests.
@@ -224,3 +224,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 6 — done — typecheck/lint pass; 7 seed tests pass (60 deterministic txns in 90d, 30 eval charges/20 positive, 8 registry rows, 15 cards, ≥50 allowlist, re-runnable, reset leaves eval user intact, card spans verbatim, authored Claim B data sanity: every positive links to its true exposure and no negative clears 0.55); CLI seed/reset verified on local DB. Decision: scripted charges (txn_demo_*) are NOT seeded; posted by the demo trigger (task 17). Taxonomy rows flagged is_placeholder until T-Mobile taxonomy arrives.
 - Task 7 — done — typecheck/lint pass; db helper tests pass (query helpers, tx commit + rollback); tests/testdb.ts creates isolated migrated/seeded DBs; scripts/db/local-pg.sh starts dev Postgres.
 - Task 9 — done — typecheck/lint pass; 12 integration tests pass on seeded Postgres: FKSHP*LLC→fastkicks-shop with '3 days after exposure' (link query <100ms asserted), pre-exposure and >45d never link, 1 other possible match, watch +priority, expected-charge kind, no-candidate null, seeded duplicate/card_test flags, price_drift (needs ≥2 prior), new_subscription, empty/unknown ids. Name score mirrored in TS (documented) with SQL doing the time-window narrowing.
+- Task 10 — done — typecheck/lint clean; 12 tests pass: confidence formula (clamp .97, 0.35 floor, conflict reason ≤120), basicCheck validates against VerdictSchema (scam storefront <40, legit ≥70, no-signal → unsure 40–69, low-confidence forced unsure, monotone), message heuristics flag all 9 scam cards and ≥80% of 15 seeded cards correct (sanity only, NOT a claim).
