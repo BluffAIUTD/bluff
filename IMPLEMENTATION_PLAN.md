@@ -87,7 +87,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 
 ## Section 3 — Core logic (pure + SQL)
 
-- [ ] **8. Descriptor normalization + name scoring (P0)**
+- [x] **8. Descriptor normalization + name scoring (P0)**
   - Objective: signature algorithm part 1 (eng §6.2 steps 1,3).
   - Depends: 3.
   - Files: `lib/linker/{normalize,score}.ts`, tests.
@@ -220,3 +220,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 3 — done — typecheck/lint pass; 15 tests pass (schema accept/reject, label boundaries 39/40/69/70, error shape).
 - Task 4 — done — typecheck/lint pass; 22 tests pass (cookie sign/forge, demo gate header/cookie not query, prod secret guard, token bucket refill).
 - Task 5 — done — typecheck/lint pass; migrate test (fresh DB: all 13 tables + merchant_daily matview fallback + trgm indexes, idempotent re-run) passes; CLI run twice OK. NOTE: timescale hypertable/continuous-aggregate branch (002/003) is written but UNVERIFIED locally (no timescaledb) — verify on Tiger Data. Vector replaced by float8[] per spec fallback.
+- Task 8 — done — done before task 6 (seed needs descriptor_norm). typecheck/lint pass; 18 tests pass: normalization table (incl. SQ*/TST*/PAYPAL*/PP* prefixes, empty), abbreviation matcher (fkshp⊂fastkicks-shop; rejects missing token/wrong initial), time-score window/decay, FKSHP*LLC links with 'charged 3 days after exposure', pre-exposure never links, watch +0.1. Finding: a descriptor sharing a word AND similar trigrams (e.g. 'FAST FOOD*SHOP') can still clear 0.55 — that is the case the agent must confirm/reject (spec §6.2 step 6).
