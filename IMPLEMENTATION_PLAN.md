@@ -61,7 +61,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 
 ## Section 2 — Database (Tiger Data / Postgres)
 
-- [ ] **5. Migrations + runner (P0)**
+- [x] **5. Migrations + runner (P0)**
   - Objective: schema from eng §3 via plain SQL files.
   - Depends: 1.
   - Files: `db/migrations/001_init.sql`, `002_timescale_optional.sql`, `scripts/db/migrate.ts`, `lib/db/index.ts`.
@@ -219,3 +219,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 2 — done — typecheck/lint/build pass; 4 component tests pass (mode/flag badges, empty/error states). Visual check deferred to task 43.
 - Task 3 — done — typecheck/lint pass; 15 tests pass (schema accept/reject, label boundaries 39/40/69/70, error shape).
 - Task 4 — done — typecheck/lint pass; 22 tests pass (cookie sign/forge, demo gate header/cookie not query, prod secret guard, token bucket refill).
+- Task 5 — done — typecheck/lint pass; migrate test (fresh DB: all 13 tables + merchant_daily matview fallback + trgm indexes, idempotent re-run) passes; CLI run twice OK. NOTE: timescale hypertable/continuous-aggregate branch (002/003) is written but UNVERIFIED locally (no timescaledb) — verify on Tiger Data. Vector replaced by float8[] per spec fallback.
