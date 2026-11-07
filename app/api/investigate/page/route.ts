@@ -14,7 +14,7 @@ export const POST = handle(async (req: Request) => {
   const { url, host } = parseUrl(body.url);
   const { runId } = await startRun(
     { kind: "page", userId: ctx.userId, url, host: body.host ?? host, fieldTypes: body.fieldTypes, signals: body.signals, source: body.source },
-    { fail: failureFrom(req, ctx) },
+    { fail: failureFrom(req, ctx), fresh: new URL(req.url).searchParams.get("fresh") === "1" },
   );
   return json(ctx, { runId });
 });

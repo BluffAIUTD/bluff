@@ -20,6 +20,14 @@ export const KEYS: Record<string, KeyMeta> = {
   has_contact_page: { dir: "legit", w: 0.1, evidence: "Has a contact page" },
   has_refund_policy: { dir: "legit", w: 0.1, evidence: "Clear refund and returns policy" },
   https_ok: { dir: "legit", w: 0.05, evidence: "Served over HTTPS" },
+  // --- charge signals ---
+  exposure_link: { dir: "scam", w: 0.35, evidence: "Lines up with a risky site you entered info on" },
+  card_test: { dir: "scam", w: 0.3, evidence: "Tiny first charge from a new merchant (card test)" },
+  price_drift: { dir: "scam", w: 0.12, evidence: "Charge is much higher than this merchant's usual price" },
+  duplicate_charge: { dir: "scam", w: 0.1, evidence: "Same merchant and amount charged twice within minutes" },
+  new_subscription: { dir: "scam", w: 0.1, evidence: "Looks like a new subscription after a trial charge" },
+  expected_charge: { dir: "legit", w: 0.4, evidence: "Matches a site you checked and rated OK" },
+  known_merchant: { dir: "legit", w: 0.45, evidence: "You've paid this merchant before" },
   // --- message signals ---
   urgency_language: { dir: "scam", w: 0.15, evidence: "Pressure to act within hours" },
   threat_language: { dir: "scam", w: 0.15, evidence: "Threatens fines, suspension or legal action" },

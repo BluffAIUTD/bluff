@@ -32,6 +32,7 @@ export type BasicCheckInput = {
   scamCategory?: string;
   legitCategory?: string;
   extraEvidence?: string[];
+  nextSteps?: string[];
 };
 
 /** Deterministic "basic check" verdict (engineering_spec §6.6). Always labeled mode="basic". */
@@ -55,6 +56,6 @@ export function basicCheck(input: BasicCheckInput): Verdict {
   return {
     score, verdict, confidence: c.confidence, confidence_reason: c.reason, category,
     evidence: evidence.slice(0, 5), evidence_keys: ordered.slice(0, 12),
-    next_steps: STEPS[verdict].slice(0, 4).map((s) => s.slice(0, 70)), linked: {}, mode: "basic",
+    next_steps: (input.nextSteps ?? STEPS[verdict]).slice(0, 4).map((s) => s.slice(0, 70)), linked: {}, mode: "basic",
   };
 }

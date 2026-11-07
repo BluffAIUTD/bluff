@@ -4,6 +4,8 @@ import { StepEventSchema, VerdictSchema, type StepEvent, type Verdict } from "..
 import { getConfig } from "../config";
 import { basicCheck } from "../rules/basicCheck";
 import { messageKeys, pageKeys, extractUrls } from "../rules/signals";
+import { getPool } from "../db";
+import { txnRulesVerdict } from "./txn";
 import type { Emit, RunInput, RunOptions, RunResult } from "./types";
 
 type Fixture = { host: string; verdict: Verdict; steps: Omit<StepEvent, "seq">[] };
@@ -67,10 +69,20 @@ export function basicVerdictFor(input: RunInput): Verdict {
 /** Mock agent: replays committed fixtures (labeled "cached" — it is not a live model run) or the rules-only path. */
 export async function mockRun(input: RunInput, emit: Emit, opts: RunOptions = {}): Promise<RunResult> {
   const t0 = Date.now();
-  const key = input.kind === "page" ? input.host : input.kind === "txn" ? input.txnId : null;
+  const key = input.kind === "page" ? input.host : null;
   const fixture = key ? loadFixture(key) : null;
-  const verdict = fixture ? fixture.verdict : basicVerdictFor(input);
-  const steps = fixture ? fixture.steps : stepsFromBasic(input, verdict);
+  let verdict = fixture ? fixture.verdict : basicVerdictFor(input);
+  let steps = fixture ? fixture.steps : stepsFromBasic(input, verdict);
+  if (input.kind === "txn") {
+    // Real tools over real data; only the model is mocked, so the verdict is a rules-only ("basic") one.
+    const r = await txnRulesVerdict(getPool(), input.userId, input.txnId);
+    if (!r) {
+      emit({ type: "error", data: { code: "not_found", message: "Charge not found" } });
+      return { verdict, mode: "basic", error: { code: "not_found", message: "Charge not found" } };
+    }
+    verdict = r.verdict;
+    steps = r.steps;
+  }
 
   let seq = 0;
   for (const s of steps) {
