@@ -3,29 +3,20 @@ import path from "node:path";
 import { getConfig } from "../../config";
 import { labelFromHost } from "../../linker/normalize";
 import type { PageSignals } from "../../rules/signals";
+import { signalsFromParts } from "../../signals/pure";
 import { STORES } from "../../../data/stores";
 import { str, type ToolDef } from "./types";
 
-const BRAND_WORDS = ["nike", "adidas", "usps", "fedex", "e-zpass", "ezpass", "amazon", "paypal", "apple"];
-
 /** Extract the same signals the extension computes, from our own storefront HTML (no network). */
 export function extractSignalsFromHtml(html: string, host: string, https = true): PageSignals {
-  const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").toLowerCase();
-  const title = (/<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] ?? "").toLowerCase();
-  const links = [...html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)].map((m) => m[1].replace(/<[^>]+>/g, " ").toLowerCase());
-  const hostLabel = host.toLowerCase();
-  const discount = /(\d{2,3})\s?%\s*off/.exec(text);
-  return {
-    has_card_field: /autocomplete=["']cc-number["']|name=["'][^"']*card[^"']*["']/i.test(html),
-    gift_card_or_crypto_only: /(gift\s?cards?|crypto(currency)?)\s*(or\s*\w+\s*)?only|only\s+(accepts?\s+)?(gift\s?cards?|crypto)/.test(text),
-    countdown_timer: /data-countdown|(ends|expires)\s+in\s+\d{1,2}:\d{2}/.test(html.toLowerCase()),
-    scarcity_banner: /only\s+\d+\s+left|almost gone|selling fast/.test(text),
-    no_contact_page: !links.some((l) => /contact|about|support/.test(l)),
-    no_refund_policy: !/refund|returns?\s+(policy|accepted)|money[- ]back/.test(text),
-    brand_words_in_title: BRAND_WORDS.some((b) => title.includes(b) && !hostLabel.includes(b)),
-    https,
-    ...(discount ? { discount_pct: Number(discount[1]) } : {}),
-  };
+  const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ");
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] ?? "";
+  const linkTexts = [...html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)].map((m) => m[1].replace(/<[^>]+>/g, " "));
+  return signalsFromParts({
+    text, title, linkTexts, https, hostLabel: host,
+    hasCardField: /autocomplete=["']cc-number["']|name=["'][^"']*card[^"']*["']/i.test(html),
+    hasCountdownAttr: /data-countdown/i.test(html),
+  });
 }
 
 export function storesDir() { return process.env.STORES_DIR || path.join(process.cwd(), "stores"); }
