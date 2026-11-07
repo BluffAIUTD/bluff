@@ -22,7 +22,7 @@ async function pageErrors(page) {
 
 // ---- 1. core loop on a phone ------------------------------------------------
 {
-  await fetch(`${BASE}/api/demo/reset`, { method: "POST" }); // dev/mock: reset allowed without a key
+  await fetch(`${BASE}/api/demo/reset`, { method: "POST", headers: process.env.E2E_DEMO_KEY ? { "x-demo-key": process.env.E2E_DEMO_KEY } : {} }); // production needs E2E_DEMO_KEY
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage();
   const errs = await pageErrors(p);

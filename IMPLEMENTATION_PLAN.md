@@ -61,7 +61,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 
 ## Section 2 — Database (Tiger Data / Postgres)
 
-- [x] **5. Migrations + runner (P0)**
+- [~] **5. Migrations + runner (P0)** — _partial: Timescale branch untested locally_
   - Objective: schema from eng §3 via plain SQL files.
   - Depends: 1.
   - Files: `db/migrations/001_init.sql`, `002_timescale_optional.sql`, `scripts/db/migrate.ts`, `lib/db/index.ts`.
@@ -138,7 +138,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: SSRF (reject private IPs / non-store hosts); timeouts; oversized outputs truncated.
   - Verify: unit tests per tool incl. SSRF rejection and timeout fallback.
 
-- [x] **14. Live Nemotron agent loop (P0, live path unverifiable here)**
+- [~] **14. Live Nemotron agent loop (P0, live path unverifiable here)** — _partial: live run vs build.nvidia.com unverified (needs key)_
   - Objective: real multi-step tool-calling agent (NVIDIA track), ≤ 6 iterations, 15 s hard timeout, repair turn, rules-only fallback.
   - Depends: 13.
   - Files: `lib/agent/{live,prompts,llm}.ts`, `lib/agent/embeddings.ts`.
@@ -161,7 +161,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - [x] **18. Disputes API + Refund Builder logic (P0)** — template letter filled from data (name, last-4 placeholder, date, amount, merchant, category, narrative), evidence timeline (exposure → alert → charge with UTC timestamps), next steps; AI narrative via model with fallback to template; `PATCH status filed` (status only, never sends). Edge: unlinked charge → 409 `bad_input`; >8 s → template. Depends 13, 14, 17. Verify: tests for template and fallback.
 - [x] **19. Game API (P0)** — `/api/game/{today,answer,finish}`; 5 cards deterministic by date with 2–3 scam split; answers hidden until answered; streak (1 per day, replays = practice), weakest category, share text `Call the Bluff #n 🟥🟩… 4/5 bluff.<domain>/play` without revealing answers; set fixed when opened (across midnight). Depends 6, 7. Verify: tests for determinism, streak rules, share text.
 - [x] **20. Eval + data lifecycle APIs (P0)** — `GET /api/eval` (reads `eval/results.json`, 404-safe empty state), `POST /api/eval/link` (eval key), `DELETE /api/me` (deletes exposures, verdicts, messages, game data, re-seeds Maya). Depends 9, 6. Verify: tests.
-- [x] **21. Photon messaging lib + webhook (P0)** — `lib/photon` with `PHOTON_MODE=mock|live`; outbound queue → send → status with retries 1/4/10 s; `notify()` enforces 1 alert/event, 5/hour/user, `alerts_paused`; inbound webhook verifies HMAC signing secret, replies 200 immediately, async processing: commands WATCH/DISPUTE/SAFE/STOP/HELP (case-insensitive), else message-mode verdict reply with templates (P3-2), empty/image-only/>2,000-char replies, 10 s holding message, rules-only fallback, unknown phone = guest, inbound body stored as `[discarded]`. Mock mode writes to `messages` for the Phone Preview drawer. Edge: duplicate webhook delivery (idempotent by provider id). Depends 12, 16, 17. Verify: tests with signed fake payloads. **Live: `[!]` needs Photon project, number, and confirmed payload/signature header (G2).**
+- [~] **21. Photon messaging lib + webhook (P0)** — `lib/photon` with `PHOTON_MODE=mock|live`; outbound queue → send → status with retries 1/4/10 s; `notify()` enforces 1 alert/event, 5/hour/user, `alerts_paused`; inbound webhook verifies HMAC signing secret, replies 200 immediately, async processing: commands WATCH/DISPUTE/SAFE/STOP/HELP (case-insensitive), else message-mode verdict reply with templates (P3-2), empty/image-only/>2,000-char replies, 10 s holding message, rules-only fallback, unknown phone = guest, inbound body stored as `[discarded]`. Mock mode writes to `messages` for the Phone Preview drawer. Edge: duplicate webhook delivery (idempotent by provider id). Depends 12, 16, 17. Verify: tests with signed fake payloads. **Live: `[!]` needs Photon project, number, and confirmed payload/signature header (G2).** — _partial: live Photon unverified (needs project/number/API shapes)_
 
 ## Section 6 — Frontend
 
@@ -185,23 +185,23 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 ## Section 8 — Eval harness (Python)
 
 - [x] **35. Claim B harness (P0)** — `scripts/eval/run_linker.py` + naive baseline, 10 dev / 20 test, P/R/F1, writes `eval/results.json` section; real numbers from the seeded eval user. Verify: script runs end-to-end, numbers reproducible.
-- [x] **36. Claim A harness (P0, data `[!]`)** — `prepare_split.py` (seed 42, stratified 80/20, ids only, commit before tuning), `run_baseline.py` (adapter for T-Mobile baseline), `run_bluff.py`, `score.py` (P/R/F1, both `unsure` mappings, category accuracy, ≥ 3 failures). Ships a **synthetic stand-in** set (`eval/standin/`) so the pipeline runs; results labeled `dataset: "synthetic stand-in, not T-Mobile data"`. Verify: pipeline test on stand-in; swap-in instructions in README.
-- [x] **37. Stretch eval scaffolding (P1)** — `eval/stretch.jsonl` format, zero-shot no-tools baseline script (needs key `[!]`), failure table renderer. Verify: runs on stand-in with mock.
+- [~] **36. Claim A harness (P0, data `[!]`)** — `prepare_split.py` (seed 42, stratified 80/20, ids only, commit before tuning), `run_baseline.py` (adapter for T-Mobile baseline), `run_bluff.py`, `score.py` (P/R/F1, both `unsure` mappings, category accuracy, ≥ 3 failures). Ships a **synthetic stand-in** set (`eval/standin/`) so the pipeline runs; results labeled `dataset: "synthetic stand-in, not T-Mobile data"`. Verify: pipeline test on stand-in; swap-in instructions in README. — _partial: real T-Mobile data + live agent pending; stand-in results only_
+- [~] **37. Stretch eval scaffolding (P1)** — `eval/stretch.jsonl` format, zero-shot no-tools baseline script (needs key `[!]`), failure table renderer. Verify: runs on stand-in with mock. — _partial: needs 40–50 hand-labeled cases + NVIDIA key for zero-shot baseline_
 
 ## Section 9 — Hardening and depth
 
 - [x] **38. Failure-state coverage (P0/P1)** — every product_spec §4 row reachable with `?fail=` and covered by a test; ErrorState/EmptyState everywhere; `prewarm` script (8 hosts + `txn_demo_link_1`). Verify: test matrix.
 - [x] **39. SAFE/STOP/HELP + rate limits + delete hardening (P1)** — allowlist per user, alerts paused, HELP text, 429 shapes. (Core of this lands in tasks 4/21; this task closes gaps and tests.) Verify: tests.
 - [x] **40. Game generation job + lookalike card (P1)** — `/api/game/generate` (demo key) via small Nemotron model; validation (red flag appears verbatim, no real brands, ≤ 300 chars), seeded fallback, lookalike from most common flagged category of the last 7 days. Verify: tests with fake model, malformed → drop → pool.
-- [x] **41. Voice call for highest-risk charge (P2)** — adapter + mock for linked charge ≥ $40 and score < 30, text fallback. `[!]` live Photon calling unverified. Verify: unit tests with mock.
-- [ ] **42. Leaderboard / image forwarding / real RDAP / PDF (P2)** — **deferred by the spec's own cut order**; RDAP lookup already present behind flag in task 13; others recorded as not built.
+- [~] **41. Voice call for highest-risk charge (P2)** — adapter + mock for linked charge ≥ $40 and score < 30, text fallback. `[!]` live Photon calling unverified. Verify: unit tests with mock. — _partial: live Photon calling unverified_
+- [ ] **42. Leaderboard / image forwarding / real RDAP / PDF (P2)** — **deferred by the spec's own cut order**; RDAP lookup already present behind flag in task 13; others recorded as not built. — _deliberately not built (spec cut order); RDAP exists behind a flag_
 
 ## Section 10 — QA, polish, docs, deployment
 
 - [x] **43. End-to-end + mobile visual QA (P0)** — Playwright: full core loop on mocks at 390×844; screenshots of all routes; fix layout, contrast, loading/empty/error states; JS budget check (< 250 KB gz per route, report). Verify: tests green; screenshots reviewed.
-- [x] **44. Containerization + deploy config (P0)** — `Dockerfile` (standalone), `docker-compose.yml` (web + caddy), `Caddyfile` with explicit store subdomains via `BASE_DOMAIN`, `/api/health`, `.dockerignore`, `DEPLOY.md` runbook (Vultr, GoDaddy A records, Tiger Data migrate/seed, Photon webhook URL, smoke test, pre-warm). Verify: `docker build` if daemon available, else `next build` standalone + `docker compose config`. **Actual deploy `[!]` human: Vultr, domain, keys.**
-- [x] **45. README + Devpost kit (P0)** — README (architecture, claims with honest status, how to run, sponsor usage, go-live checklist), `DEVPOST.md` copy (tracks, MLH opt-ins), demo script with number placeholders to fill from `eval/results.json`, video shot list. Video, event-tester quotes, FTC figure, Devpost submit = `[!]` human.
-- [ ] **46. Final verification pass (P0)** — all checks, update this plan with results, tick statuses, record remaining human blockers.
+- [~] **44. Containerization + deploy config (P0)** — `Dockerfile` (standalone), `docker-compose.yml` (web + caddy), `Caddyfile` with explicit store subdomains via `BASE_DOMAIN`, `/api/health`, `.dockerignore`, `DEPLOY.md` runbook (Vultr, GoDaddy A records, Tiger Data migrate/seed, Photon webhook URL, smoke test, pre-warm). Verify: `docker build` if daemon available, else `next build` standalone + `docker compose config`. **Actual deploy `[!]` human: Vultr, domain, keys.** — _partial: docker build + real deploy not run (no daemon/accounts)_
+- [~] **45. README + Devpost kit (P0)** — README (architecture, claims with honest status, how to run, sponsor usage, go-live checklist), `DEVPOST.md` copy (tracks, MLH opt-ins), demo script with number placeholders to fill from `eval/results.json`, video shot list. Video, event-tester quotes, FTC figure, Devpost submit = `[!]` human. — _partial: video, public repo, Devpost submission, rehearsals are human-only_
+- [x] **46. Final verification pass (P0)** — all checks, update this plan with results, tick statuses, record remaining human blockers.
 
 ## Human-only / blocked register
 | Item | Owner | Blocks |
@@ -214,7 +214,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 | Devpost registration/submission, video, rehearsals, tester quotes, FTC stat | team | submission (45) |
 
 ## Progress log
-(Updated after every task: date, commit, verification output.)
+(Updated after every task: task number, verification output. Order notes: task 8 was done before 6 (seed needs descriptor normalization); the outbound `notify()` pipeline from task 21 landed inside task 16; the Privacy page files were committed inside the task 31 commit.)
 - Task 1 — done — typecheck, lint, next build (standalone), vitest all pass.
 - Task 2 — done — typecheck/lint/build pass; 4 component tests pass (mode/flag badges, empty/error states). Visual check deferred to task 43.
 - Task 3 — done — typecheck/lint pass; 15 tests pass (schema accept/reject, label boundaries 39/40/69/70, error shape).
@@ -259,3 +259,27 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 43 — done — typecheck/lint clean; unit suite green (286) with exit 0. e2e/run.mjs (npm run e2e) in REAL Chromium: core loop at 390px (check → exposure → simulate → linked card → dispute letter → phone preview shows alert) 4.6s, 0 console errors; all 8 routes × (390px, 1280px): HTTP 200, no horizontal scroll, primary nav present, 0 console errors; 5-card game + spoiler-free share; keyboard Tab focus. Screenshots reviewed. Production build First Load JS (gzip): / 106kB, /check 140kB, /charges/[id] 138kB, /exposure 135kB, /play 107kB, /eval 106kB, /privacy 104kB — all < 250 kB. Fixed a real bug surfaced by the exit-code gate: fire-and-forget voice-call work could reject after its DB pool closed (now caught+logged). Overview feed labels phone calls. Not measured: FCP on 4G, contrast audit.
 - Task 44 — done — typecheck/lint clean; full suite green. Added Dockerfile (deps/build/tools/runtime, non-root, healthcheck), docker-compose (web + tools profile + caddy), generated Caddyfile (app host + 8 explicit store hosts, SSE flush_interval -1) with a freshness test, /api/health, favicon, DEPLOY.md runbook. VERIFIED: docker compose config OK; the exact runtime layout (standalone + fixtures + stores + db + eval) booted with NODE_ENV=production against Postgres: /api/health ok, /check & /eval 200, SSE run streamed step×5→verdict→done, /api/eval returns committed results, demo reset 403 without key / 204 with key. NOT VERIFIED (no Docker daemon in this environment): docker build itself, Caddy TLS. BLOCKER (human): Vultr instance, GoDaddy domain + DNS, Tiger Data, API keys — runbook marks each [you].
 - Task 45 — done — typecheck/lint clean; full suite green incl. 4 doc tests. README (architecture, honest-status table, claims with measured numbers + caveats, local run, going-live checklist, sponsor usage, limitations), DEVPOST.md (copy, tracks + MLH opt-ins, shot list, human checklist, no invented statistics), npm run demo:script fills the pitch with real numbers from eval/results.json and prints warnings for stand-in data / rules-only path / non-wins (tested). BLOCKER (human): record video, make repo public, Devpost registration/submission, rehearsals, tester quotes, FTC statistic (only if fetched).
+
+## Final verification (task 46)
+Run on the final tree:
+- `npm run typecheck` clean · `npm run lint` clean · `npm run build` OK (all routes ≤ 140 kB first-load JS, gzip)
+- `npm test`: **40 files, 293 tests, exit 0** · `npm run eval:test`: 11 Python tests OK · `deploy:caddy --check`: up to date
+- `npm run e2e` in real Chromium against the **production standalone build** (NODE_ENV=production, demo gate on): all checks pass (core loop 4.3 s; 8 routes × 390px/1280px: 200, no horizontal scroll, nav present, no console errors; game + share; keyboard focus)
+- Real-Chromium **unpacked extension** loaded against a storefront: panel, verdict, exposure logged
+- Secret scan of tracked files: none; only `.env.example` is tracked
+
+### What is done vs. not (honest)
+| Done and verified here | Written but NOT verified live (needs a human/account) |
+|---|---|
+| Core loop, 4 pillars, dashboard, 8 storefronts, extension, DB/migrations/seed, linker + flags, rules fallback, mock + live agent code paths, run store/SSE, replay/cached/basic modes, disputes, game + generation, messaging pipeline + webhook, voice adapter, eval harness (Claim B measured; Claim A pipeline), e2e + layout QA, deploy config | Live Nemotron run, Photon send/receive/call, Tiger Data Timescale branch, `docker build`, Vultr/GoDaddy deploy, real T-Mobile data/baseline, event-tester quotes, sourced statistic, demo video, Devpost submission |
+
+### Remaining blockers (human)
+| Item | Blocks |
+|---|---|
+| NVIDIA key + model IDs | live agent verification (14), live Claim A, zero-shot baseline (37), live game generation (40), live dispute prose (18) |
+| Photon project/number/API shapes | live messaging (21), voice (41) |
+| T-Mobile message set, taxonomy, baseline (booth) | real Claim A (36); taxonomy is a labeled placeholder |
+| Tiger Data service | Timescale branch check (5), managed DB deploy |
+| Vultr + GoDaddy + DNS + keys | deployment (44) |
+| Video, public repo, Devpost, rehearsals, 40–50 hand-labeled stretch cases, FTC figure (only if fetched) | submission (45), stretch (37) |
+- Task 46 — done — FINAL: typecheck/lint/build clean; 293 vitest tests (40 files) exit 0; 11 Python tests OK; Caddyfile fresh; production-build e2e (real Chromium) all pass; secret scan clean; plan statuses updated (37 done, 8 partial for live/human-only steps, 1 deliberately deferred).
