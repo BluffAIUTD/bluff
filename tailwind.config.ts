@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "var(--ink)", paper: "var(--paper)", scam: "var(--scam)", unsure: "var(--unsure)",
-        safe: "var(--safe)", accent: "var(--accent)",
+        ink: "var(--ink)", paper: "var(--paper)", scam: "rgb(var(--scam-rgb) / <alpha-value>)", unsure: "rgb(var(--unsure-rgb) / <alpha-value>)",
+        safe: "rgb(var(--safe-rgb) / <alpha-value>)", accent: "rgb(var(--accent-rgb) / <alpha-value>)",
         bg: "var(--bg)", surface: "var(--surface)", surface2: "var(--surface-2)", line: "var(--border)",
         fg: "var(--text)", dim: "var(--text-dim)",
         gray: { 1: "var(--gray-1)", 2: "var(--gray-2)", 3: "var(--gray-3)", 4: "var(--gray-4)", 5: "var(--gray-5)", 6: "var(--gray-6)" },

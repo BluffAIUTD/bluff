@@ -9,6 +9,10 @@
   --unsure: #f5a524;
   --safe: #2f9e6e;
   --accent: #5b5bd6;
+  --scam-rgb: 229 72 77;
+  --unsure-rgb: 245 165 36;
+  --safe-rgb: 47 158 110;
+  --accent-rgb: 91 91 214;
   --gray-1: #f2f2f3;
   --gray-2: #e3e3e6;
   --gray-3: #c8c8ce;
@@ -41,6 +45,8 @@
   --text: var(--ink);
   --text-dim: var(--gray-5);
 }
+
+mark { background-color: rgb(var(--scam-rgb) / 0.3); color: inherit; }
 
 html, body { background: var(--bg); color: var(--text); }
 body { font-family: var(--font-inter), system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
