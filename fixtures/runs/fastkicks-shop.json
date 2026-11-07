@@ -1,0 +1,68 @@
+{
+  "host": "fastkicks-shop",
+  "verdict": {
+    "score": 18,
+    "verdict": "likely_scam",
+    "confidence": 0.93,
+    "confidence_reason": "Six independent signals point the same way",
+    "category": "fake_store",
+    "evidence": [
+      "Site is 4 days old",
+      "Only takes gift cards or crypto",
+      "Copies a major sneaker brand",
+      "85% off with a countdown timer"
+    ],
+    "evidence_keys": [
+      "domain_age_lt_30",
+      "gift_card_only",
+      "brand_clone",
+      "too_good_discount",
+      "countdown_timer"
+    ],
+    "next_steps": [
+      "Don't enter any card details",
+      "Leave this site",
+      "Shop at a retailer you know",
+      "Report it to your bank if you paid"
+    ],
+    "linked": {},
+    "mode": "cached"
+  },
+  "steps": [
+    {
+      "kind": "plan",
+      "tool": null,
+      "inputSummary": "Check fastkicks-shop: card field detected",
+      "outputSummary": "Plan: domain age \u2192 page signals \u2192 taxonomy \u2192 verdict",
+      "ms": 310
+    },
+    {
+      "kind": "tool",
+      "tool": "domain_intel",
+      "inputSummary": "fastkicks-shop",
+      "outputSummary": "4 days old, clones a major sneaker brand",
+      "ms": 420
+    },
+    {
+      "kind": "tool",
+      "tool": "page_signals",
+      "inputSummary": "fastkicks-shop",
+      "outputSummary": "gift-card only, countdown, no contact page",
+      "ms": 380
+    },
+    {
+      "kind": "tool",
+      "tool": "taxonomy_match",
+      "inputSummary": "checkout text",
+      "outputSummary": "fake_store 0.91",
+      "ms": 290
+    },
+    {
+      "kind": "final",
+      "tool": "submit_verdict",
+      "inputSummary": "score 18",
+      "outputSummary": "likely_scam (93% sure)",
+      "ms": 120
+    }
+  ]
+}

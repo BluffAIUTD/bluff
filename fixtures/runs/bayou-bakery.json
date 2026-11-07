@@ -1,0 +1,56 @@
+{
+  "host": "bayou-bakery",
+  "verdict": {
+    "score": 90,
+    "verdict": "looks_ok",
+    "confidence": 0.91,
+    "confidence_reason": "Established domain with policies in place",
+    "category": "legit_store",
+    "evidence": [
+      "Domain is about 6 years old",
+      "Has a contact page",
+      "Clear refund and returns policy"
+    ],
+    "evidence_keys": [
+      "domain_age_gt_365",
+      "has_contact_page",
+      "has_refund_policy"
+    ],
+    "next_steps": [
+      "Pay with a card you can dispute",
+      "Keep your order confirmation"
+    ],
+    "linked": {},
+    "mode": "cached"
+  },
+  "steps": [
+    {
+      "kind": "plan",
+      "tool": null,
+      "inputSummary": "Check bayou-bakery: card field detected",
+      "outputSummary": "Plan: domain age \u2192 page signals \u2192 taxonomy \u2192 verdict",
+      "ms": 310
+    },
+    {
+      "kind": "tool",
+      "tool": "domain_intel",
+      "inputSummary": "bayou-bakery",
+      "outputSummary": "2190 days old, no brand clone",
+      "ms": 420
+    },
+    {
+      "kind": "tool",
+      "tool": "page_signals",
+      "inputSummary": "bayou-bakery",
+      "outputSummary": "contact page, refund policy, https",
+      "ms": 340
+    },
+    {
+      "kind": "final",
+      "tool": "submit_verdict",
+      "inputSummary": "score 90",
+      "outputSummary": "looks_ok (91% sure)",
+      "ms": 120
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "host": "tollpay-tx",
+  "verdict": {
+    "score": 26,
+    "verdict": "likely_scam",
+    "confidence": 0.88,
+    "confidence_reason": "Young domain plus fake-authority wording",
+    "category": "toll_scam",
+    "evidence": [
+      "Site is 9 days old",
+      "Imitates a state toll authority",
+      "Threatens fines for an unpaid balance",
+      "No contact page"
+    ],
+    "evidence_keys": [
+      "domain_age_lt_30",
+      "brand_clone",
+      "threat_language",
+      "no_contact_page"
+    ],
+    "next_steps": [
+      "Don't enter any card details",
+      "Leave this site",
+      "Shop at a retailer you know"
+    ],
+    "linked": {},
+    "mode": "cached"
+  },
+  "steps": [
+    {
+      "kind": "plan",
+      "tool": null,
+      "inputSummary": "Check tollpay-tx: card field detected",
+      "outputSummary": "Plan: domain age \u2192 page signals \u2192 taxonomy \u2192 verdict",
+      "ms": 310
+    },
+    {
+      "kind": "tool",
+      "tool": "domain_intel",
+      "inputSummary": "tollpay-tx",
+      "outputSummary": "9 days old, clones a state toll authority",
+      "ms": 420
+    },
+    {
+      "kind": "tool",
+      "tool": "page_signals",
+      "inputSummary": "tollpay-tx",
+      "outputSummary": "threat banner, no contact page",
+      "ms": 350
+    },
+    {
+      "kind": "tool",
+      "tool": "taxonomy_match",
+      "inputSummary": "page text",
+      "outputSummary": "toll_scam 0.86",
+      "ms": 300
+    },
+    {
+      "kind": "final",
+      "tool": "submit_verdict",
+      "inputSummary": "score 26",
+      "outputSummary": "likely_scam (88% sure)",
+      "ms": 120
+    }
+  ]
+}
