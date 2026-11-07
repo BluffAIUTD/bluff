@@ -27,7 +27,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 
 ## Section 1 — Foundation
 
-- [ ] **1. Scaffold the app (P0)**
+- [x] **1. Scaffold the app (P0)**
   - Objective/why: one Next.js (App Router, TS, Tailwind) codebase per eng spec §1/§10; everything else builds on it.
   - Depends: none.
   - Files: `package.json`, `tsconfig.json`, `next.config.mjs`, `tailwind.config.ts`, `postcss.config.mjs`, `.eslintrc`, `vitest.config.ts`, `.gitignore`, `.env.example`, `app/layout.tsx`, `app/page.tsx`.
@@ -215,3 +215,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 
 ## Progress log
 (Updated after every task: date, commit, verification output.)
+- Task 1 — done — typecheck, lint, next build (standalone), vitest all pass.
