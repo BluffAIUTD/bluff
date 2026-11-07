@@ -25,6 +25,7 @@ export function EvalView({ results }: { results: EvalResults | null }) {
               ...(a.unsure_as_legit ? [{ method: "Bluff (unsure counted as legit)", n: a.n, prf: a.unsure_as_legit }] : []),
               { method: a.baseline_name ?? "Provided baseline", n: a.n, prf: a.baseline },
             ]} />
+          {a.caveat && <p role="note" className="rounded-control border border-unsure/40 bg-unsure/10 px-3 py-2 text-sm">{a.caveat}</p>}
           {a.category_accuracy != null && <p className="text-sm text-dim">Category accuracy against the taxonomy: <b className="text-fg">{(a.category_accuracy * 100).toFixed(1)}%</b></p>}
           <FailureCases title="Where Bluff is still wrong (Claim A)" items={a.failures} />
         </div>

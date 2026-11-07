@@ -12,7 +12,7 @@ export const ResultsSchema = z.object({
   claimA: z.object({
     n: z.number(), split: z.string(), dataset: z.string(), mode: z.string(),
     bluff: Prf, baseline: Prf.nullable(), baseline_name: z.string().optional(), unsure_as_legit: Prf.optional(),
-    category_accuracy: z.number().nullable().optional(), failures: z.array(Failure),
+    category_accuracy: z.number().nullable().optional(), caveat: z.string().optional(), failures: z.array(Failure),
   }).nullable().optional(),
   claimB: z.object({
     n: z.number(), split: z.string(), dataset: z.string(), method: z.string(),
