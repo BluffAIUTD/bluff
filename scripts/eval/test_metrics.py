@@ -42,3 +42,32 @@ class Metrics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ClaimA(unittest.TestCase):
+    def test_split_is_stratified_deterministic_and_disjoint(self):
+        from prepare_split import split
+        rows = [{"id": f"a{i}", "label": "scam"} for i in range(50)] + [{"id": f"b{i}", "label": "legit"} for i in range(50)]
+        tr, te = split(rows)
+        self.assertEqual((len(tr), len(te)), (80, 20))
+        self.assertFalse(set(tr) & set(te))
+        self.assertEqual(sum(1 for i in te if i.startswith("a")), 10)
+        self.assertEqual(split(rows), (tr, te))
+
+    def test_unsure_mapping_and_error_counted_wrong(self):
+        from score import predicted_scam, score
+        v = lambda x: {"ok": True, "verdict": {"verdict": x}}  # noqa: E731
+        self.assertTrue(predicted_scam(v("unsure"), True))
+        self.assertFalse(predicted_scam(v("unsure"), False))
+        self.assertIsNone(predicted_scam({"ok": False}, True))
+        rows = {"1": {"label": "scam"}, "2": {"label": "legit"}}
+        b, base = score(rows, ["1", "2"], {"1": {"ok": False}, "2": v("looks_ok")}, {"1": True, "2": False})
+        self.assertEqual(b["r"], 0.0)  # the errored scam message counts as a miss
+        self.assertEqual(base["f1"], 1.0)
+
+    def test_standin_dataset_has_both_classes_and_no_duplicates(self):
+        from load_dataset import load
+        rows = load()
+        self.assertGreater(len(rows), 80)
+        self.assertEqual(len({r["text"] for r in rows}), len(rows))
+        self.assertTrue({"scam", "legit"} <= {r["label"] for r in rows})

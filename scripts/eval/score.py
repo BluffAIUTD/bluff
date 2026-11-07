@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Score Claim A: precision/recall/F1 (scam = positive) for Bluff and the baseline, both `unsure` mappings, category accuracy,
+and the worst failures. Merges the claimA section into eval/results.json."""
+import datetime
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
+from load_dataset import ROOT, dataset_name, load  # noqa: E402
+from metrics import binary_counts, merge_results, prf  # noqa: E402
+
+
+def predicted_scam(res, unsure_as_scam=True):
+    if not res.get("ok"):
+        return None  # persistent error -> counted wrong
+    v = res["verdict"]["verdict"]
+    return v == "likely_scam" or (v == "unsure" and unsure_as_scam)
+
+
+def score(rows, split_ids, bluff, baseline_preds, unsure_as_scam=True):
+    def pairs(pred_of):
+        out = []
+        for i in split_ids:
+            truth = rows[i]["label"] == "scam"
+            p = pred_of(i)
+            out.append((p if p is not None else (not truth), truth))  # error -> wrong answer
+        return out
+    b = prf(*binary_counts(pairs(lambda i: predicted_scam(bluff[i], unsure_as_scam)))[:3])
+    base = prf(*binary_counts(pairs(lambda i: baseline_preds[i]))[:3]) if baseline_preds else None
+    return b, base
+
+
+def main():
+    split = json.load(open(os.path.join(ROOT, "eval", "split.json")))
+    rows = {r["id"]: r for r in load()}
+    bluff = json.load(open(os.path.join(ROOT, "eval", "bluff_a.json")))
+    bl = json.load(open(os.path.join(ROOT, "eval", "baseline_a.json"))) if os.path.exists(os.path.join(ROOT, "eval", "baseline_a.json")) else None
+    ids = split["test"]
+    b_scam, base = score(rows, ids, bluff, bl["predictions"] if bl else None, True)
+    b_legit, _ = score(rows, ids, bluff, None, False)
+
+    cat_hits = cat_n = 0
+    fails = []
+    for i in ids:
+        r, res = rows[i], bluff[i]
+        truth = r["label"] == "scam"
+        p = predicted_scam(res, True)
+        if truth and res.get("ok") and p:
+            cat_n += 1
+            cat_hits += res["verdict"]["category"] == r["category"]
+        if p is None or p != truth:
+            v = res.get("verdict", {})
+            fails.append((v.get("confidence", 0), {"id": i, "text": r["text"][:220], "expected": r["label"],
+                          "predicted": "error" if p is None else ("scam" if p else "legit"),
+                          "note": res.get("error") or f"verdict {v.get('verdict')} ({v.get('score')}/100, {round(v.get('confidence', 0) * 100)}% sure); evidence: " + "; ".join(v.get("evidence", [])[:2])}))
+    fails.sort(key=lambda x: -x[0])  # most confident mistakes first
+    modes = sorted({res["verdict"]["mode"] for res in bluff.values() if res.get("ok")})
+    errors = sum(1 for res in bluff.values() if not res.get("ok"))
+    mode_text = ", ".join(modes) or "none"
+    if set(modes) <= {"basic"}:
+        mode_text += " (rules-only 'basic' verdicts; the Nemotron agent was NOT used)"
+    elif "cached" in modes:
+        mode_text += " (includes mock/cached results; not a live Nemotron run)"
+    value = {
+        "n": len(ids),
+        "split": f"seed {split['seed']}, stratified 80/20 ({split['n_train']} train / {split['n_test']} test); only the held-out test ids are scored",
+        "dataset": dataset_name(),
+        "mode": mode_text + (f"; {errors} request errors counted as wrong" if errors else ""),
+        "bluff": b_scam, "unsure_as_legit": b_legit,
+        "baseline": base, "baseline_name": bl["baseline"] if bl else None,
+        "category_accuracy": round(cat_hits / cat_n, 4) if cat_n else None,
+        "failures": [f for _, f in fails[:5]],
+    }
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    merge_results(os.path.join(ROOT, "eval", "results.json"), "claimA", value, now)
+    print(json.dumps({k: value[k] for k in ("n", "mode", "bluff", "unsure_as_legit", "baseline", "category_accuracy")}, indent=2))
+
+
+if __name__ == "__main__":
+    main()
