@@ -95,7 +95,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: empty descriptor; descriptor shorter than 3 chars; unicode; processor prefix with no merchant.
   - Verify: table-driven unit tests incl. the 6 hard cases; `FKSHP*LLC` → `fkshp`.
 
-- [ ] **9. Linker SQL + rule flags (P0)**
+- [x] **9. Linker SQL + rule flags (P0)**
   - Objective: candidates (0–45 days after exposure, never before), link score = 0.7·name + 0.3·time + 0.1 watch, threshold 0.55; flags price_drift, duplicate, new_subscription, card_test, exposure_link.
   - Depends: 6, 7, 8.
   - Files: `lib/linker/index.ts`, `lib/rules/flags.ts`, tests.
@@ -223,3 +223,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 8 — done — done before task 6 (seed needs descriptor_norm). typecheck/lint pass; 18 tests pass: normalization table (incl. SQ*/TST*/PAYPAL*/PP* prefixes, empty), abbreviation matcher (fkshp⊂fastkicks-shop; rejects missing token/wrong initial), time-score window/decay, FKSHP*LLC links with 'charged 3 days after exposure', pre-exposure never links, watch +0.1. Finding: a descriptor sharing a word AND similar trigrams (e.g. 'FAST FOOD*SHOP') can still clear 0.55 — that is the case the agent must confirm/reject (spec §6.2 step 6).
 - Task 6 — done — typecheck/lint pass; 7 seed tests pass (60 deterministic txns in 90d, 30 eval charges/20 positive, 8 registry rows, 15 cards, ≥50 allowlist, re-runnable, reset leaves eval user intact, card spans verbatim, authored Claim B data sanity: every positive links to its true exposure and no negative clears 0.55); CLI seed/reset verified on local DB. Decision: scripted charges (txn_demo_*) are NOT seeded; posted by the demo trigger (task 17). Taxonomy rows flagged is_placeholder until T-Mobile taxonomy arrives.
 - Task 7 — done — typecheck/lint pass; db helper tests pass (query helpers, tx commit + rollback); tests/testdb.ts creates isolated migrated/seeded DBs; scripts/db/local-pg.sh starts dev Postgres.
+- Task 9 — done — typecheck/lint pass; 12 integration tests pass on seeded Postgres: FKSHP*LLC→fastkicks-shop with '3 days after exposure' (link query <100ms asserted), pre-exposure and >45d never link, 1 other possible match, watch +priority, expected-charge kind, no-candidate null, seeded duplicate/card_test flags, price_drift (needs ≥2 prior), new_subscription, empty/unknown ids. Name score mirrored in TS (documented) with SQL doing the time-window narrowing.
