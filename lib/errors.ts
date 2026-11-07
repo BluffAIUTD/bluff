@@ -9,7 +9,7 @@ const STATUS: Record<ErrorCode, number> = {
 };
 
 export class ApiError extends Error {
-  constructor(public code: ErrorCode, message: string, public fallback?: unknown) { super(message); }
+  constructor(public code: ErrorCode, message: string, public fallback?: unknown, public retryAfterSec?: number) { super(message); }
 }
 
 export function errorBody(code: ErrorCode, message: string, fallback?: unknown): ApiErrorBody {
@@ -26,7 +26,7 @@ export function handle<A extends unknown[]>(fn: (...args: A) => Promise<Response
     try {
       return await fn(...args);
     } catch (e) {
-      if (e instanceof ApiError) return errorResponse(e.code, e.message, e.fallback);
+      if (e instanceof ApiError) return errorResponse(e.code, e.message, e.fallback, e.retryAfterSec ? { "retry-after": String(e.retryAfterSec) } : undefined);
       console.error("[api] unhandled", e);
       return errorResponse("upstream_down", "Something went wrong on our side. Try again.");
     }

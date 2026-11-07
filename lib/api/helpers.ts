@@ -17,7 +17,10 @@ export async function parseBody<T>(req: Request, schema: ZodType<T>): Promise<T>
 /** 30 agent runs / minute / IP (engineering_spec §4). */
 export function enforceAgentRateLimit(ctx: RequestContext) {
   const r = agentBucket.take(ctx.ip);
-  if (!r.ok) throw new ApiError("rate_limited", `Too many checks. Try again in ${Math.ceil(r.retryAfterMs / 1000)}s.`);
+  if (!r.ok) {
+    const sec = Math.max(1, Math.ceil(r.retryAfterMs / 1000));
+    throw new ApiError("rate_limited", `Too many checks. Try again in ${sec}s.`, undefined, sec);
+  }
 }
 
 /** `?fail=` forces a failure shape (spec §4); honored outside production or when the demo key is unlocked. */
