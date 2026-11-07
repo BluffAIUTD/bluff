@@ -12,6 +12,8 @@ import { RunView } from "../verdict/RunView";
 import { VerdictCard } from "../verdict/VerdictCard";
 import { LinkedChargeCard, type LinkInfo } from "./LinkedChargeCard";
 import { PriceSparkline } from "./PriceSparkline";
+import { RefundBuilder } from "./RefundBuilder";
+import type { DisputeDto } from "@/lib/disputes";
 import { money, longDateTime } from "@/lib/format";
 
 export type Candidate = { exposureId: string; host: string; exposureAt: string; exposureScore: number; fieldTypes: string[]; reasons: string[]; days: number; kind: "flagged" | "expected" };
@@ -20,6 +22,7 @@ export type Detail = {
   best: Candidate | null; otherCount: number;
   verdict: (Verdict & { id: string }) | null;
   priceHistory: { day: string; sumCents: number }[];
+  dispute: DisputeDto | null;
 };
 
 /** Decide how to present the link: the agent's decision wins; otherwise show the SQL link instantly. */
@@ -77,6 +80,8 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
       )}
       {err && <ErrorState message={err} />}
       {(runId || verdict) && !running && <Button variant="ghost" className="self-start" onClick={investigate}>Run the check again</Button>}
+
+      <RefundBuilder txnId={t.id} canBuild={detail.best?.kind === "flagged"} initial={detail.dispute} />
 
       <section aria-label="Price history" className="flex flex-col gap-2">
         <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Price history with this merchant</h2>

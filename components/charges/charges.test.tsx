@@ -48,7 +48,7 @@ describe("LinkedChargeCard", () => {
 
 describe("linkInfoFor", () => {
   const best = { exposureId: "e", host: "h", exposureAt: "2026-11-04T00:00:00Z", exposureScore: 18, fieldTypes: ["card_number"], reasons: ["r"], days: 3, kind: "flagged" as const };
-  const d = (b: typeof best | null) => ({ transaction: { ...tx(), scripted: false, scriptId: null }, best: b, otherCount: 0, verdict: null, priceHistory: [] }) as Detail;
+  const d = (b: typeof best | null) => ({ transaction: { ...tx(), scripted: false, scriptId: null }, best: b, otherCount: 0, verdict: null, priceHistory: [], dispute: null }) as Detail;
   it("no candidate → none; agent 'possible' downgrades a strong SQL link to amber", () => {
     expect(linkInfoFor(d(null), null).kind).toBe("none");
     expect(linkInfoFor(d(best), null).kind).toBe("flagged");

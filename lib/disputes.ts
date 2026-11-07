@@ -41,7 +41,7 @@ export function templateNarrative(f: DisputeFacts): string {
 export function buildLetter(f: DisputeFacts, narrative: string): string {
   return [
     "To: Card issuer — Disputes Department",
-    `Date: ${longDate(f.now ?? new Date())}`,
+    `Date: ${longDate(f.now ?? new Date(Math.max(Date.now(), f.chargedAt.getTime())))}`,
     "Re: Dispute of a suspected fraudulent charge",
     "",
     `Cardholder: ${f.name}`,

@@ -3,6 +3,7 @@ import { many, one } from "./db";
 import type { Verdict } from "./schemas";
 import { findCandidates } from "./linker";
 import { getTransactionWithFlags } from "./rules/flags";
+import { getDisputeForTxn } from "./disputes";
 
 export async function priceHistory(db: Db, userId: string, descriptorNorm: string, days = 90, before = new Date()) {
   const rows = await many<{ day: Date; sum_cents: string; avg_cents: number; txn_count: number }>(
@@ -26,7 +27,7 @@ export async function getTransactionDetail(db: Db, userId: string, txnId: string
   const link = await findCandidates(db, userId, { ts: new Date(txn.ts), descriptor: txn.descriptor, descriptorNorm: txn.descriptorNorm });
   const v = await latestTxnVerdict(db, userId, txnId);
   const history = await priceHistory(db, userId, txn.descriptorNorm, 90, new Date(txn.ts));
-  const dispute = await one(db, "SELECT id, letter, timeline, next_steps, status, generated_by, created_at FROM disputes WHERE user_id=$1 AND txn_id=$2 ORDER BY created_at DESC LIMIT 1", [userId, txnId]);
+  const dispute = await getDisputeForTxn(db, userId, txnId);
   return {
     transaction: { ...txn, scripted: row?.scripted ?? false, scriptId: row?.script_id ?? null },
     flags: txn.flags,
