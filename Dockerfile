@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+# Stages: deps → build → runtime (slim, Next standalone) and tools (full deps: migrate / seed / prewarm / eval).
+FROM node:22-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM deps AS build
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM deps AS tools
+COPY . .
+ENV NODE_ENV=production
+CMD ["npm", "run", "db:migrate"]
+
+FROM node:22-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+# Files read from disk at runtime (not traced as imports): mock-agent fixtures, demo storefronts, eval results.
+COPY --from=build /app/fixtures ./fixtures
+COPY --from=build /app/stores ./stores
+COPY --from=build /app/eval/results.json ./eval/results.json
+COPY --from=build /app/db ./db
+RUN useradd -r -u 1001 bluff && chown -R bluff /app
+USER bluff
+EXPOSE 3000
+HEALTHCHECK --interval=15s --timeout=4s --start-period=20s CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "server.js"]

@@ -1,0 +1,33 @@
+# Bluff on one Vultr instance: web (Next standalone) + caddy (HTTPS for the app and the 8 demo storefronts).
+# Database is external (Tiger Data). Copy .env.example to .env and fill it in first. See DEPLOY.md.
+services:
+  web:
+    build: { context: ., target: runtime }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # Docker's default network reaches the managed Postgres over TLS; DATABASE_URL comes from .env
+    expose: ["3000"]
+
+  tools:
+    # One-off jobs: docker compose run --rm tools npm run db:migrate | db:seed | prewarm | db:reset
+    build: { context: ., target: tools }
+    profiles: ["tools"]
+    env_file: .env
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    env_file: .env
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./stores:/srv/stores:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+
+volumes:
+  caddy_data:
+  caddy_config:

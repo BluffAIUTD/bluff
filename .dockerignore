@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+test-results
+extension/dist
+coverage
+*.md
+!README.md
+eval/standin
