@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getPool } from "../db";
 import type { RunStreamEvent, StepEvent, Verdict } from "../schemas";
 import { findReplay, findReusablePageVerdict } from "./cache";
+import { afterRun } from "./hooks";
 import { selectRunner } from "./index";
 import { basicVerdictFor } from "./mock";
 import { txnRulesVerdict } from "./txn";
@@ -146,6 +147,7 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
   } catch (e) {
     console.error("[runs] persistence failed", (e as Error).message);
   }
+  await afterRun(db, input, result.verdict, verdictId).catch((e) => console.error("[runs] afterRun failed", (e as Error).message));
   push(runId, { type: "done", data: { totalMs: Date.now() - t0, mode: result.mode, verdictId, runId } });
 }
 

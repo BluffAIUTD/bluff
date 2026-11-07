@@ -27,8 +27,16 @@ export function failureFrom(req: Request, ctx: RequestContext): FailureMode | un
   return !getConfig().isProd || ctx.demoUnlocked ? f : undefined;
 }
 
-export function requireDemo(ctx: RequestContext) {
-  if (!ctx.demoUnlocked && getConfig().isProd) throw new ApiError("forbidden", "Demo controls are locked");
+/**
+ * Demo controls. `strict` (reset, generation) always needs the presenter key in production. Non-strict controls
+ * (simulating a charge from a store the judge just checked) are open while DEMO_MODE=1, because the core loop must work
+ * on a judge's phone with no login (product_spec §1.1).
+ */
+export function requireDemo(ctx: RequestContext, opts: { strict?: boolean } = {}) {
+  const c = getConfig();
+  if (!c.isProd || ctx.demoUnlocked) return;
+  if (!opts.strict && c.demoMode) return;
+  throw new ApiError("forbidden", "Demo controls are locked");
 }
 
 export function requireEvalKey(req: Request) {
