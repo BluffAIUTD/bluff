@@ -54,3 +54,6 @@ h1, h2, h3, .num { font-family: var(--font-grotesk), system-ui, sans-serif; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
+
+@keyframes bluff-draw { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
+.connector-line { stroke-dasharray: 100; animation: bluff-draw 600ms ease-out forwards; }
