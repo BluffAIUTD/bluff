@@ -69,7 +69,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: extension absent must not fail the migration; TLS `DATABASE_URL` (`sslmode=require`).
   - Verify: run twice on local Postgres 16; `\dt` lists all tables; trigram index exists.
 
-- [ ] **6. Seed + reset (P0)**
+- [x] **6. Seed + reset (P0)**
   - Objective: Maya, 8 storefronts' `mock_registry`, ~50 allowlist hosts, 60 txns/90 days incl. scripted (`txn_demo_link_1` FKSHP*LLC $49.99 held back until demo trigger, `txn_demo_drift`, $1 card test `TST* QWKPAY`, duplicate pair), taxonomy (placeholder categories **labeled placeholder until T-Mobile taxonomy arrives**), 15 game cards, eval user with 30 charges + 20 ground-truth exposures.
   - Depends: 5.
   - Files: `scripts/seed/{index,data,reset}.ts`, `data/*.json`.
@@ -221,3 +221,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 4 — done — typecheck/lint pass; 22 tests pass (cookie sign/forge, demo gate header/cookie not query, prod secret guard, token bucket refill).
 - Task 5 — done — typecheck/lint pass; migrate test (fresh DB: all 13 tables + merchant_daily matview fallback + trgm indexes, idempotent re-run) passes; CLI run twice OK. NOTE: timescale hypertable/continuous-aggregate branch (002/003) is written but UNVERIFIED locally (no timescaledb) — verify on Tiger Data. Vector replaced by float8[] per spec fallback.
 - Task 8 — done — done before task 6 (seed needs descriptor_norm). typecheck/lint pass; 18 tests pass: normalization table (incl. SQ*/TST*/PAYPAL*/PP* prefixes, empty), abbreviation matcher (fkshp⊂fastkicks-shop; rejects missing token/wrong initial), time-score window/decay, FKSHP*LLC links with 'charged 3 days after exposure', pre-exposure never links, watch +0.1. Finding: a descriptor sharing a word AND similar trigrams (e.g. 'FAST FOOD*SHOP') can still clear 0.55 — that is the case the agent must confirm/reject (spec §6.2 step 6).
+- Task 6 — done — typecheck/lint pass; 7 seed tests pass (60 deterministic txns in 90d, 30 eval charges/20 positive, 8 registry rows, 15 cards, ≥50 allowlist, re-runnable, reset leaves eval user intact, card spans verbatim, authored Claim B data sanity: every positive links to its true exposure and no negative clears 0.55); CLI seed/reset verified on local DB. Decision: scripted charges (txn_demo_*) are NOT seeded; posted by the demo trigger (task 17). Taxonomy rows flagged is_placeholder until T-Mobile taxonomy arrives.
