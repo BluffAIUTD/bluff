@@ -138,7 +138,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: SSRF (reject private IPs / non-store hosts); timeouts; oversized outputs truncated.
   - Verify: unit tests per tool incl. SSRF rejection and timeout fallback.
 
-- [ ] **14. Live Nemotron agent loop (P0, live path unverifiable here)**
+- [x] **14. Live Nemotron agent loop (P0, live path unverifiable here)**
   - Objective: real multi-step tool-calling agent (NVIDIA track), ≤ 6 iterations, 15 s hard timeout, repair turn, rules-only fallback.
   - Depends: 13.
   - Files: `lib/agent/{live,prompts,llm}.ts`, `lib/agent/embeddings.ts`.
@@ -228,3 +228,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 11 — done — typecheck/lint clean; 9 tests pass: 9 fixtures validate against VerdictSchema (3 scam <40, 5 legit ≥70 + signature txn), path-traversal keys rejected, ordered step→verdict→done stream, fixtures labeled 'cached' (never 'live'), unknown host → 'basic', ?fail=timeout|malformed|ratelimit each emit error + basic fallback, pacing 400ms/600–1400ms. Note: mock mode is labeled cached/basic by design since no model ran.
 - Task 12 — done — typecheck/lint/next build pass; 7 route integration tests pass (page run streams step→verdict→done with DB rows, late subscriber replay, ?fail=malformed → error+basic fallback, bad_input shapes incl. >2000 chars, 404s, eval source needs key, session cookie). Hard 15s timeout + crash fallback implemented; done event carries verdictId.
 - Task 13 — done — typecheck/lint clean; full suite 108 tests pass. Tools: domain_intel (registry→RDAP 2s timeout behind flag→unknown, allowlist), page_signals (reads only whitelisted storefront slugs from disk: no SSRF), taxonomy_match (embeddings with 2s timeout, keyword fallback), exposure_lookup, txn_search (+merchant_daily series), submit_verdict (server-side confidence, forced unsure <0.5, validation errors), registry caps output at 1KB & converts errors. Bug found+fixed via test: link candidates now require name evidence (time alone scored 0.3 for every recent exposure). draft_dispute/notify tools are registered in tasks 18/21.
+- Task 14 — done — typecheck/lint clean; 10 tests against a local fake OpenAI-compatible server pass (happy path with tools fed back, repair turn ok, repair fails→basic, bad args/unknown tool reported to model, no-tool nudge→fallback, 6-iteration cap, 429/500/garbage→typed errors, 300ms deadline→timeout, txn link reconciliation never trusts invented exposure ids). BLOCKER (human): LIVE run against real build.nvidia.com needs NVIDIA_API_KEY + NEMOTRON_MODEL; 8/10 schema-valid and p50<8s are unmeasured.
