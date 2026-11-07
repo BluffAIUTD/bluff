@@ -13,7 +13,9 @@
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:seed": "tsx scripts/seed/index.ts",
     "db:reset": "tsx scripts/seed/reset.ts",
-    "ext:build": "node extension/build.mjs"
+    "ext:build": "node extension/build.mjs",
+    "eval:export": "tsx scripts/eval/export_claimb.ts",
+    "eval:test": "python3 -m unittest discover -s scripts/eval -p \"test_*.py\""
   },
   "engines": {
     "node": ">=20"

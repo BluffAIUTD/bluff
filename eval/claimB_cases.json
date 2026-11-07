@@ -1,0 +1,409 @@
+{
+  "note": "Synthetic charges authored for this project (not real customer data). 20 positives with a true exposure, 10 negatives with none; 10 dev / 20 test.",
+  "exposures": [
+    {
+      "id": "1f0fb117-b5c9-587c-ad45-a9ae3caf8b8a",
+      "label": "fastkicks-shop",
+      "legit": false,
+      "days_ago": 70
+    },
+    {
+      "id": "a3607c0e-27f8-518d-8059-3a144d980c7e",
+      "label": "deliveryfix-help",
+      "legit": false,
+      "days_ago": 66
+    },
+    {
+      "id": "2f955137-6318-5327-9ed7-4470da0c7d24",
+      "label": "tollpay-tx",
+      "legit": false,
+      "days_ago": 62
+    },
+    {
+      "id": "c312783b-f5ad-5690-b1e7-e1ca47e0fc79",
+      "label": "glowskin-deals",
+      "legit": false,
+      "days_ago": 58
+    },
+    {
+      "id": "bdc403b6-4891-56cd-b5ed-b3e6a43d151a",
+      "label": "gadgetgalaxy-outlet",
+      "legit": false,
+      "days_ago": 55
+    },
+    {
+      "id": "cd5f5185-dfdd-5311-8034-065fac723ccd",
+      "label": "luxwatch-sale",
+      "legit": false,
+      "days_ago": 52
+    },
+    {
+      "id": "ab5d956d-5cab-5de9-9d17-86b224896a35",
+      "label": "petsupply-direct",
+      "legit": false,
+      "days_ago": 50
+    },
+    {
+      "id": "19dad14f-b7d3-5da8-93fa-2befac35d174",
+      "label": "cheapflights-hub",
+      "legit": false,
+      "days_ago": 48
+    },
+    {
+      "id": "86077de1-23a6-535c-8088-3da7465420ad",
+      "label": "vitaboost-pro",
+      "legit": false,
+      "days_ago": 46
+    },
+    {
+      "id": "ce46a3c9-910d-539f-a2f4-66a89938bd8d",
+      "label": "homedecor-mart",
+      "legit": false,
+      "days_ago": 44
+    },
+    {
+      "id": "59b024c2-b85d-50c2-a57a-f2744c5d19fe",
+      "label": "streamflix-promo",
+      "legit": false,
+      "days_ago": 42
+    },
+    {
+      "id": "f9f06876-c01e-5849-b3ca-693bfb99ab84",
+      "label": "cryptoearn-now",
+      "legit": false,
+      "days_ago": 40
+    },
+    {
+      "id": "248e17f7-17cc-5eea-80f0-9df1929d5e50",
+      "label": "mobilefix-shop",
+      "legit": false,
+      "days_ago": 38
+    },
+    {
+      "id": "46387b2f-073c-5062-9198-e722f0aca5f8",
+      "label": "sunglass-outlet",
+      "legit": false,
+      "days_ago": 36
+    },
+    {
+      "id": "256cb900-4a49-5929-8b6b-53e2c7aefe5c",
+      "label": "giftcard-zone",
+      "legit": false,
+      "days_ago": 34
+    },
+    {
+      "id": "e7b26d94-a061-58af-acbc-9e6101809f44",
+      "label": "bikeparts-depot",
+      "legit": false,
+      "days_ago": 32
+    },
+    {
+      "id": "6386b00b-2eb5-52ed-b99e-962c085799ed",
+      "label": "toyland-express",
+      "legit": false,
+      "days_ago": 30
+    },
+    {
+      "id": "05f5a9a3-057e-5778-ba14-0025ade48eb5",
+      "label": "fitgear-pro",
+      "legit": false,
+      "days_ago": 28
+    },
+    {
+      "id": "8d54b827-2346-53df-9a59-947029db0f40",
+      "label": "kitchenwiz-store",
+      "legit": false,
+      "days_ago": 26
+    },
+    {
+      "id": "1c89261a-5982-5404-acef-47dd0c07c601",
+      "label": "perfume-palace",
+      "legit": false,
+      "days_ago": 24
+    },
+    {
+      "id": "4e2b6975-b860-5984-b99c-770938679dc0",
+      "label": "northloop-books",
+      "legit": true,
+      "days_ago": 20
+    },
+    {
+      "id": "35dc7bf1-dd73-5a28-baba-2f0881e32d22",
+      "label": "bayou-bakery",
+      "legit": true,
+      "days_ago": 18
+    }
+  ],
+  "charges": [
+    {
+      "key": "p01",
+      "txn_id": "e202c8f3-f3ec-5025-9bce-2646e56f85ca",
+      "descriptor": "FKSHP*LLC",
+      "true_exposure_id": "1f0fb117-b5c9-587c-ad45-a9ae3caf8b8a",
+      "split": "dev",
+      "hard": true,
+      "note": "abbreviated descriptor"
+    },
+    {
+      "key": "p02",
+      "txn_id": "a733025e-757e-5489-94a2-876300219624",
+      "descriptor": "DLVRYFX HELP",
+      "true_exposure_id": "a3607c0e-27f8-518d-8059-3a144d980c7e",
+      "split": "test",
+      "hard": false,
+      "note": "abbreviated descriptor"
+    },
+    {
+      "key": "p03",
+      "txn_id": "91558c1e-3d93-5a85-8f8e-fe76ffd05ca6",
+      "descriptor": "TOLLPAY*TX 0412",
+      "true_exposure_id": "2f955137-6318-5327-9ed7-4470da0c7d24",
+      "split": "dev",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p04",
+      "txn_id": "779f0023-c053-5c8b-8722-972812551cb6",
+      "descriptor": "GLOWSKIN DEALS",
+      "true_exposure_id": "c312783b-f5ad-5690-b1e7-e1ca47e0fc79",
+      "split": "dev",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p05",
+      "txn_id": "714160e4-06c9-5d7e-b2de-2bc3aae8ef33",
+      "descriptor": "SQ *GADGETGALAXY OUTLET",
+      "true_exposure_id": "bdc403b6-4891-56cd-b5ed-b3e6a43d151a",
+      "split": "test",
+      "hard": true,
+      "note": "processor prefix"
+    },
+    {
+      "key": "p06",
+      "txn_id": "207ebea8-550c-550b-b35f-21d519f13245",
+      "descriptor": "LUXWATCH SALE 8812",
+      "true_exposure_id": "cd5f5185-dfdd-5311-8034-065fac723ccd",
+      "split": "test",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p07",
+      "txn_id": "900e738c-5492-5c06-b104-7c202355af71",
+      "descriptor": "PETSUPPLY DIRECT",
+      "true_exposure_id": "ab5d956d-5cab-5de9-9d17-86b224896a35",
+      "split": "dev",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p08",
+      "txn_id": "7b5bbea8-72b1-53c3-88fe-84d597cd2b5a",
+      "descriptor": "CHEAPFLIGHTS HUB",
+      "true_exposure_id": "19dad14f-b7d3-5da8-93fa-2befac35d174",
+      "split": "test",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p09",
+      "txn_id": "1ffab662-3232-5dff-9eab-f214993c0d8c",
+      "descriptor": "VITABOOST*PRO LLC",
+      "true_exposure_id": "86077de1-23a6-535c-8088-3da7465420ad",
+      "split": "dev",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p10",
+      "txn_id": "9914a350-5764-5adc-913d-84bf80c8182c",
+      "descriptor": "PAYPAL *HOMEDECOR MART",
+      "true_exposure_id": "ce46a3c9-910d-539f-a2f4-66a89938bd8d",
+      "split": "test",
+      "hard": true,
+      "note": "processor prefix"
+    },
+    {
+      "key": "p11",
+      "txn_id": "82d25101-83a2-53fc-9fc9-185d962113d9",
+      "descriptor": "STRMFLX PROMO",
+      "true_exposure_id": "59b024c2-b85d-50c2-a57a-f2744c5d19fe",
+      "split": "test",
+      "hard": true,
+      "note": "abbreviated descriptor"
+    },
+    {
+      "key": "p12",
+      "txn_id": "be72c227-45c0-511e-aa38-b5f789a30f8d",
+      "descriptor": "CRYPTOEARN NOW",
+      "true_exposure_id": "f9f06876-c01e-5849-b3ca-693bfb99ab84",
+      "split": "test",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p13",
+      "txn_id": "3bc7ce3e-ca15-5fd7-a1c9-ef47907e84d7",
+      "descriptor": "TST* MOBILEFIX SHOP",
+      "true_exposure_id": "248e17f7-17cc-5eea-80f0-9df1929d5e50",
+      "split": "test",
+      "hard": true,
+      "note": "processor prefix"
+    },
+    {
+      "key": "p14",
+      "txn_id": "4f22290e-4fe7-5c13-a437-9c27a35abc7d",
+      "descriptor": "SQ *SNGLSSOTLT",
+      "true_exposure_id": "46387b2f-073c-5062-9198-e722f0aca5f8",
+      "split": "test",
+      "hard": true,
+      "note": "prefix + abbreviation"
+    },
+    {
+      "key": "p15",
+      "txn_id": "361c46bb-b1dd-57d5-917c-17e5161f7408",
+      "descriptor": "GIFTCARD ZONE",
+      "true_exposure_id": "256cb900-4a49-5929-8b6b-53e2c7aefe5c",
+      "split": "dev",
+      "hard": false,
+      "note": "late charge"
+    },
+    {
+      "key": "p16",
+      "txn_id": "b0959918-ee7a-5b62-9d9a-a98a18acccea",
+      "descriptor": "BIKEPARTS DEPOT 77",
+      "true_exposure_id": "e7b26d94-a061-58af-acbc-9e6101809f44",
+      "split": "dev",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p17",
+      "txn_id": "79deaffa-07fe-576e-8577-c3ed488b0c5d",
+      "descriptor": "TOYLAND EXPRESS",
+      "true_exposure_id": "6386b00b-2eb5-52ed-b99e-962c085799ed",
+      "split": "test",
+      "hard": false,
+      "note": "late charge"
+    },
+    {
+      "key": "p18",
+      "txn_id": "163f929e-d67a-554d-bfea-28af870f7483",
+      "descriptor": "FITGEAR PRO",
+      "true_exposure_id": "05f5a9a3-057e-5778-ba14-0025ade48eb5",
+      "split": "test",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "p19",
+      "txn_id": "bb85466a-a460-555d-98e4-74f027748926",
+      "descriptor": "KITCHENWIZ STORE",
+      "true_exposure_id": "8d54b827-2346-53df-9a59-947029db0f40",
+      "split": "test",
+      "hard": false,
+      "note": "late charge"
+    },
+    {
+      "key": "p20",
+      "txn_id": "65777706-9be9-5f45-810f-87b0d2e1adcf",
+      "descriptor": "PERFUME PALACE",
+      "true_exposure_id": "1c89261a-5982-5404-acef-47dd0c07c601",
+      "split": "test",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "n01",
+      "txn_id": "0bca5ed8-f905-5267-ac5e-88ab087ef483",
+      "descriptor": "SHOP N SAVE",
+      "true_exposure_id": null,
+      "split": "dev",
+      "hard": false,
+      "note": "shares the word 'shop' with several exposures"
+    },
+    {
+      "key": "n02",
+      "txn_id": "391540d7-6488-5297-9c15-4fa106831861",
+      "descriptor": "FAST LANE PARKING",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": "shares 'fast' with fastkicks-shop"
+    },
+    {
+      "key": "n03",
+      "txn_id": "060cc9f6-1002-51c6-b02c-51e2a6f2d584",
+      "descriptor": "KICKS CAFE",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": "shares 'kicks' with fastkicks-shop"
+    },
+    {
+      "key": "n04",
+      "txn_id": "8b4fec47-2e3d-5789-8221-8cd579efceb0",
+      "descriptor": "PET SUPPLY WAREHOUSE",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": "similar to petsupply-direct but a different merchant"
+    },
+    {
+      "key": "n05",
+      "txn_id": "919b724d-11ee-5329-8b4f-cc3a602c6ad5",
+      "descriptor": "GLOWSKIN DEALS",
+      "true_exposure_id": null,
+      "split": "dev",
+      "hard": false,
+      "note": "name matches but the charge is BEFORE the exposure"
+    },
+    {
+      "key": "n06",
+      "txn_id": "163c5624-ba57-573e-a083-12f2a9d43b48",
+      "descriptor": "GREENLEAF GROCER",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": ""
+    },
+    {
+      "key": "n07",
+      "txn_id": "5d3fd4c2-581a-5850-b4a6-46a37f302b96",
+      "descriptor": "STREAMBOX.COM",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": "similar prefix to streamflix-promo"
+    },
+    {
+      "key": "n08",
+      "txn_id": "e6df4370-cc9b-543f-bd43-619a6875819b",
+      "descriptor": "CHEAP EATS DINER",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": "shares 'cheap' with cheapflights-hub"
+    },
+    {
+      "key": "n09",
+      "txn_id": "d6543e0f-4516-5067-996e-e31d17e1e472",
+      "descriptor": "HOME DEPOT 4412",
+      "true_exposure_id": null,
+      "split": "dev",
+      "hard": false,
+      "note": "shares 'home' with homedecor-mart"
+    },
+    {
+      "key": "n10",
+      "txn_id": "15fb5354-5c4d-59cd-a37c-0630811ca1eb",
+      "descriptor": "TOLL ROAD AUTHORITY",
+      "true_exposure_id": null,
+      "split": "test",
+      "hard": false,
+      "note": "shares 'toll' with tollpay-tx"
+    }
+  ]
+}

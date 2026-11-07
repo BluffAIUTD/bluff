@@ -46,6 +46,15 @@ describe("EvalView", () => {
     expect(screen.getByText("Not available")).toBeInTheDocument();
     expect(screen.getByText(/Below the baseline by 10.0/)).toBeInTheDocument();
   });
+  it("shows the caveat and the baseline's failures when present", () => {
+    const r = results();
+    r.claimB!.caveat = "Optimistic by construction.";
+    r.claimB!.baseline_failures = [{ id: "p01", text: "FKSHP*LLC", expected: "fastkicks-shop", predicted: "no link", note: "missed the true exposure" }];
+    render(<EvalView results={r} />);
+    expect(screen.getByText("Optimistic by construction.")).toBeInTheDocument();
+    expect(screen.getByText("Where the naive baseline fails (Claim B)")).toBeInTheDocument();
+    expect(screen.getByText("FKSHP*LLC")).toBeInTheDocument();
+  });
   it("a missing claim shows 'not run yet'", () => {
     render(<EvalView results={results({ claimB: null })} />);
     expect(screen.getByText("Claim B not run yet")).toBeInTheDocument();

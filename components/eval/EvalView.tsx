@@ -36,7 +36,9 @@ export function EvalView({ results }: { results: EvalResults | null }) {
           <ClaimTable title="Claim B: exposure-to-charge linking" subtitle={`Did the linker find the true source site? ${b.split}. Method: ${b.method}.`}
             verdict={compareF1(b.bluff.f1, b.baseline.f1)}
             rows={[{ method: "Bluff linker", n: b.n, prf: b.bluff, highlight: true, note: b.threshold != null ? `threshold ${b.threshold}` : undefined }, { method: "Naive substring match", n: b.n, prf: b.baseline }]} />
+          {b.caveat && <p role="note" className="rounded-control border border-unsure/40 bg-unsure/10 px-3 py-2 text-sm">{b.caveat}</p>}
           <FailureCases title="Where the linker is still wrong (Claim B)" items={b.failures} />
+          {b.baseline_failures && b.baseline_failures.length > 0 && <FailureCases title="Where the naive baseline fails (Claim B)" items={b.baseline_failures} />}
         </div>
       ) : <EmptyState title="Claim B not run yet" />}
 

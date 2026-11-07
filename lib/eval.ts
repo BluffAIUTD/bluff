@@ -16,7 +16,7 @@ export const ResultsSchema = z.object({
   }).nullable().optional(),
   claimB: z.object({
     n: z.number(), split: z.string(), dataset: z.string(), method: z.string(),
-    bluff: Prf, baseline: Prf, threshold: z.number().optional(), failures: z.array(Failure),
+    bluff: Prf, baseline: Prf, threshold: z.number().optional(), caveat: z.string().optional(), failures: z.array(Failure), baseline_failures: z.array(Failure).optional(),
   }).nullable().optional(),
   stretch: z.unknown().optional(),
 });

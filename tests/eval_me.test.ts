@@ -41,7 +41,7 @@ describe("POST /api/eval/link", () => {
     const hard = await evalLink(post({ txnId: detId("eval-txn", "p01") }, { "x-eval-key": "eval" }));
     const body = await hard.json();
     expect(body.predictedExposureId).toBe(detId("eval-exposure", "fastkicks-shop"));
-    expect(Object.keys(body).sort()).toEqual(["method", "predictedExposureId", "score"]);
+    expect(Object.keys(body).sort()).toEqual(["candidateExposureId", "method", "predictedExposureId", "score"]);
     const neg = EVAL_CHARGES.find((c) => c.key === "n05")!;
     const n = await (await evalLink(post({ txnId: detId("eval-txn", neg.key) }, { "x-eval-key": "eval" }))).json();
     expect(n.predictedExposureId).toBeNull();

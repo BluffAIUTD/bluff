@@ -17,5 +17,7 @@ export const POST = handle(async (req: Request) => {
   const { txnId } = await parseBody(req, Body);
   const r = /^[0-9a-f-]{36}$/i.test(txnId) ? await linkTransaction(getPool(), EVAL_USER_ID, txnId) : null;
   if (!r) throw new ApiError("not_found", "Charge not found");
-  return json(ctx, { predictedExposureId: r.best?.exposureId ?? null, score: r.best?.matchScore ?? r.candidates[0]?.matchScore ?? 0, method: "sql_linker" });
+  const top = r.candidates[0];
+  // candidateExposureId/score are the best candidate regardless of the production threshold, so the harness can sweep thresholds on the dev split.
+  return json(ctx, { predictedExposureId: r.best?.exposureId ?? null, candidateExposureId: top?.exposureId ?? null, score: top?.matchScore ?? 0, method: "sql_linker" });
 });
