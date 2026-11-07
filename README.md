@@ -20,15 +20,15 @@ Everything runs on **synthetic data**; demo stores are labeled *Demo store, not 
 |---|---|
 | Core loop, all 4 pillars, dashboard, extension, storefronts, API, DB | Built and tested (`npm test`: 290+ tests; `npm run e2e` in real Chromium) |
 | Runs offline with **mock** agent/messaging | Yes (`AGENT_MODE=mock`, `PHOTON_MODE=mock`, the defaults) |
-| **Live Nemotron** agent | Code + fake-server tests done; **not run against build.nvidia.com** (needs key and model IDs) |
+| **Live Nemotron** agent | **Run against build.nvidia.com** with `nvidia/nemotron-3-ultra-550b-a55b`: 10/10 schema-valid verdicts, 10/10 correct on the demo stores, median 7.8 s, p95 10.2 s (first run; latency varies). The signature charge ran live and saved a replay trace. The hosted endpoint returns 429 on overlapping calls, so calls are throttled (2 at a time) and retried |
 | **Live Photon** messaging/calls | Adapters + signed-webhook tests done; **not run against Photon** (needs project, number, confirmed API shapes) |
 | **Tiger Data** | Plain-Postgres path tested; the Timescale hypertable/continuous-aggregate branch is **untested** locally |
 | Deployment (Vultr + domain) | Config and runbook ready ([DEPLOY.md](DEPLOY.md)); **not deployed** (needs accounts); image build not run (no Docker daemon in the build env) |
-| Eval Claim A (detection) | Pipeline done; measured only on a **synthetic stand-in** with the rules-only path. **Not a result on T-Mobile's data, and not the Nemotron agent.** |
+| Eval Claim A (detection) | Measured only on a **synthetic stand-in** set (n=21). Latest run: 18 of 21 verdicts came from the live Nemotron agent, 3 hit the 15 s deadline and fell back to rules-only. **Not a result on T-Mobile's data.** |
 | Eval Claim B (linking) | Measured on 30 synthetic charges; **optimistic by construction** (see caveat below) |
 
 ### Claims and measured numbers (from `eval/results.json`, also shown on `/eval`)
-- **Claim A, detection.** Bluff beats a baseline on F1 for scam vs. legit on a held-out split. *Measured so far: stand-in dataset, n=21, rules-only verdicts, stand-in baseline.* F1 0.92 vs 0.78 shows the pipeline works and nothing more. Rejected if F1 ≤ baseline on the real T-Mobile set.
+- **Claim A, detection.** Bluff beats a baseline on F1 for scam vs. legit on a held-out split. *Measured so far: stand-in dataset, n=21, stand-in baseline; mixed live/fallback verdicts (see `eval/results.json`).* F1 ~0.88–0.92 vs 0.78 shows the pipeline works and nothing more. Rejected if F1 ≤ baseline on the real T-Mobile set.
 - **Claim B, linking.** Bluff's linker (normalized descriptor + trigram/abbreviation/token score + time window) finds the true exposure better than naive substring matching. *Measured: n=20 test charges, F1 1.00 vs 0.96.* The charges were authored by the linker's authors and every positive was checked to be solvable, so treat this as "handles abbreviations and processor prefixes", not as real-world accuracy.
 
 Re-run: `npm run eval:export && python3 scripts/eval/run_linker.py` and `./scripts/eval/run_claim_a.sh` (app running). The Claim A split (`eval/split.json`, seed 42) was committed before any scoring.
@@ -75,7 +75,7 @@ npm run demo:script    # pitch script with the real numbers and warnings
 ```
 
 ## Going live (checklist)
-1. `NVIDIA_API_KEY`, `NEMOTRON_MODEL`, `NEMOTRON_SMALL_MODEL`, `EMBED_MODEL`; `AGENT_MODE=live`. Run 10 agent loops on the demo stores, count schema-valid verdicts, time them (target 8/10 valid, p50 < 8 s).
+1. `NVIDIA_API_KEY`, `NEMOTRON_MODEL`, `NEMOTRON_SMALL_MODEL`, `EMBED_MODEL` (verified IDs in `.env.example`); `AGENT_MODE=live`; `npm run embed-taxonomy`; then `npm run livecheck` (10 runs: schema-valid count and timings) and `npm run prewarm`. Done once here; repeat on the deployed box.
 2. Photon project + number + webhook; confirm payload/signature in `lib/photon/webhook.ts` and `lib/photon/live.ts`; `PHOTON_MODE=live`.
 3. Real T-Mobile data: edit `scripts/eval/load_dataset.py` and `baseline.py`, regenerate the split, re-run Claim A against the live agent, replace the stand-in numbers.
 4. Tiger Data: migrate and confirm `bluff_meta.agg_mode = timescale`.

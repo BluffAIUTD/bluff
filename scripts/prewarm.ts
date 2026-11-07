@@ -21,6 +21,7 @@ import { resetDemo } from "./seed/seed";
   const posted = await postScriptedCharge(db, MAYA_ID, script);
   const t = await runToCompletion({ kind: "txn", userId: MAYA_ID, txnId: posted.id }, { fresh: true });
   console.log(`txn  ${script.id.padEnd(18)} ${t.verdict.verdict.padEnd(12)} mode ${t.mode}${t.mode === "live" ? " (replay trace saved)" : " (not live: no replay trace saved)"}`);
+  await new Promise((r) => setTimeout(r, 2500)); // let the async text alert / call finish before the reset deletes the user
   await resetDemo(db);
   console.log(`done in ${((Date.now() - t0) / 1000).toFixed(1)}s; demo user reset`);
 })().catch((e) => { console.error(e); process.exitCode = 1; }).finally(closePool);

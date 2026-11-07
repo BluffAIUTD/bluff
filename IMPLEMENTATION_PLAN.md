@@ -138,7 +138,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: SSRF (reject private IPs / non-store hosts); timeouts; oversized outputs truncated.
   - Verify: unit tests per tool incl. SSRF rejection and timeout fallback.
 
-- [~] **14. Live Nemotron agent loop (P0, live path unverifiable here)** — _partial: live run vs build.nvidia.com unverified (needs key)_
+- [x] **14. Live Nemotron agent loop (P0)** — _verified live 2026-11-07 with nvidia/nemotron-3-ultra-550b-a55b: 10/10 valid, 10/10 correct, p50 7.8 s_
   - Objective: real multi-step tool-calling agent (NVIDIA track), ≤ 6 iterations, 15 s hard timeout, repair turn, rules-only fallback.
   - Depends: 13.
   - Files: `lib/agent/{live,prompts,llm}.ts`, `lib/agent/embeddings.ts`.
@@ -273,13 +273,22 @@ Run on the final tree:
 |---|---|
 | Core loop, 4 pillars, dashboard, 8 storefronts, extension, DB/migrations/seed, linker + flags, rules fallback, mock + live agent code paths, run store/SSE, replay/cached/basic modes, disputes, game + generation, messaging pipeline + webhook, voice adapter, eval harness (Claim B measured; Claim A pipeline), e2e + layout QA, deploy config | Live Nemotron run, Photon send/receive/call, Tiger Data Timescale branch, `docker build`, Vultr/GoDaddy deploy, real T-Mobile data/baseline, event-tester quotes, sourced statistic, demo video, Devpost submission |
 
+### Live Nemotron verification (added after task 46, with the NVIDIA key)
+- Key validated; 84 models listed. Tool calling works on `nvidia/nemotron-3-ultra-550b-a55b` (~0.9 s/call) and `nvidia/nemotron-3.5-lightning-30b-a3b`; `nemotron-3-super-120b`, `nemotron-nano-3-30b` and `llama-3.1-nemotron-ultra-253b` returned 404 on this account. Embeddings work with `nvidia/nemotron-3.5-embed-1b` (2048 dims); taxonomy embedded (`npm run embed-taxonomy`).
+- `npm run livecheck` (10 page runs): **550B: 10/10 live schema-valid, 10/10 correct, p50 7.8 s, p95 10.2 s.** 30B: only 6/10 live (others hit the 15 s deadline), so the 550B is used for everything.
+- `npm run prewarm` live: all 8 demo hosts live; the signature charge ran live and its replay trace was saved.
+- Found: the endpoint returns **429 on overlapping calls**. Added a client-side throttle (2 concurrent) and retry with backoff (tests added). Fixed prewarm reset race; embeddings script now sends one item per call.
+- Claim A re-run (stand-in, n=21): 18/21 verdicts live, 3 fell back at the 15 s deadline; F1 0.88 vs stand-in baseline 0.78; category accuracy 0.91. Latency with the 550B is higher and more variable than the first livecheck. Open option: raise the deadline or trim prompts if this shows up in the demo.
+- Still unverified: Photon, Tiger Data Timescale branch, docker build, deploy.
+
 ### Remaining blockers (human)
 | Item | Blocks |
 |---|---|
-| NVIDIA key + model IDs | live agent verification (14), live Claim A, zero-shot baseline (37), live game generation (40), live dispute prose (18) |
+| ~~NVIDIA key + model IDs~~ provided; still open: zero-shot baseline run (37), live game generation + live dispute prose spot-checks | — |
 | Photon project/number/API shapes | live messaging (21), voice (41) |
 | T-Mobile message set, taxonomy, baseline (booth) | real Claim A (36); taxonomy is a labeled placeholder |
 | Tiger Data service | Timescale branch check (5), managed DB deploy |
 | Vultr + GoDaddy + DNS + keys | deployment (44) |
 | Video, public repo, Devpost, rehearsals, 40–50 hand-labeled stretch cases, FTC figure (only if fetched) | submission (45), stretch (37) |
 - Task 46 — done — FINAL: typecheck/lint/build clean; 293 vitest tests (40 files) exit 0; 11 Python tests OK; Caddyfile fresh; production-build e2e (real Chromium) all pass; secret scan clean; plan statuses updated (37 done, 8 partial for live/human-only steps, 1 deliberately deferred).
+- Task 14 (live) — done — NVIDIA key provided and used from a gitignored scratch file outside the repo (never committed; repo scan clean). Live Nemotron verified: 550B 10/10 valid+correct, p50 7.8s; 30B rejected (6/10). Added 429 throttle+retry (tests), embed-taxonomy, livecheck, sequential eval option; prewarm live saved a real replay trace; Claim A re-run mixed live/fallback (18/21 live). Docs/env/plan updated to match.

@@ -26,469 +26,528 @@
       "mode": "basic"
     },
     "mode": "basic",
-    "ms": 1722
+    "ms": 15027
   },
   "s011": {
     "ok": true,
     "verdict": {
-      "score": 25,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.95,
+      "confidence_reason": "Based on 3 signals; more would raise confidence",
+      "category": "gift_card_request",
       "evidence": [
-        "Asks you to buy gift cards",
-        "Asks you to keep it secret",
-        "Limited check: the page content was not analyzed"
+        "Message demands immediate gift card purchase and code sharing",
+        "Requests secrecy: 'Keep this between us'",
+        "Classic gift card scam pattern with urgency pressure",
+        "No legitimate reason for anyone to request gift card codes"
       ],
       "evidence_keys": [
         "gift_card_request",
-        "secrecy_request"
+        "secrecy_request",
+        "urgency_language"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not purchase any gift cards for this person",
+        "Verify the sender's identity through a separate, trusted channel",
+        "Report this message as a scam attempt",
+        "Block the sender if possible"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1480
+    "mode": "live",
+    "ms": 4320
   },
   "s016": {
     "ok": true,
     "verdict": {
-      "score": 32,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.77,
+      "confidence_reason": "Mixed signals: doesn't ask for money or personal details, but asks for a pin, password, ssn or card number",
+      "category": "tech_support",
       "evidence": [
-        "Pressure to act within hours",
-        "Tells you to call an unfamiliar number",
-        "Limited check: the page content was not analyzed"
+        "Message claims device has a virus to create fear",
+        "Urges immediate call to 1-888-555-0113",
+        "Uses threat of data loss to pressure action",
+        "No legitimate company sends unsolicited virus warnings",
+        "Phone callback is a classic tech-support scam tactic"
       ],
       "evidence_keys": [
+        "threat_language",
         "urgency_language",
-        "phone_callback"
+        "phone_callback",
+        "credential_request",
+        "no_ask"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not call the number provided",
+        "Run a trusted antivirus scan yourself",
+        "Report the message as spam/phishing",
+        "Block the sender if possible"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1477
+    "mode": "live",
+    "ms": 3256
   },
   "s019": {
     "ok": true,
     "verdict": {
-      "score": 27,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.97,
+      "confidence_reason": "5 independent signals point the same way",
+      "category": "toll_scam",
       "evidence": [
-        "Link domain imitates a real company",
-        "Threatens fines, suspension or legal action",
-        "Limited check: the page content was not analyzed"
+        "Message threatens late fine to pressure immediate payment",
+        "Domain tollpay-redeliver.help mimics legitimate toll services",
+        "Uses risky .help TLD commonly abused by scammers",
+        "Creates urgency with 'Pay today' demand",
+        "No verifiable contact info or official toll agency branding"
       ],
       "evidence_keys": [
+        "threat_language",
         "lookalike_domain",
-        "threat_language"
+        "risky_tld",
+        "urgency_language",
+        "no_contact_page"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not click the link or provide any payment info",
+        "Check your actual toll account via official agency website",
+        "Report the message to your toll agency's fraud department",
+        "Delete the message and block the sender"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1054
+    "mode": "live",
+    "ms": 12019
   },
   "s021": {
     "ok": true,
     "verdict": {
-      "score": 14,
+      "score": 10,
       "verdict": "likely_scam",
       "confidence": 0.97,
-      "confidence_reason": "4 independent signals point the same way",
-      "category": "fake_store",
+      "confidence_reason": "5 independent signals point the same way",
+      "category": "bank_impersonation",
       "evidence": [
-        "Asks for a PIN, password, SSN or card number",
-        "Link domain imitates a real company",
-        "Pressure to act within hours",
-        "Threatens fines, suspension or legal action"
+        "Message claims your debit card is locked and demands password + SSN within 24 hours",
+        "Link uses lookalike domain summitbank-update.live (not the real bank's domain)",
+        "Risky .live TLD; domain age and registrar unknown",
+        "Taxonomy matches bank impersonation and account suspension scams",
+        "Requests full credentials (password and SSN) \u2014 legitimate banks never ask this via text"
       ],
       "evidence_keys": [
         "credential_request",
-        "lookalike_domain",
         "urgency_language",
+        "lookalike_domain",
+        "risky_tld",
         "threat_language"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Delete the message; do not click the link",
+        "Contact Summit Bank using the number on your card",
+        "Report to carrier (7726) and FTC at reportfraud.ftc.gov",
+        "Monitor accounts for unauthorized activity"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1056
+    "mode": "live",
+    "ms": 11201
   },
   "s028": {
     "ok": true,
     "verdict": {
-      "score": 21,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.95,
-      "confidence_reason": "Based on 3 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.97,
+      "confidence_reason": "4 independent signals point the same way",
+      "category": "toll_scam",
       "evidence": [
-        "Link domain imitates a real company",
-        "Pressure to act within hours",
-        "Threatens fines, suspension or legal action"
+        "Message mimics TollTag with threat of $25 fine",
+        "Domain secure-tolltag.xyz is a lookalike",
+        "Uses risky .xyz top-level domain",
+        "Urgent language pressures immediate payment",
+        "No legitimate contact or verification info"
       ],
       "evidence_keys": [
+        "threat_language",
         "lookalike_domain",
-        "urgency_language",
-        "threat_language"
+        "risky_tld",
+        "urgency_language"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not click the link or provide any payment info",
+        "Check your actual TollTag account directly",
+        "Report the scam text to your carrier",
+        "Block the sender number"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1047
+    "mode": "live",
+    "ms": 14032
   },
   "s030": {
     "ok": true,
     "verdict": {
-      "score": 25,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.95,
+      "confidence_reason": "Based on 3 signals; more would raise confidence",
+      "category": "gift_card_request",
       "evidence": [
-        "Asks you to buy gift cards",
-        "Asks you to keep it secret",
-        "Limited check: the page content was not analyzed"
+        "Message asks you to buy multiple gift cards for someone else",
+        "Sender claims to have a new number and demands secrecy",
+        "Classic impersonation tactic: pretends to be a colleague or friend",
+        "Gift cards are irreversible payments favored by scammers",
+        "No legitimate reason for a boss to need gift cards via an employee"
       ],
       "evidence_keys": [
         "gift_card_request",
-        "secrecy_request"
+        "secrecy_request",
+        "urgency_language"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not buy any gift cards or share codes with this sender",
+        "Verify the request through a known, trusted contact method",
+        "Report the message as spam/phishing to your carrier",
+        "Block the number and delete the conversation"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 808
+    "mode": "live",
+    "ms": 5196
   },
   "s031": {
     "ok": true,
     "verdict": {
-      "score": 32,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.97,
+      "confidence_reason": "4 independent signals point the same way",
+      "category": "tech_support",
       "evidence": [
-        "Pressure to act within hours",
-        "Tells you to call an unfamiliar number",
-        "Limited check: the page content was not analyzed"
+        "Message claims your device has a virus to create fear",
+        "Demands immediate call to 1-888-555-0115",
+        "Uses urgency and threat language to pressure action",
+        "Classic tech support scam pattern: fake virus alert + phone number"
       ],
       "evidence_keys": [
+        "threat_language",
         "urgency_language",
-        "phone_callback"
+        "phone_callback",
+        "credential_request"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not call the number \u2014 it's a scam",
+        "Delete the message and block the sender",
+        "Run a legitimate antivirus scan if concerned",
+        "Report to FTC at reportfraud.ftc.gov"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 814
+    "mode": "live",
+    "ms": 4792
   },
   "s039": {
     "ok": true,
     "verdict": {
-      "score": 21,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.97,
+      "confidence_reason": "5 independent signals point the same way",
+      "category": "bank_impersonation",
       "evidence": [
-        "Asks for a PIN, password, SSN or card number",
-        "Link domain imitates a real company",
-        "Limited check: the page content was not analyzed"
+        "Message impersonates Prairie Credit Union requesting card number and PIN",
+        "Link uses lookalike domain prairiecreditunion-update.live with risky .live TLD",
+        "Creates urgency claiming account will be closed if not verified",
+        "Taxonomy matches bank impersonation and account suspension scams",
+        "Domain age unknown, not allowlisted, brand clone likely"
       ],
       "evidence_keys": [
         "credential_request",
-        "lookalike_domain"
+        "lookalike_domain",
+        "urgency_language",
+        "risky_tld",
+        "brand_clone"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not click the link or provide info",
+        "Contact Prairie Credit Union via official channels",
+        "Report to carrier spam service",
+        "Delete the message"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1047
+    "mode": "live",
+    "ms": 11274
   },
   "s044": {
     "ok": true,
     "verdict": {
-      "score": 21,
+      "score": 15,
       "verdict": "likely_scam",
-      "confidence": 0.95,
-      "confidence_reason": "Based on 3 signals; more would raise confidence",
-      "category": "fake_store",
+      "confidence": 0.97,
+      "confidence_reason": "5 independent signals point the same way",
+      "category": "toll_scam",
       "evidence": [
-        "Link domain imitates a real company",
-        "Pressure to act within hours",
-        "Threatens fines, suspension or legal action"
+        "Message threatens a $50 fine to pressure immediate payment",
+        "Link uses lookalike domain secure-tolltag.xyz mimicking real TollTag brand",
+        "Domain uses risky .xyz TLD and age is unknown",
+        "Text creates urgency with 'final notice' and 'pay now' language",
+        "Requests small $14.80 payment to appear legitimate"
       ],
       "evidence_keys": [
+        "threat_language",
         "lookalike_domain",
+        "risky_tld",
         "urgency_language",
-        "threat_language"
+        "small_fee_request"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not click the link or provide any payment info",
+        "Check your actual TollTag account at the official website or app",
+        "Report the scam text to your carrier (forward to 7726)",
+        "Block the sender and delete the message"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1052
+    "mode": "live",
+    "ms": 13145
   },
   "s048": {
     "ok": true,
     "verdict": {
-      "score": 14,
+      "score": 15,
       "verdict": "likely_scam",
       "confidence": 0.97,
-      "confidence_reason": "4 independent signals point the same way",
-      "category": "fake_store",
+      "confidence_reason": "5 independent signals point the same way",
+      "category": "account_suspension",
       "evidence": [
-        "Asks for a PIN, password, SSN or card number",
-        "Link domain imitates a real company",
-        "Pressure to act within hours",
-        "Threatens fines, suspension or legal action"
+        "Message threatens account suspension within 24 hours to create urgency",
+        "Asks you to re-enter your password on a non-official domain",
+        "Domain meadowpay-pay.top uses risky .top TLD and mimics MeadowPay brand",
+        "No legitimate company sends password-reset links via unsolicited messages",
+        "Domain age unknown and not on any allowlist"
       ],
       "evidence_keys": [
+        "urgency_language",
+        "threat_language",
         "credential_request",
         "lookalike_domain",
-        "urgency_language",
-        "threat_language"
+        "risky_tld"
       ],
       "next_steps": [
-        "Don't enter any payment details",
-        "Leave this site or message",
-        "Check the company on its official app",
-        "Report it to your carrier or bank"
+        "Do not click the link or enter any credentials",
+        "Report the message as phishing to your carrier or email provider",
+        "Contact MeadowPay only through their official app or website",
+        "Enable 2FA on your real MeadowPay account if available"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 1051
+    "mode": "live",
+    "ms": 10616
   },
   "s054": {
     "ok": true,
     "verdict": {
-      "score": 73,
+      "score": 85,
       "verdict": "looks_ok",
       "confidence": 0.85,
       "confidence_reason": "Based on 1 signal; more would raise confidence",
-      "category": "legit_store",
+      "category": "legit_transactional",
       "evidence": [
-        "Doesn't ask for money or personal details",
-        "Limited check: the page content was not analyzed",
-        "Based on rules only, without the AI agent"
+        "Message is a standard order pickup notification from a grocery store",
+        "No requests for payment, credentials, or personal information",
+        "Only informs about order #6243 ready until 6 PM today"
       ],
       "evidence_keys": [
         "no_ask"
       ],
       "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
+        "Pick up your order at Greenleaf Grocer before 6 PM",
+        "Contact the store directly if you didn't place this order",
+        "No further action needed if this is your order"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 805
+    "mode": "live",
+    "ms": 8439
   },
   "s055": {
     "ok": true,
     "verdict": {
-      "score": 91,
+      "score": 85,
       "verdict": "looks_ok",
-      "confidence": 0.9,
-      "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "legit_store",
+      "confidence": 0.6,
+      "confidence_reason": "Mixed signals: doesn't ask for money or personal details, but asks for a pin, password, ssn or card number",
+      "category": "bank_notification",
       "evidence": [
-        "Doesn't ask for money or personal details",
-        "Points you to your card or the official app",
-        "Limited check: the page content was not analyzed"
+        "Message directs to official channel (number on back of card)",
+        "No callback number or link provided in message",
+        "Contains specific transaction details (amount, merchant, last 4 digits)",
+        "Standard fraud alert format used by legitimate banks",
+        "No urgency language demanding immediate action"
       ],
       "evidence_keys": [
+        "directs_to_official_channel",
         "no_ask",
-        "directs_to_official_channel"
+        "credential_request",
+        "urgency_language",
+        "phone_callback"
       ],
       "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
+        "Verify the charge in your banking app or statement",
+        "If unrecognized, call the number on your physical card",
+        "Do not call any number provided in a suspicious message",
+        "Monitor account for further unauthorized activity"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 805
+    "mode": "live",
+    "ms": 8131
   },
   "s057": {
     "ok": true,
     "verdict": {
-      "score": 73,
-      "verdict": "looks_ok",
-      "confidence": 0.85,
-      "confidence_reason": "Based on 1 signal; more would raise confidence",
-      "category": "legit_store",
-      "evidence": [
-        "Doesn't ask for money or personal details",
-        "Limited check: the page content was not analyzed",
-        "Based on rules only, without the AI agent"
-      ],
-      "evidence_keys": [
-        "no_ask"
-      ],
-      "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
-      ],
-      "linked": {},
-      "mode": "basic"
-    },
-    "mode": "basic",
-    "ms": 810
-  },
-  "s063": {
-    "ok": true,
-    "verdict": {
-      "score": 73,
-      "verdict": "looks_ok",
-      "confidence": 0.85,
-      "confidence_reason": "Based on 1 signal; more would raise confidence",
-      "category": "legit_store",
-      "evidence": [
-        "Doesn't ask for money or personal details",
-        "Limited check: the page content was not analyzed",
-        "Based on rules only, without the AI agent"
-      ],
-      "evidence_keys": [
-        "no_ask"
-      ],
-      "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
-      ],
-      "linked": {},
-      "mode": "basic"
-    },
-    "mode": "basic",
-    "ms": 799
-  },
-  "s067": {
-    "ok": true,
-    "verdict": {
-      "score": 91,
+      "score": 75,
       "verdict": "looks_ok",
       "confidence": 0.9,
       "confidence_reason": "Based on 2 signals; more would raise confidence",
       "category": "legit_store",
       "evidence": [
-        "Doesn't ask for money or personal details",
-        "Points you to your card or the official app",
-        "Limited check: the page content was not analyzed"
+        "Promotional SMS from named business 'Lonestar Tickets'",
+        "Offers 20% discount - reasonable, not too-good-to-be-true",
+        "Includes standard opt-out instruction 'Reply STOP'",
+        "Directs to physical store, not a suspicious link",
+        "No requests for payment, credentials, or personal info"
+      ],
+      "evidence_keys": [
+        "no_ask",
+        "directs_to_official_channel",
+        "no_credential_request",
+        "no_gift_card_request",
+        "no_urgency_language"
+      ],
+      "next_steps": [
+        "Verify Lonestar Tickets is a real local business",
+        "Visit store in person to use discount",
+        "Ignore if you didn't sign up for their texts"
+      ],
+      "linked": {},
+      "mode": "live"
+    },
+    "mode": "live",
+    "ms": 9482
+  },
+  "s063": {
+    "ok": true,
+    "verdict": {
+      "score": 55,
+      "verdict": "unsure",
+      "confidence": 0.56,
+      "confidence_reason": "Mixed signals: doesn't ask for money or personal details, but pressure to act within hours",
+      "category": "legit_transactional",
+      "evidence": [
+        "Message creates urgency with 6 PM pickup deadline",
+        "No link, phone number, or payment request in message",
+        "Could be legitimate order notification from ticket vendor",
+        "Taxonomy match suggests transactional but low confidence",
+        "No obvious scam signals like gift cards or credential requests"
+      ],
+      "evidence_keys": [
+        "urgency_language",
+        "no_ask",
+        "no_contact_page",
+        "no_refund_policy",
+        "has_contact_page"
+      ],
+      "next_steps": [
+        "Contact Lonestar Tickets via official site to verify order #4074",
+        "Don't click links in follow-up messages",
+        "Check email for order confirmation",
+        "Report as spam if no order placed"
+      ],
+      "linked": {},
+      "mode": "live"
+    },
+    "mode": "live",
+    "ms": 10747
+  },
+  "s067": {
+    "ok": true,
+    "verdict": {
+      "score": 75,
+      "verdict": "looks_ok",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "bank_alert",
+      "evidence": [
+        "Message follows legitimate bank fraud alert format",
+        "Directs to call number on back of card (official channel)",
+        "No links, callback numbers, or credential requests in message",
+        "Specific transaction details provided (amount, merchant, last 4 digits)",
+        "No urgency language or threats present"
+      ],
+      "evidence_keys": [
+        "directs_to_official_channel",
+        "no_ask",
+        "no_ask",
+        "no_ask",
+        "no_ask"
+      ],
+      "next_steps": [
+        "Call the number on the back of your physical card to verify",
+        "Check your account online or in the bank's official app",
+        "Do not call any number provided in the message (none given)"
+      ],
+      "linked": {},
+      "mode": "live"
+    },
+    "mode": "live",
+    "ms": 14782
+  },
+  "s069": {
+    "ok": true,
+    "verdict": {
+      "score": 85,
+      "verdict": "looks_ok",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Standard promotional SMS format with store name and discount offer",
+        "Includes legitimate opt-out instruction (Reply STOP)",
+        "No links, payment requests, or urgency tactics present",
+        "Message asks to show text in physical store, not online"
       ],
       "evidence_keys": [
         "no_ask",
         "directs_to_official_channel"
       ],
       "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
+        "No action needed - this appears to be legitimate marketing",
+        "If unwanted, reply STOP to unsubscribe as instructed"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 800
-  },
-  "s069": {
-    "ok": true,
-    "verdict": {
-      "score": 73,
-      "verdict": "looks_ok",
-      "confidence": 0.85,
-      "confidence_reason": "Based on 1 signal; more would raise confidence",
-      "category": "legit_store",
-      "evidence": [
-        "Doesn't ask for money or personal details",
-        "Limited check: the page content was not analyzed",
-        "Based on rules only, without the AI agent"
-      ],
-      "evidence_keys": [
-        "no_ask"
-      ],
-      "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
-      ],
-      "linked": {},
-      "mode": "basic"
-    },
-    "mode": "basic",
-    "ms": 799
+    "mode": "live",
+    "ms": 5926
   },
   "s070": {
     "ok": true,
@@ -516,7 +575,7 @@
       "mode": "basic"
     },
     "mode": "basic",
-    "ms": 799
+    "ms": 15025
   },
   "s079": {
     "ok": true,
@@ -544,61 +603,64 @@
       "mode": "basic"
     },
     "mode": "basic",
-    "ms": 800
+    "ms": 15031
   },
   "s097": {
     "ok": true,
     "verdict": {
-      "score": 73,
+      "score": 90,
       "verdict": "looks_ok",
       "confidence": 0.85,
       "confidence_reason": "Based on 1 signal; more would raise confidence",
-      "category": "legit_store",
+      "category": "legit_transactional",
       "evidence": [
-        "Doesn't ask for money or personal details",
-        "Limited check: the page content was not analyzed",
-        "Based on rules only, without the AI agent"
+        "Message matches legitimate appointment reminder pattern",
+        "No urgency, threat, or credential requests detected",
+        "Simple confirmation request (reply C) is standard practice",
+        "No links, payment requests, or suspicious instructions"
       ],
       "evidence_keys": [
         "no_ask"
       ],
       "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
+        "Reply C to confirm if appointment is correct",
+        "Call Elm Street Dental directly if you need to reschedule",
+        "Ignore if you have no appointment with this provider"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 810
+    "mode": "live",
+    "ms": 10960
   },
   "s100": {
     "ok": true,
     "verdict": {
-      "score": 91,
+      "score": 85,
       "verdict": "looks_ok",
       "confidence": 0.9,
       "confidence_reason": "Based on 2 signals; more would raise confidence",
-      "category": "legit_store",
+      "category": "legit_transactional",
       "evidence": [
-        "Doesn't ask for money or personal details",
-        "Points you to your card or the official app",
-        "Limited check: the page content was not analyzed"
+        "Standard bank transaction alert format",
+        "Advises calling number on back of card",
+        "No credential requests or suspicious links",
+        "Matches legitimate transactional pattern",
+        "No urgency or threat language present"
       ],
       "evidence_keys": [
         "no_ask",
         "directs_to_official_channel"
       ],
       "next_steps": [
-        "Use a card, not a debit or gift card",
-        "Keep your receipt and order number",
-        "Watch your statement for surprises"
+        "Verify the charge in your banking app",
+        "Call the number on your card if unrecognized",
+        "No further action needed if charge is yours"
       ],
       "linked": {},
-      "mode": "basic"
+      "mode": "live"
     },
-    "mode": "basic",
-    "ms": 806
+    "mode": "live",
+    "ms": 14965
   }
 }

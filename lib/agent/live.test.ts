@@ -39,7 +39,7 @@ beforeAll(async () => {
   process.env.NEMOTRON_MODEL = "test-model";
 });
 afterAll(async () => { server.closeAllConnections?.(); server.close(); await closePool(); await t.drop(); delete process.env.AGENT_DEADLINE_MS; });
-beforeEach(() => { queue = []; seen = []; delete process.env.AGENT_DEADLINE_MS; });
+beforeEach(() => { queue = []; seen = []; delete process.env.AGENT_DEADLINE_MS; process.env.LLM_RETRY_BASE_MS = "1"; });
 
 const page: RunInput = { kind: "page", userId: MAYA_ID, url: "https://fastkicks-shop.bluff.example.com", host: "fastkicks-shop", fieldTypes: ["card_number"], signals: {}, source: "check" };
 async function run(input: RunInput = page, fail?: "timeout") {
@@ -101,7 +101,7 @@ describe("live agent loop", () => {
   });
 
   it("429 → rate_limited fallback; 500 → upstream_down fallback; garbage body → malformed", async () => {
-    queue = [{ status: 429, body: {} }];
+    queue = Array.from({ length: 4 }, () => ({ status: 429, body: {} })); // initial try + 3 retries all limited
     let o = await run();
     expect((o.ev.find((e) => e.type === "error") as Extract<RunStreamEvent, { type: "error" }>).data.code).toBe("rate_limited");
     queue = [{ status: 500, body: {} }];
@@ -110,6 +110,13 @@ describe("live agent loop", () => {
     queue = [{ body: "<html>" }];
     o = await run();
     expect((o.ev.find((e) => e.type === "error") as Extract<RunStreamEvent, { type: "error" }>).data.code).toBe("malformed");
+  });
+
+  it("a 429 is retried with backoff and then succeeds (no fallback)", async () => {
+    queue = [{ status: 429, body: {} }, { status: 429, body: {} }, msg([call("submit_verdict", goodVerdict)])];
+    const { r } = await run();
+    expect(r.mode).toBe("live");
+    expect(seen.length).toBe(3);
   });
 
   it("deadline: a hung model → timeout fallback", async () => {
@@ -143,5 +150,17 @@ describe("live agent loop", () => {
     const base = VerdictSchema.parse({ ...goodVerdict, confidence: 0.9, confidence_reason: "x", mode: "live" });
     expect(reconcileLink(base, [], "t1").linked).toEqual({ txn_id: "t1" });
     expect(reconcileLink({ ...base, linked: { exposure_id: "e" } }, [], undefined).linked).toEqual({});
+  });
+});
+
+describe("model call throttling", () => {
+  it("never runs more than LLM_MAX_CONCURRENCY calls at once", async () => {
+    process.env.LLM_MAX_CONCURRENCY = "2";
+    let active = 0, peak = 0;
+    const slow = (async () => { active++; peak = Math.max(peak, active); await new Promise((r) => setTimeout(r, 40)); active--; return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] })); }) as unknown as typeof fetch;
+    const { chat } = await import("./llm");
+    await Promise.all(Array.from({ length: 6 }, () => chat({ model: "m", messages: [{ role: "user", content: "x" }], fetchImpl: slow })));
+    expect(peak).toBeLessThanOrEqual(2);
+    delete process.env.LLM_MAX_CONCURRENCY;
   });
 });

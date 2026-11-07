@@ -20,7 +20,9 @@
     "prewarm": "tsx scripts/prewarm.ts",
     "e2e": "node e2e/run.mjs",
     "deploy:caddy": "node scripts/deploy/gen-caddyfile.mjs",
-    "demo:script": "node scripts/demo-script.mjs"
+    "demo:script": "node scripts/demo-script.mjs",
+    "livecheck": "tsx scripts/livecheck.ts",
+    "embed-taxonomy": "tsx scripts/embed-taxonomy.ts"
   },
   "engines": {
     "node": ">=20"
