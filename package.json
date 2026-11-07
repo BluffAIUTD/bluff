@@ -15,7 +15,8 @@
     "db:reset": "tsx scripts/seed/reset.ts",
     "ext:build": "node extension/build.mjs",
     "eval:export": "tsx scripts/eval/export_claimb.ts",
-    "eval:test": "python3 -m unittest discover -s scripts/eval -p \"test_*.py\""
+    "eval:test": "python3 -m unittest discover -s scripts/eval -p \"test_*.py\"",
+    "eval:stretch-seed": "tsx scripts/eval/export_stretch.ts"
   },
   "engines": {
     "node": ">=20"

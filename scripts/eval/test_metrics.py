@@ -71,3 +71,40 @@ class ClaimA(unittest.TestCase):
         self.assertGreater(len(rows), 80)
         self.assertEqual(len({r["text"] for r in rows}), len(rows))
         self.assertTrue({"scam", "legit"} <= {r["label"] for r in rows})
+
+
+class Stretch(unittest.TestCase):
+    def test_zeroshot_parse(self):
+        from zeroshot import parse
+        self.assertTrue(parse("Scam"))
+        self.assertFalse(parse(" legit."))
+        self.assertTrue(parse("this is a scam"))
+        self.assertIsNone(parse("not sure"))
+        self.assertIsNone(parse(""))
+
+    def test_zeroshot_against_fake_server(self):
+        import http.server
+        import threading
+        from zeroshot import predict
+
+        class H(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                n = int(self.headers["content-length"]); body = json.loads(self.rfile.read(n))
+                assert "Message:" in body["messages"][0]["content"] and "tools" not in body  # one prompt, no tools
+                out = json.dumps({"choices": [{"message": {"content": "scam"}}]}).encode()
+                self.send_response(200); self.send_header("content-type", "application/json"); self.end_headers(); self.wfile.write(out)
+            def log_message(self, *a): pass
+        srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        self.assertTrue(predict("hi", base=f"http://127.0.0.1:{srv.server_port}/v1", key="k", model="m"))
+        srv.shutdown()
+        with self.assertRaises(RuntimeError):
+            predict("hi", base="http://x", key="", model="")
+
+    def test_summarize_counts_errors_wrong_and_builds_failure_table(self):
+        from run_stretch import summarize
+        rows = [{"id": "a", "kind": "text", "label": "scam", "text": "t1"}, {"id": "b", "kind": "text", "label": "legit", "text": "t2"}, {"id": "c", "kind": "text", "label": "scam", "text": "t3"}]
+        v = lambda x: {"ok": True, "verdict": {"verdict": x, "score": 50, "evidence": ["e"]}}  # noqa: E731
+        s = summarize(rows, {"a": v("likely_scam"), "b": v("likely_scam"), "c": {"ok": False, "error": "x"}}, {"a": True, "b": False, "c": None})
+        self.assertEqual([f["id"] for f in s["failures"]], ["b", "c"])
+        self.assertEqual(s["zero_shot_no_tools"]["f1"], 0.6667)  # TP=1, FN=1 (error counted wrong), FP=0

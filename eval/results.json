@@ -56,7 +56,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-07T23:04:01Z",
+  "generated_at": "2026-11-07T23:05:19Z",
   "claimA": {
     "n": 21,
     "split": "seed 42, stratified 80/20 (83 train / 21 test); only the held-out test ids are scored",
@@ -96,5 +96,16 @@
         "note": "verdict likely_scam (31/100, 85% sure); evidence: Asks for a PIN, password, SSN or card number; Limited check: the page content was not analyzed"
       }
     ]
+  },
+  "stretch": {
+    "n": 15,
+    "dataset": "hand-labeled cases (eval/stretch.jsonl)",
+    "bluff": {
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "failures": [],
+    "note": "Stretch set is small and hand-written by the team; extend to 40-50 cases for a meaningful comparison."
   }
 }
