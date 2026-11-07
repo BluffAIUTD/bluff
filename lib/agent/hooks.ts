@@ -2,6 +2,7 @@ import type { Db } from "../db";
 import { one } from "../db";
 import { notify } from "../photon/notify";
 import { chargeAlert } from "../photon/templates";
+import { callForCharge, shouldCall } from "../photon/voice";
 import type { Verdict } from "../schemas";
 import type { RunInput } from "./types";
 
@@ -24,4 +25,7 @@ export async function afterRun(db: Db, input: RunInput, verdict: Verdict, verdic
   const l = verdict.linked;
   if (!l?.exposure_id || l.kind !== "flagged" || verdict.verdict === "looks_ok") return;
   await sendChargeAlert(db, input.userId, input.txnId, l.exposure_id, verdictId);
+  // Highest-risk event (≥ $40 and score < 30): also place a short call. The text above is the fallback if the call fails.
+  const t = await one<{ descriptor: string; amount_cents: number }>(db, "SELECT descriptor, amount_cents FROM transactions WHERE id=$1", [input.txnId]);
+  if (t && shouldCall(t.amount_cents, verdict.score)) void callForCharge(db, { userId: input.userId, txnId: input.txnId, exposureId: l.exposure_id, amountCents: t.amount_cents, descriptor: t.descriptor });
 }

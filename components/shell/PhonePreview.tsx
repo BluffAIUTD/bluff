@@ -58,6 +58,7 @@ export function PhonePreview() {
             {msgs.map((m) => (
               <div key={m.id} className={`flex ${m.direction === "in" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.direction === "in" ? "bg-accent text-white" : "bg-surface2"}`}>
+                  {m.kind === "call" && <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-dim">Phone call (spoken)</span>}
                   {m.direction === "in" && m.body === "[discarded]" ? <em className="opacity-80">(message checked and discarded)</em> : m.body}
                   {m.status === "failed" && <p className="mt-1 text-[11px] text-scam">Text not delivered</p>}
                 </div>
