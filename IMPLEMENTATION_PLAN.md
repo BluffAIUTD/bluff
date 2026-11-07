@@ -51,7 +51,7 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
   - Edge cases: boundary scores 39/40/69/70.
   - Verify: unit tests for schema accept/reject and label boundaries.
 
-- [ ] **4. Config, request context, rate limiting (P0)**
+- [x] **4. Config, request context, rate limiting (P0)**
   - Objective: env switches, signed `bluff_uid` cookie → Maya, demo-key gate, 30 runs/min/IP token bucket.
   - Depends: 3.
   - Files: `lib/config.ts`, `lib/session.ts`, `lib/ratelimit.ts`, `app/demo/route.ts`, `middleware` if needed.
@@ -218,3 +218,4 @@ This session has **no** NVIDIA key, Photon account, Tiger Data service, Vultr in
 - Task 1 — done — typecheck, lint, next build (standalone), vitest all pass.
 - Task 2 — done — typecheck/lint/build pass; 4 component tests pass (mode/flag badges, empty/error states). Visual check deferred to task 43.
 - Task 3 — done — typecheck/lint pass; 15 tests pass (schema accept/reject, label boundaries 39/40/69/70, error shape).
+- Task 4 — done — typecheck/lint pass; 22 tests pass (cookie sign/forge, demo gate header/cookie not query, prod secret guard, token bucket refill).
