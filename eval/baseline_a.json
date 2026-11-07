@@ -1,0 +1,26 @@
+{
+  "baseline": "Stand-in baseline: contains a link \u2192 scam (not T-Mobile's baseline)",
+  "predictions": {
+    "s009": true,
+    "s011": false,
+    "s016": false,
+    "s019": true,
+    "s021": true,
+    "s028": true,
+    "s030": false,
+    "s031": false,
+    "s039": true,
+    "s044": true,
+    "s048": true,
+    "s054": false,
+    "s055": false,
+    "s057": false,
+    "s063": false,
+    "s067": false,
+    "s069": false,
+    "s070": false,
+    "s079": false,
+    "s097": false,
+    "s100": false
+  }
+}

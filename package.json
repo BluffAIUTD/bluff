@@ -1,0 +1,54 @@
+{
+  "name": "bluff",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bluff: connects the site where you typed your card to the charge that follows, then helps you get your money back.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx scripts/db/migrate.ts",
+    "db:seed": "tsx scripts/seed/index.ts",
+    "db:reset": "tsx scripts/seed/reset.ts",
+    "ext:build": "node extension/build.mjs",
+    "eval:export": "tsx scripts/eval/export_claimb.ts",
+    "eval:test": "python3 -m unittest discover -s scripts/eval -p \"test_*.py\"",
+    "eval:stretch-seed": "tsx scripts/eval/export_stretch.ts",
+    "prewarm": "tsx scripts/prewarm.ts",
+    "e2e": "node e2e/run.mjs",
+    "deploy:caddy": "node scripts/deploy/gen-caddyfile.mjs",
+    "demo:script": "node scripts/demo-script.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "next": "^15.5.29",
+    "pg": "^8.23.1",
+    "react": "^19.1.10",
+    "react-dom": "^19.1.10",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "autoprefixer": "^10.6.2",
+    "esbuild": "^0.28.2",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.29",
+    "jsdom": "^31.0.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,604 @@
+{
+  "s009": {
+    "ok": true,
+    "verdict": {
+      "score": 25,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Link domain imitates a real company",
+        "Asks for a small fee to release a package or prize",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "lookalike_domain",
+        "small_fee_request"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1722
+  },
+  "s011": {
+    "ok": true,
+    "verdict": {
+      "score": 25,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Asks you to buy gift cards",
+        "Asks you to keep it secret",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "gift_card_request",
+        "secrecy_request"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1480
+  },
+  "s016": {
+    "ok": true,
+    "verdict": {
+      "score": 32,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Pressure to act within hours",
+        "Tells you to call an unfamiliar number",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "urgency_language",
+        "phone_callback"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1477
+  },
+  "s019": {
+    "ok": true,
+    "verdict": {
+      "score": 27,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Link domain imitates a real company",
+        "Threatens fines, suspension or legal action",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "lookalike_domain",
+        "threat_language"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1054
+  },
+  "s021": {
+    "ok": true,
+    "verdict": {
+      "score": 14,
+      "verdict": "likely_scam",
+      "confidence": 0.97,
+      "confidence_reason": "4 independent signals point the same way",
+      "category": "fake_store",
+      "evidence": [
+        "Asks for a PIN, password, SSN or card number",
+        "Link domain imitates a real company",
+        "Pressure to act within hours",
+        "Threatens fines, suspension or legal action"
+      ],
+      "evidence_keys": [
+        "credential_request",
+        "lookalike_domain",
+        "urgency_language",
+        "threat_language"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1056
+  },
+  "s028": {
+    "ok": true,
+    "verdict": {
+      "score": 21,
+      "verdict": "likely_scam",
+      "confidence": 0.95,
+      "confidence_reason": "Based on 3 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Link domain imitates a real company",
+        "Pressure to act within hours",
+        "Threatens fines, suspension or legal action"
+      ],
+      "evidence_keys": [
+        "lookalike_domain",
+        "urgency_language",
+        "threat_language"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1047
+  },
+  "s030": {
+    "ok": true,
+    "verdict": {
+      "score": 25,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Asks you to buy gift cards",
+        "Asks you to keep it secret",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "gift_card_request",
+        "secrecy_request"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 808
+  },
+  "s031": {
+    "ok": true,
+    "verdict": {
+      "score": 32,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Pressure to act within hours",
+        "Tells you to call an unfamiliar number",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "urgency_language",
+        "phone_callback"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 814
+  },
+  "s039": {
+    "ok": true,
+    "verdict": {
+      "score": 21,
+      "verdict": "likely_scam",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Asks for a PIN, password, SSN or card number",
+        "Link domain imitates a real company",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "credential_request",
+        "lookalike_domain"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1047
+  },
+  "s044": {
+    "ok": true,
+    "verdict": {
+      "score": 21,
+      "verdict": "likely_scam",
+      "confidence": 0.95,
+      "confidence_reason": "Based on 3 signals; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Link domain imitates a real company",
+        "Pressure to act within hours",
+        "Threatens fines, suspension or legal action"
+      ],
+      "evidence_keys": [
+        "lookalike_domain",
+        "urgency_language",
+        "threat_language"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1052
+  },
+  "s048": {
+    "ok": true,
+    "verdict": {
+      "score": 14,
+      "verdict": "likely_scam",
+      "confidence": 0.97,
+      "confidence_reason": "4 independent signals point the same way",
+      "category": "fake_store",
+      "evidence": [
+        "Asks for a PIN, password, SSN or card number",
+        "Link domain imitates a real company",
+        "Pressure to act within hours",
+        "Threatens fines, suspension or legal action"
+      ],
+      "evidence_keys": [
+        "credential_request",
+        "lookalike_domain",
+        "urgency_language",
+        "threat_language"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 1051
+  },
+  "s054": {
+    "ok": true,
+    "verdict": {
+      "score": 73,
+      "verdict": "looks_ok",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "no_ask"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 805
+  },
+  "s055": {
+    "ok": true,
+    "verdict": {
+      "score": 91,
+      "verdict": "looks_ok",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Points you to your card or the official app",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "no_ask",
+        "directs_to_official_channel"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 805
+  },
+  "s057": {
+    "ok": true,
+    "verdict": {
+      "score": 73,
+      "verdict": "looks_ok",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "no_ask"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 810
+  },
+  "s063": {
+    "ok": true,
+    "verdict": {
+      "score": 73,
+      "verdict": "looks_ok",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "no_ask"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 799
+  },
+  "s067": {
+    "ok": true,
+    "verdict": {
+      "score": 91,
+      "verdict": "looks_ok",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Points you to your card or the official app",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "no_ask",
+        "directs_to_official_channel"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 800
+  },
+  "s069": {
+    "ok": true,
+    "verdict": {
+      "score": 73,
+      "verdict": "looks_ok",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "no_ask"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 799
+  },
+  "s070": {
+    "ok": true,
+    "verdict": {
+      "score": 31,
+      "verdict": "likely_scam",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Asks for a PIN, password, SSN or card number",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "credential_request"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 799
+  },
+  "s079": {
+    "ok": true,
+    "verdict": {
+      "score": 31,
+      "verdict": "likely_scam",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "fake_store",
+      "evidence": [
+        "Asks for a PIN, password, SSN or card number",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "credential_request"
+      ],
+      "next_steps": [
+        "Don't enter any payment details",
+        "Leave this site or message",
+        "Check the company on its official app",
+        "Report it to your carrier or bank"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 800
+  },
+  "s097": {
+    "ok": true,
+    "verdict": {
+      "score": 73,
+      "verdict": "looks_ok",
+      "confidence": 0.85,
+      "confidence_reason": "Based on 1 signal; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Limited check: the page content was not analyzed",
+        "Based on rules only, without the AI agent"
+      ],
+      "evidence_keys": [
+        "no_ask"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 810
+  },
+  "s100": {
+    "ok": true,
+    "verdict": {
+      "score": 91,
+      "verdict": "looks_ok",
+      "confidence": 0.9,
+      "confidence_reason": "Based on 2 signals; more would raise confidence",
+      "category": "legit_store",
+      "evidence": [
+        "Doesn't ask for money or personal details",
+        "Points you to your card or the official app",
+        "Limited check: the page content was not analyzed"
+      ],
+      "evidence_keys": [
+        "no_ask",
+        "directs_to_official_channel"
+      ],
+      "next_steps": [
+        "Use a card, not a debit or gift card",
+        "Keep your receipt and order number",
+        "Watch your statement for surprises"
+      ],
+      "linked": {},
+      "mode": "basic"
+    },
+    "mode": "basic",
+    "ms": 806
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "host": "deliveryfix-help",
+  "verdict": {
+    "score": 22,
+    "verdict": "likely_scam",
+    "confidence": 0.9,
+    "confidence_reason": "Domain age and fee request agree",
+    "category": "delivery_fee",
+    "evidence": [
+      "Site is 6 days old",
+      "Imitates a national postal service",
+      "Asks for a small redelivery fee",
+      "No contact page or refund policy"
+    ],
+    "evidence_keys": [
+      "domain_age_lt_30",
+      "brand_clone",
+      "no_contact_page",
+      "no_refund_policy"
+    ],
+    "next_steps": [
+      "Don't enter any card details",
+      "Leave this site",
+      "Shop at a retailer you know"
+    ],
+    "linked": {},
+    "mode": "cached"
+  },
+  "steps": [
+    {
+      "kind": "plan",
+      "tool": null,
+      "inputSummary": "Check deliveryfix-help: card field detected",
+      "outputSummary": "Plan: domain age \u2192 page signals \u2192 taxonomy \u2192 verdict",
+      "ms": 310
+    },
+    {
+      "kind": "tool",
+      "tool": "domain_intel",
+      "inputSummary": "deliveryfix-help",
+      "outputSummary": "6 days old, clones a national postal service",
+      "ms": 420
+    },
+    {
+      "kind": "tool",
+      "tool": "page_signals",
+      "inputSummary": "deliveryfix-help",
+      "outputSummary": "fee form, no contact page",
+      "ms": 360
+    },
+    {
+      "kind": "tool",
+      "tool": "taxonomy_match",
+      "inputSummary": "checkout text",
+      "outputSummary": "delivery_fee 0.88",
+      "ms": 280
+    },
+    {
+      "kind": "final",
+      "tool": "submit_verdict",
+      "inputSummary": "score 22",
+      "outputSummary": "likely_scam (90% sure)",
+      "ms": 120
+    }
+  ]
+}

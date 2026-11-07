@@ -1,0 +1,71 @@
+{
+  "host": "txn_demo_link_1",
+  "verdict": {
+    "score": 14,
+    "verdict": "likely_scam",
+    "confidence": 0.92,
+    "confidence_reason": "Name, timing and a risky exposure all agree",
+    "category": "fake_store",
+    "evidence": [
+      "$49.99 from FKSHP*LLC lines up with fastkicks-shop",
+      "You entered your card there 3 days earlier",
+      "That site was 4 days old and scored 18",
+      "No earlier charges from this merchant"
+    ],
+    "evidence_keys": [
+      "exposure_link",
+      "domain_age_lt_30"
+    ],
+    "next_steps": [
+      "Call your card issuer to dispute",
+      "Lock or replace the card",
+      "Watch for repeat charges"
+    ],
+    "linked": {
+      "txn_id": "txn_demo_link_1",
+      "match_reasons": [
+        "descriptor 'FKSHP' abbreviates 'fastkicks-shop'",
+        "charged 3 days after exposure"
+      ],
+      "kind": "flagged"
+    },
+    "mode": "replayed"
+  },
+  "steps": [
+    {
+      "kind": "plan",
+      "tool": null,
+      "inputSummary": "Charge FKSHP*LLC $49.99",
+      "outputSummary": "Plan: history \u2192 exposures \u2192 domain \u2192 verdict",
+      "ms": 300
+    },
+    {
+      "kind": "tool",
+      "tool": "txn_search",
+      "inputSummary": "fkshp, 90 days",
+      "outputSummary": "0 prior charges from this merchant",
+      "ms": 410
+    },
+    {
+      "kind": "tool",
+      "tool": "exposure_lookup",
+      "inputSummary": "FKSHP*LLC",
+      "outputSummary": "1 match: fastkicks-shop, 3 days earlier, 0.90",
+      "ms": 520
+    },
+    {
+      "kind": "tool",
+      "tool": "domain_intel",
+      "inputSummary": "fastkicks-shop",
+      "outputSummary": "4 days old, clones a major sneaker brand",
+      "ms": 380
+    },
+    {
+      "kind": "final",
+      "tool": "submit_verdict",
+      "inputSummary": "score 14",
+      "outputSummary": "likely_scam (92% sure)",
+      "ms": 110
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{"id":"h00","kind":"text","label":"scam","category":"delivery_fee","text":"Parcelo: Your package is held. Pay $1.99 redelivery fee within 12 hrs: parcelo-redeliver.help/pay"}
+{"id":"h01","kind":"text","label":"scam","category":"toll_scam","text":"TollTag final notice: unpaid toll $8.40. Avoid $50 fine, pay now: tolltag-pay.top/tx"}
+{"id":"h02","kind":"bank_alert","label":"scam","category":"bank_impersonation","text":"Northbank ALERT: suspicious login. Verify your card number and PIN at northbank-secure.co to keep your account open."}
+{"id":"h03","kind":"checkout","label":"scam","category":"fake_store","text":"Retro Runner Sale. Retro Runner Sale 85% OFF! Only 3 left. Pay with gift card or crypto only. Offer ends in 09:59"}
+{"id":"h04","kind":"email","label":"scam","category":"prize_giveaway","text":"You won a $500 gift card!. Claim within 24 hours. Just confirm your SSN and a $4.95 shipping fee."}
+{"id":"h05","kind":"text","label":"scam","category":"gift_card_request","text":"Hi it's Alex, new number! Can you buy 4 gift cards for my boss? I'll pay you back, don't tell anyone."}
+{"id":"h06","kind":"email","label":"scam","category":"account_suspension","text":"Account suspension notice. Your MeadowPay account will be suspended in 24 hours unless you re-enter your password: meadowpay-verify.net"}
+{"id":"h07","kind":"receipt","label":"scam","category":"tech_support","text":"Receipt: Antivirus Pro. Receipt: Antivirus Pro renewal $389.99. Not you? Call 1-800-555-0142 to cancel now."}
+{"id":"h08","kind":"text","label":"scam","category":"investment","text":"Hot tip: my mentor turned $200 into $4,000 in a week with CoinBloom. DM me to join, spots close tonight."}
+{"id":"h09","kind":"text","label":"legit","category":"legit_transactional","text":"Bayou Bakery: your order #2281 is ready for pickup until 6 PM today."}
+{"id":"h10","kind":"bank_alert","label":"legit","category":"legit_transactional","text":"Northbank: A $42.10 purchase at Greenleaf Grocer was approved on your card ending 4417. If this wasn't you, call the number on the back of your card."}
+{"id":"h11","kind":"email","label":"legit","category":"legit_transactional","text":"Your Lonestar Tickets order. Your Lonestar Tickets order: 2 tickets for Saturday. Open the app to view them. No action needed."}
+{"id":"h12","kind":"receipt","label":"legit","category":"legit_transactional","text":"Receipt - Campus Tech. Receipt - Campus Tech: USB-C cable $12.99, paid with card ending 4417. Returns accepted within 30 days at the store."}
+{"id":"h13","kind":"text","label":"legit","category":"legit_transactional","text":"Reminder: dentist appointment tomorrow 3:30 PM at Elm Street Dental. Reply C to confirm."}
+{"id":"h14","kind":"checkout","label":"legit","category":"legit_store","text":"Northloop Books checkout. Northloop Books checkout. Total $23.50. Pay with card or PayPal. Free returns within 30 days. Contact: help@northloop-books.example"}
