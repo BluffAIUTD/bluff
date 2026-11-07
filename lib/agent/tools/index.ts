@@ -1,4 +1,5 @@
 import { domainIntelTool } from "./domainIntel";
+import { draftDisputeTool } from "./draftDispute";
 import { exposureLookupTool } from "./exposureLookup";
 import { pageSignalsTool } from "./pageSignals";
 import { submitVerdictTool } from "./submitVerdict";
@@ -6,8 +7,8 @@ import { taxonomyMatchTool } from "./taxonomyMatch";
 import { txnSearchTool } from "./txnSearch";
 import { capJson, type ToolContext, type ToolDef } from "./types";
 
-/** Tool registry. draft_dispute (task 18) and notify (task 21) are appended when their modules land. */
-export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, submitVerdictTool];
+/** Tool registry. The notify tool (task 21) is appended when it lands. */
+export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, submitVerdictTool];
 
 export function getTool(name: string): ToolDef | undefined { return TOOLS.find((t) => t.name === name); }
 
