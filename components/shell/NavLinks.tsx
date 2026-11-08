@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
 import { NAV_ITEMS, isActive } from "./nav";
 
-/** Left rail on desktop (≥1024px), bottom tab bar below. Same order; desktop-only items are left off the 7-slot tab bar. */
+/** Left rail on desktop (≥1024px), bottom tab bar below. Same five items in the same order on both. */
 export function NavLinks() {
   const path = usePathname() ?? "/";
   return (
@@ -23,12 +23,12 @@ export function NavLinks() {
           );
         })}
       </nav>
-      <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
-        {NAV_ITEMS.filter((i) => !("desktopOnly" in i && i.desktopOnly)).map((i) => {
+      <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
+        {NAV_ITEMS.map((i) => {
           const on = isActive(path, i.href);
           return (
             <Link key={i.href} href={i.href} aria-current={on ? "page" : undefined}
-              className={`flex min-h-[56px] flex-col items-center justify-center gap-[2px] text-[10px] font-medium ${on ? "text-fg" : "text-dim"}`}>
+              className={`flex min-h-[56px] flex-col items-center justify-center gap-[2px] px-1 text-center text-[11px] font-medium leading-tight ${on ? "text-fg" : "text-dim"}`}>
               <Icon name={i.icon} className={`h-5 w-5 ${on ? "text-accent" : ""}`} />
               {i.label}
             </Link>

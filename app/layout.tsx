@@ -6,7 +6,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-inter", display: "swap" });
 const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-grotesk", display: "swap" });
 
-export const metadata: Metadata = { title: "Bluff — call their bluff", description: "Bluff links the site where you typed your card to the charge that follows, then helps you get your money back." };
+export const metadata: Metadata = { title: "Bluff — call their bluff", description: "Bluff checks the website behind every charge on your card and helps you get your money back." };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0e1014" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

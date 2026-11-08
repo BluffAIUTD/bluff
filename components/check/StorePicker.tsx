@@ -1,6 +1,6 @@
 import { STORES } from "@/data/stores";
 
-/** The 8 demo storefronts as chips (3 scam, 5 legit; the mix is not revealed on the chips). */
+/** The 10 demo storefronts as chips (5 scam, 5 legit; the mix is not revealed on the chips). */
 export function StorePicker({ selected, onPick, disabled }: { selected: string | null; onPick: (slug: string) => void; disabled?: boolean }) {
   return (
     <div role="group" aria-label="Demo stores" className="flex flex-wrap gap-2">

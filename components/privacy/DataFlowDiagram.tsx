@@ -1,27 +1,67 @@
-/** Static SVG: what stays on the device and what reaches Bluff's server. */
+import type { ReactNode } from "react";
+
+const LABEL =
+  "Data flow. Checkout Guard extension: it checks the page's fields locally and sends Bluff only the site's origin, the kinds of fields and yes/no signals; " +
+  "what you type and the page text never leave the device. Card watch: Bluff's server reads the Capital One Nessie sandbox charges, crawls each merchant's " +
+  "public pages, and sends that page text with that merchant's own charge dates and amounts to NVIDIA Nemotron for its review.";
+
+function Box({ title, tone = "neutral", children }: { title: string; tone?: "neutral" | "safe" | "accent"; children: ReactNode }) {
+  const border = tone === "safe" ? "border-safe/60 bg-safe/10" : tone === "accent" ? "border-accent/60 bg-accent/10" : "border-line bg-surface2";
+  return (
+    <div className={`min-w-0 flex-1 rounded-card border p-3 ${border}`}>
+      <p className="font-grotesk text-sm font-bold">{title}</p>
+      <div className="mt-1 text-xs leading-relaxed text-dim">{children}</div>
+    </div>
+  );
+}
+
+function Arrow({ label }: { label: string }) {
+  return (
+    <div className="flex shrink-0 items-center justify-center gap-2 py-1 text-[11px] font-semibold text-fg md:flex-col md:gap-0 md:px-1 md:py-0">
+      <span className="inline-block rotate-90 text-lg leading-none text-accent md:rotate-0">→</span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+/** What stays on the device and what reaches Bluff's server, for the extension and for the bank scan. Responsive: rows stack on a phone. */
 export function DataFlowDiagram() {
   return (
-    <svg role="img" aria-label="Data flow: the browser extension reads field types locally and sends only the domain and yes/no flags to Bluff. Typed values and page text never leave the device." viewBox="0 0 640 260" className="w-full max-w-3xl">
-      <title>Data flow</title>
-      <rect x="10" y="20" width="270" height="220" rx="16" fill="var(--surface-2)" stroke="var(--border)" />
-      <text x="28" y="48" fill="var(--text)" fontFamily="var(--font-grotesk)" fontWeight="700" fontSize="16">Your device</text>
-      <text x="28" y="78" fill="var(--text-dim)" fontSize="13">• What you type (card, CVV, password)</text>
-      <text x="28" y="100" fill="var(--text-dim)" fontSize="13">• The page text</text>
-      <text x="28" y="122" fill="var(--text-dim)" fontSize="13">• Your input values</text>
-      <rect x="28" y="140" width="234" height="84" rx="10" fill="rgba(47,158,110,.14)" stroke="var(--safe)" />
-      <text x="40" y="164" fill="var(--text)" fontSize="13" fontWeight="600">Extension checks locally:</text>
-      <text x="40" y="184" fill="var(--text-dim)" fontSize="12">is there a card field? gift cards only?</text>
-      <text x="40" y="202" fill="var(--text-dim)" fontSize="12">countdown timer? contact page?</text>
-      <path d="M284 130 H356" stroke="var(--accent)" strokeWidth="3" markerEnd="url(#arr)" fill="none" />
-      <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--accent)" /></marker></defs>
-      <text x="290" y="118" fill="var(--text)" fontSize="11" fontWeight="600">domain + yes/no</text>
-      <rect x="360" y="20" width="270" height="220" rx="16" fill="var(--surface-2)" stroke="var(--border)" />
-      <text x="378" y="48" fill="var(--text)" fontFamily="var(--font-grotesk)" fontWeight="700" fontSize="16">Bluff server</text>
-      <text x="378" y="78" fill="var(--text-dim)" fontSize="13">• Domain and which kinds of fields</text>
-      <text x="378" y="100" fill="var(--text-dim)" fontSize="13">• Yes/no page signals</text>
-      <text x="378" y="122" fill="var(--text-dim)" fontSize="13">• Messages you choose to forward</text>
-      <text x="378" y="144" fill="var(--text-dim)" fontSize="13">  (discarded after the verdict)</text>
-      <text x="378" y="176" fill="var(--text-dim)" fontSize="13">All demo data is synthetic.</text>
-    </svg>
+    <figure role="img" aria-label={LABEL} className="flex max-w-4xl flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <p className="font-grotesk text-xs font-medium uppercase tracking-wide text-dim">Checkout Guard extension</p>
+        <div className="flex flex-col md:flex-row md:items-stretch">
+          <Box title="Your device" tone="safe">
+            <p>Stays here: what you type (card, CVV, password), your input values, the page text and the page&apos;s path or query.</p>
+            <p className="mt-1">The extension checks locally: is there a card field? gift cards only? countdown timer? contact page?</p>
+          </Box>
+          <Arrow label="origin + yes/no" />
+          <Box title="Bluff server">
+            <p>The site&apos;s origin, which kinds of fields it asks for, and yes/no page signals.</p>
+          </Box>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="font-grotesk text-xs font-medium uppercase tracking-wide text-dim">Card watch (bank scan)</p>
+        <div className="flex flex-col md:flex-row md:items-stretch">
+          <Box title="Capital One Nessie">
+            <p>Sandbox account with synthetic charges. No real card data.</p>
+          </Box>
+          <Arrow label="charges" />
+          <Box title="Bluff server">
+            <p>Groups your charges by the merchant&apos;s website.</p>
+          </Box>
+          <Arrow label="crawl" />
+          <Box title="Merchant's public site">
+            <p>Public pages only, robots.txt obeyed, no forms submitted.</p>
+          </Box>
+          <Arrow label="page text" />
+          <Box title="NVIDIA Nemotron" tone="accent">
+            <p>Reads the pages plus that merchant&apos;s own charge dates and amounts, then rates the site.</p>
+          </Box>
+        </div>
+      </div>
+      <figcaption className="text-xs text-dim">All demo data is synthetic. Messages you choose to check are discarded after the verdict.</figcaption>
+    </figure>
   );
 }
