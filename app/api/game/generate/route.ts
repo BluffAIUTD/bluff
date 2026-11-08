@@ -3,7 +3,7 @@ import { handle } from "@/lib/errors";
 import { getContext, json, requireDemo } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { generateCards } from "@/lib/gamegen";
-import { dayKey } from "@/lib/game";
+import { addDays, dayKey } from "@/lib/game";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +17,6 @@ export const POST = handle(async (req: Request) => {
   requireDemo(ctx, { strict: true });
   const text = await req.text();
   const body = Body.parse(text ? JSON.parse(text) : {});
-  const tomorrow = new Date(Date.parse(dayKey()) + 86_400_000).toISOString().slice(0, 10);
-  const day = body.day ?? tomorrow;
+  const day = body.day ?? addDays(dayKey(), 1);
   return json(ctx, { day, ...(await generateCards(getPool(), day)) });
 });

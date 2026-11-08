@@ -2,13 +2,15 @@ import { ApiError, handle } from "@/lib/errors";
 import { getUserContext, json } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { generateCards } from "@/lib/gamegen";
-import { ensureBankCard } from "@/lib/bankcard";
-import { cardsForDay, currentStreak, dayKey, playedToday, puzzleNumber, toPublic } from "@/lib/game";
+import { addDays, dayKey, gameState } from "@/lib/game";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Today's 5 cards (no answers). `?d=YYYY-MM-DD` opens a past day for practice. */
+/**
+ * Today's puzzle (no answers): the 5 cards, your locked progress or finished board, stats, countdown, bonus card and
+ * the last 7 days. `?d=YYYY-MM-DD` opens a past day (unscored practice unless you played it).
+ */
 export const GET = handle(async (req: Request) => {
   const ctx = await getUserContext(req);
   const today = dayKey();
@@ -16,12 +18,7 @@ export const GET = handle(async (req: Request) => {
   if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new ApiError("bad_input", "Bad date");
   const day = d && d <= today ? d : today;
   const db = getPool();
-  // Pre-generate tomorrow's set in the background (live model only) so a day's cards are fixed before anyone opens them.
-  const tomorrow = new Date(Date.parse(today) + 86_400_000).toISOString().slice(0, 10);
-  void generateCards(db, tomorrow).catch((e) => console.error("[gamegen]", (e as Error).message));
-  // The user's own Capital One scan feeds one card into today's set (no-op until a scan has run).
-  if (day === today) await ensureBankCard(db, ctx.userId, day).catch((e) => console.error("[bankcard]", (e as Error).message));
-  const cards = await cardsForDay(db, day);
-  const played = day === today ? await playedToday(db, ctx.userId, day) : null;
-  return json(ctx, { day, n: puzzleNumber(day), isToday: day === today, cards: cards.map(toPublic), streak: await currentStreak(db, ctx.userId, today), alreadyPlayed: played ? { score: played.score } : null });
+  // Pre-generate tomorrow's Nemotron cards in the background (live model only) so they are there when the set freezes.
+  void generateCards(db, addDays(today, 1)).catch((e) => console.error("[gamegen]", (e as Error).message));
+  return json(ctx, await gameState(db, ctx.userId, day));
 });

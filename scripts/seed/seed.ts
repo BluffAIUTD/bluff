@@ -32,36 +32,67 @@ export async function seedGlobal(db: pg.Pool | pg.PoolClient, now = new Date()) 
       [t.id, t.name, t.description, t.examples, t.redFlags],
     );
   }
-  await db.query("DELETE FROM game_cards WHERE day IS NULL AND source = 'seed'");
-  for (const c of CARD_SEEDS) {
-    await db.query(
-      "INSERT INTO game_cards (kind, content, is_scam, red_flags, category, source) VALUES ($1,$2,$3,$4,$5,'seed')",
-      [c.kind, JSON.stringify(c.content), c.isScam, JSON.stringify(c.redFlags), c.category],
-    );
-  }
+  await upsertPoolCards(db, "seed", CARD_SEEDS.map((c, i) => ({
+    kind: c.kind, content: c.content, is_scam: c.isScam, red_flags: c.redFlags, category: c.category,
+    origin: `Bluff starter card · ${String(i + 1).padStart(2, "0")}`, difficulty: "medium", why_legit: null,
+  })));
   await seedMessageDataset(db);
 }
 
-type DatasetRow = { id: string; channel: string; sender?: string | null; subject?: string | null; text: string; label: "scam" | "legit"; category: string; red_flags: { span: string; why: string }[] };
+type PoolCard = {
+  kind: string; content: { from?: string; subject?: string; body: string }; is_scam: boolean; red_flags: { span: string; why: string }[];
+  category: string; origin: string; difficulty: "easy" | "medium" | "hard"; why_legit: string | null;
+};
+
+/**
+ * Shared game cards keyed by (source, origin): existing rows are updated in place so their ids survive a reseed (a
+ * frozen daily set and in-progress games keep pointing at them); new ones are inserted; ones no longer listed are removed.
+ */
+async function upsertPoolCards(db: pg.Pool | pg.PoolClient, source: "seed" | "dataset", cards: PoolCard[]) {
+  await db.query(
+    `WITH data AS (
+       SELECT * FROM jsonb_to_recordset($2::jsonb)
+         AS d(kind text, content jsonb, is_scam boolean, red_flags jsonb, category text, origin text, difficulty text, why_legit text)),
+     upd AS (
+       UPDATE game_cards g SET kind=d.kind, content=d.content, is_scam=d.is_scam, red_flags=d.red_flags, category=d.category,
+              difficulty=d.difficulty, why_legit=d.why_legit
+         FROM data d WHERE g.source=$1 AND g.day IS NULL AND g.user_id IS NULL AND g.origin=d.origin RETURNING g.origin)
+     INSERT INTO game_cards (kind, content, is_scam, red_flags, category, source, origin, difficulty, why_legit)
+     SELECT d.kind, d.content, d.is_scam, d.red_flags, d.category, $1, d.origin, d.difficulty, d.why_legit
+       FROM data d WHERE d.origin NOT IN (SELECT origin FROM upd)`,
+    [source, JSON.stringify(cards)],
+  );
+  await db.query("DELETE FROM game_cards WHERE source=$1 AND day IS NULL AND NOT (coalesce(origin, '') = ANY($2::text[]))", [source, cards.map((c) => c.origin)]);
+}
+
+type DatasetRow = {
+  id: string; channel: string; sender?: string | null; subject?: string | null; text: string; label: "scam" | "legit"; category: string;
+  difficulty?: string | null; red_flags: { span: string; why: string }[]; why_legit?: string | null;
+};
 
 /**
  * Bluff's own synthetic scam/legit message set (data/messages/bluff-messages.jsonl, see its README) → the game's card
- * pool (source 'dataset'). Red flags are kept only if they appear verbatim. Re-runnable: replaces earlier dataset rows.
+ * pool (source 'dataset'), with each message's difficulty and "why legit" line. Red flags are kept only if they appear
+ * verbatim in the text. Re-runnable: rows are updated in place by their message id (origin "Bluff message set · bm-NNNN").
  */
 export async function seedMessageDataset(db: pg.Pool | pg.PoolClient, file = path.join(process.cwd(), "data", "messages", "bluff-messages.jsonl")): Promise<number> {
   if (!fs.existsSync(file)) return 0;
   const rows = fs.readFileSync(file, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l) as DatasetRow);
-  await db.query("DELETE FROM game_cards WHERE source='dataset'");
-  let n = 0;
+  const cards: PoolCard[] = [];
   for (const r of rows) {
     const flags = (r.red_flags ?? []).filter((f) => f.span && r.text.includes(f.span));
     if (r.label === "scam" && !flags.length) continue;
-    const content = { ...(r.sender ? { from: r.sender } : {}), ...(r.subject ? { subject: r.subject } : {}), body: r.text };
-    await db.query("INSERT INTO game_cards (kind, content, is_scam, red_flags, category, source, origin) VALUES ($1,$2,$3,$4,$5,'dataset',$6)",
-      [r.channel === "email" ? "email" : "text", JSON.stringify(content), r.label === "scam", JSON.stringify(r.label === "scam" ? flags : []), r.category, `Bluff message set · ${r.id}`]);
-    n++;
+    const scam = r.label === "scam";
+    cards.push({
+      kind: r.channel === "email" ? "email" : "text",
+      content: { ...(r.sender ? { from: r.sender } : {}), ...(r.subject ? { subject: r.subject } : {}), body: r.text },
+      is_scam: scam, red_flags: scam ? flags : [], category: r.category, origin: `Bluff message set · ${r.id}`,
+      difficulty: r.difficulty === "easy" || r.difficulty === "hard" ? r.difficulty : "medium",
+      why_legit: !scam && r.why_legit ? r.why_legit : null,
+    });
   }
-  return n;
+  await upsertPoolCards(db, "dataset", cards);
+  return cards.length;
 }
 
 /** The template persona: Maya plus her 60 seeded transactions (each visitor's account gets a copy of the same history). */

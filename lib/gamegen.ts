@@ -20,7 +20,8 @@ export function validateCard(c: unknown): GenCard | null {
   if (content.body.length === 0 || content.body.length > 300) return null;
   if (REAL_BRANDS.test(text)) return null;
   const flags = Array.isArray(o.red_flags) ? (o.red_flags as { span?: unknown; why?: unknown }[]).filter((f) => typeof f?.span === "string" && typeof f?.why === "string") as { span: string; why: string }[] : [];
-  const verbatim = flags.filter((f) => f.span.length > 0 && text.includes(f.span));
+  // Spans must be in the body: that is the text players tap to show what gave it away.
+  const verbatim = flags.filter((f) => f.span.length > 0 && content.body.includes(f.span));
   if (o.is_scam && verbatim.length < 1) return null; // scam cards need ≥ 1 red flag that appears verbatim
   return { kind: o.kind, content: { ...(content.from ? { from: String(content.from) } : {}), ...(content.subject ? { subject: String(content.subject) } : {}), body: content.body }, is_scam: o.is_scam, category: o.category.slice(0, 64), red_flags: o.is_scam ? verbatim : [] };
 }
@@ -57,7 +58,9 @@ export async function generateCards(db: Db, day: string, opts: { fetchImpl?: typ
   if (existing.length) return { inserted: 0, dropped: 0, lookalike: null, reason: "already generated" };
 
   const tax = await many<{ id: string; name: string; description: string; red_flags: string[] }>(db, "SELECT id, name, description, red_flags FROM taxonomy ORDER BY id");
-  const scamCats = tax.filter((t) => t.red_flags.length).sort(() => 0).slice((Date.parse(day) / 86_400_000) % 4 | 0).slice(0, 2);
+  const withFlags = tax.filter((t) => t.red_flags.length);
+  const off = withFlags.length ? Math.floor(Date.parse(day) / 86_400_000) % withFlags.length : 0;
+  const scamCats = [...withFlags.slice(off), ...withFlags.slice(0, off)].slice(0, 2); // rotates daily
   const legitCats = tax.filter((t) => !t.red_flags.length).slice(0, 2);
   const look = await lookalikeCategory(db, opts.now);
   const lookCat = tax.find((t) => t.id === look && t.red_flags.length) ?? null;
@@ -69,7 +72,7 @@ export async function generateCards(db: Db, day: string, opts: { fetchImpl?: typ
     const r = await chat({
       model: c.nvidia.smallModel || c.nvidia.model, fetchImpl: opts.fetchImpl, signal: AbortSignal.timeout(20_000), maxTokens: 1400, temperature: 0.8,
       messages: [
-        { role: "system", content: 'You write training cards for a scam-spotting game. Reply with JSON only: {"cards":[{"kind":"text|checkout|email|receipt|bank_alert","content":{"from":"optional","subject":"optional","body":"max 300 chars"},"is_scam":true|false,"category":"<category id>","red_flags":[{"span":"exact substring of the content","why":"one short line"}]}]}. Use ONLY fictional company names. Scam cards need 1-3 red_flags whose span appears verbatim in the content. Legit cards have red_flags []. No real brands, phone numbers or links to real sites.' },
+        { role: "system", content: 'You write training cards for a scam-spotting game. Reply with JSON only: {"cards":[{"kind":"text|checkout|email|receipt|bank_alert","content":{"from":"optional","subject":"optional","body":"max 300 chars"},"is_scam":true|false,"category":"<category id>","red_flags":[{"span":"exact substring of content.body","why":"one short line"}]}]}. Use ONLY fictional company names. Scam cards need 1-3 red_flags whose span appears verbatim in content.body. Legit cards have red_flags []. No real brands, phone numbers or links to real sites.' },
         { role: "user", content: JSON.stringify({ cards_wanted: spec }) },
       ],
     });
@@ -78,12 +81,15 @@ export async function generateCards(db: Db, day: string, opts: { fetchImpl?: typ
 
   const parsed = extractJson(raw ?? "") as { cards?: unknown[] } | null;
   if (!parsed || !Array.isArray(parsed.cards)) return { inserted: 0, dropped: 0, lookalike: lookCat?.id ?? null, reason: "model returned unreadable output" };
-  let inserted = 0, dropped = 0;
+  let inserted = 0, dropped = 0, looked = false;
   for (const card of parsed.cards.slice(0, 6)) {
     const v = validateCard(card);
     if (!v) { dropped++; continue; }
-    const isLook = !!lookCat && v.category === lookCat.id && v.is_scam;
-    await db.query("INSERT INTO game_cards (day, kind, content, is_scam, red_flags, category, source) VALUES ($1,$2,$3,$4,$5,$6,$7)", [day, v.kind, JSON.stringify(v.content), v.is_scam, JSON.stringify(v.red_flags), v.category, isLook && inserted > 0 || isLook ? "lookalike" : "generated"]);
+    const isLook: boolean = !looked && !!lookCat && v.category === lookCat.id && v.is_scam;
+    looked ||= isLook;
+    // The lookalike takes a hard slot in the day's ladder; other generated cards are medium.
+    await db.query("INSERT INTO game_cards (day, kind, content, is_scam, red_flags, category, source, difficulty) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+      [day, v.kind, JSON.stringify(v.content), v.is_scam, JSON.stringify(v.red_flags), v.category, isLook ? "lookalike" : "generated", isLook ? "hard" : "medium"]);
     inserted++;
   }
   return { inserted, dropped, lookalike: lookCat?.id ?? null };
