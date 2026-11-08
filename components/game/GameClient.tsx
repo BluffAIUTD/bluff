@@ -97,7 +97,7 @@ export function GameClient({ day }: { day?: string }) {
       <Header data={data} />
       <HowToPlay />
       {data.practice && <PracticeNote data={data} />}
-      <div className="flex items-center justify-between gap-3">
+      <div className="mx-auto flex w-full max-w-[600px] items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <ol aria-hidden className="flex gap-1.5">
             {data.cards.map((c, k) => {
