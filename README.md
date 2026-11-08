@@ -118,5 +118,6 @@ npm run demo:script    # pitch script with the real numbers and warnings
 - The crawler reads server-rendered HTML; sites that build their pages in JavaScript show little text, and the check leans on registry facts (labeled).
 - A full scan of 14 merchants takes about 2–3 minutes because Nemotron calls are paced for the trial key's rate limit; basic checks appear within seconds.
 - The demo charge on `/check` is dated a few days after the exposure to show the link; the UI labels it *Simulated*.
-- One shared demo user ("Maya"): *Delete everything* resets the demo for everyone.
+- No login: every browser gets its own private demo account (a signed cookie), seeded on first visit with the demo persona "Maya"'s 90-day card history. *Delete everything* resets only your own account. Clearing cookies or switching browsers starts a new account.
+- Site checks are shared: a live Nemotron review of a site (page checks) and site crawls (6 h) are reused for every visitor and labeled "reused a recent Bluff check"; **Re-scan site** on /check crawls and reviews it again. Anything built from your own charges (bank-scan deep reviews, payment history, your allowlist) stays per account.
 - Not built (cut order): leaderboard, screenshot forwarding, PDF export.

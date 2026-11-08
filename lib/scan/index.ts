@@ -10,7 +10,7 @@ import type { StepEvent, Verdict } from "../schemas";
 import { basicVerdict, type BasicReport } from "./basic";
 import type { Crawl } from "./crawl";
 import type { SiteIntel } from "./intel";
-import { scanWebsite } from "./site";
+import { reuseSiteScan, scanWebsite } from "./site";
 import { latestSiteScan, type SiteScan } from "./store";
 import { resolveWebsite } from "./website";
 
@@ -110,12 +110,13 @@ async function runScan(id: string, userId: string, opts: { fresh?: boolean; deep
         push(id, { type: "status", data: { key: m.key, phase: "resolving" } });
         host = (await resolveWebsite({ merchant: m.merchant, descriptor: m.descriptor })).host;
       }
-      let scan = host && !opts.fresh ? await latestSiteScan(db, userId, host, 6) : null;
+      const latest = m.txns[m.txns.length - 1];
+      const hist = await txnSearch({ descriptor_norm: m.descriptor, days: 365 }, { userId, db, txnTs: new Date(latest.ts) });
+      // A crawl of this site from the last 6 h by anyone is reused (re-scored with this user's payment history).
+      let scan = host && !opts.fresh ? await reuseSiteScan(db, userId, host, 6, { priorCharges: hist.count }) : null;
       const cached = !!scan;
       if (!scan) {
         push(id, { type: "status", data: { key: m.key, phase: "crawling", detail: host ?? "no website found" } });
-        const latest = m.txns[m.txns.length - 1];
-        const hist = await txnSearch({ descriptor_norm: m.descriptor, days: 365 }, { userId, db, txnTs: new Date(latest.ts) });
         scan = await scanWebsite(db, userId, {
           website: host, key: host ?? m.key, merchant: m.merchant, priorCharges: hist.count,
           crawl: { onPage: (p, n) => push(id, { type: "page", data: { key: m.key, page: { path: p.path, type: p.type, title: p.title, words: p.wordCount, status: p.status }, n } }) },

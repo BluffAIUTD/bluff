@@ -115,7 +115,7 @@ Extensions: `timescaledb` (preinstalled), `pg_trgm`, `vector` **[verify that pgv
 
 ## 4. API design
 
-All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the shared demo user "Maya" by default (`DEMO_MODE=1`). Demo controls need a `x-demo-key` header or `?demo=1`, with the key held in the cookie after the presenter visits `/demo?key=…`. Rate limit: 30 agent runs/min per IP (in-memory token bucket).
+All JSON. Auth: a signed `bluff_uid` cookie set on first visit (by the middleware, so the first page render already has it). Each session is its own private account (user id = session id), created on first use with a copy of the demo persona "Maya"'s seeded history. Demo controls need a `x-demo-key` header or `?demo=1`, with the key held in the cookie after the presenter visits `/demo?key=…`. Rate limit: 30 agent runs/min per IP (in-memory token bucket).
 
 | Method + path | Request | Response | Notes |
 |---|---|---|---|
@@ -131,7 +131,7 @@ All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the sh
 | `GET /api/transactions/:id` | n/a | `{transaction, flags, candidates[], verdict?, priceHistory[], dispute?}` | |
 | `POST /api/transactions/:id/investigate` | n/a | `{runId}` | Agent run on a charge |
 | `POST /api/demo/next-charge` | `{scriptId?}` (default: next scripted) | `{transaction, runId}` | Inserts, refreshes the aggregate, starts the run |
-| `POST /api/demo/reset` | n/a | `204` | Re-seeds the demo user |
+| `POST /api/demo/reset` | n/a | `204` | Re-seeds the caller's own account |
 | `POST /api/disputes` | `{txnId}` | `{dispute}` | AI letter, falls back to template |
 | `PATCH /api/disputes/:id` | `{status:'filed'}` | `{dispute}` | |
 | `GET /api/game/today` | n/a | `{day, cards[] (no answers)}` | |

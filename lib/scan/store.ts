@@ -25,3 +25,9 @@ export async function latestSiteScan(db: Db, userId: string, host: string, maxAg
   const r = await one<Row>(db, "SELECT * FROM site_scans WHERE user_id=$1 AND host=$2 AND created_at > now() - ($3 || ' hours')::interval ORDER BY created_at DESC LIMIT 1", [userId, host, String(maxAgeHours)]);
   return r ? toScan(r) : null;
 }
+
+/** Most recent crawl of `host` by anyone, if younger than `maxAgeHours`, with the account that ran it. */
+export async function latestSharedSiteScan(db: Db, host: string, maxAgeHours: number): Promise<{ scan: SiteScan; userId: string } | null> {
+  const r = await one<Row & { user_id: string }>(db, "SELECT * FROM site_scans WHERE host=$1 AND created_at > now() - ($2 || ' hours')::interval ORDER BY created_at DESC LIMIT 1", [host, String(maxAgeHours)]);
+  return r ? { scan: toScan(r), userId: r.user_id } : null;
+}

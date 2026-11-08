@@ -4,6 +4,8 @@ import { ApiError } from "../errors";
 import { getConfig } from "../config";
 import { agentBucket } from "../ratelimit";
 import { getContext, withSession, type RequestContext } from "../session";
+import { ensureAccount } from "../accounts";
+import { getPool } from "../db";
 import type { FailureMode } from "../agent/types";
 
 export async function parseBody<T>(req: Request, schema: ZodType<T>): Promise<T> {
@@ -52,4 +54,14 @@ export function json<T>(ctx: RequestContext, body: T, init?: ResponseInit) {
   return withSession(NextResponse.json(body, init), ctx);
 }
 
-export { getContext };
+/**
+ * Request context for routes that read or write the visitor's own data: also creates their private account (with the
+ * demo history) on first use. Routes that touch no account data (run streams, eval results) use plain `getContext`.
+ */
+export async function getUserContext(req: Request): Promise<RequestContext> {
+  const ctx = getContext(req);
+  await ensureAccount(getPool(), ctx.userId);
+  return ctx;
+}
+
+export { getContext, withSession };

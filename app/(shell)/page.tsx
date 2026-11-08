@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getPool } from "@/lib/db";
-import { MAYA_ID } from "@/lib/config";
+import { currentUserId } from "@/lib/server/currentUser";
 import { loadOverview } from "@/lib/overview";
 import { FlagBadge } from "@/components/ui/FlagBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Overview() {
   let o;
-  try { o = await loadOverview(getPool(), MAYA_ID); }
+  try { o = await loadOverview(getPool(), await currentUserId()); }
   catch { return <ErrorState title="Couldn't load your overview" message="The database isn't reachable. Try again in a moment." />; }
   const n = o.needsAttention.length;
   return (

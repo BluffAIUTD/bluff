@@ -1,6 +1,6 @@
 import { PageInvestigateSchema } from "@/lib/schemas";
 import { handle } from "@/lib/errors";
-import { enforceAgentRateLimit, failureFrom, getContext, json, parseBody } from "@/lib/api/helpers";
+import { enforceAgentRateLimit, failureFrom, getUserContext, json, parseBody } from "@/lib/api/helpers";
 import { parseUrl } from "@/lib/api/hosts";
 import { startRun } from "@/lib/agent/runs";
 import { pageSiteReviewAvailable } from "@/lib/scan/site";
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const POST = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const body = await parseBody(req, PageInvestigateSchema);
   enforceAgentRateLimit(ctx);
   const { url, host } = parseUrl(body.url);

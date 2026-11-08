@@ -3,8 +3,8 @@ import type { Db } from "../db";
 import { STORES } from "../../data/stores";
 import { basicCheck } from "./basic";
 import { crawlSite, splitWebsite, type Crawl, type CrawlOptions } from "./crawl";
-import { siteIntel, type SiteIntel } from "./intel";
-import { latestSiteScan, saveSiteScan, type SiteScan } from "./store";
+import { isAllowlisted, siteIntel, type SiteIntel } from "./intel";
+import { latestSharedSiteScan, saveSiteScan, type SiteScan } from "./store";
 import { mapDemoHost, ownStoreSlug } from "./stores";
 import { normalizeHost } from "./website";
 
@@ -37,6 +37,22 @@ export async function scanWebsite(db: Db, userId: string, o: ScanWebsiteOptions)
   return saveSiteScan(db, userId, { host: o.key ?? o.website ?? o.merchant, merchant: o.merchant, crawl, intel, basic });
 }
 
+/**
+ * A recent crawl of `host` by any account, as this user's own scan. Crawls and registry facts are public facts about a
+ * website, so one visitor's crawl spares the next one the wait. Another account's crawl is copied with the personal
+ * parts recomputed for this user (their allowlist and how often they have paid this merchant); the user's own recent
+ * crawl is returned as-is. Pass `fresh` at the call site (the re-scan buttons) to crawl again instead.
+ */
+export async function reuseSiteScan(db: Db, userId: string, host: string, maxAgeHours: number, history: { priorCharges: number } = { priorCharges: 0 }): Promise<SiteScan | null> {
+  const hit = await latestSharedSiteScan(db, host, maxAgeHours);
+  if (!hit) return null;
+  if (hit.userId === userId) return hit.scan;
+  const s = hit.scan;
+  const demo = s.intel.registration.source === "demo_registry";
+  const intel: SiteIntel = { ...s.intel, allowlisted: demo ? false : await isAllowlisted(db, userId, s.intel.domain) };
+  return saveSiteScan(db, userId, { host: s.host, merchant: s.merchant, crawl: s.crawl, intel, basic: basicCheck(s.crawl, intel, history) });
+}
+
 // ---- page checks (/check links, Checkout Guard extension) -----------------------------------------------------------
 
 /** Page checks crawl at most this many pages, within this budget, so the whole check stays under the client's 40 s limit. */
@@ -66,11 +82,11 @@ export function pageCrawlTarget(host: string): string | null {
 /** True when a page check of `host` will crawl the site and have Nemotron review the scraped pages. */
 export const pageSiteReviewAvailable = (host: string) => liveAgentAvailable(getConfig()) && pageCrawlEnabled() && pageCrawlTarget(host) !== null;
 
-/** The crawl a page check reviews: a recent one of the same site, else a fresh bounded crawl (saved for reuse). */
+/** The crawl a page check reviews: a recent one of the same site (by anyone), else a fresh bounded crawl (saved for reuse). */
 export async function pageSiteScan(db: Db, userId: string, host: string, o: { fresh?: boolean; fetcher?: CrawlOptions["fetcher"] } = {}): Promise<{ scan: SiteScan; cached: boolean } | null> {
   const target = pageCrawlTarget(host);
   if (!target) return null;
-  const recent = o.fresh ? null : await latestSiteScan(db, userId, target, PAGE_CRAWL_REUSE_HOURS);
+  const recent = o.fresh ? null : await reuseSiteScan(db, userId, target, PAGE_CRAWL_REUSE_HOURS);
   if (recent) return { scan: recent, cached: true };
   const scan = await scanWebsite(db, userId, { website: target, merchant: host, crawl: { maxPages: PAGE_CRAWL_PAGES, budgetMs: PAGE_CRAWL_BUDGET_MS, fetcher: o.fetcher } });
   return { scan, cached: false };

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { createTestDb } from "./testdb";
+import { createTestDb, sessionCookie } from "./testdb";
 import { closePool } from "../lib/db";
 import { MAYA_ID } from "../lib/config";
 import { POST as investigatePage } from "../app/api/investigate/page/route";
@@ -18,7 +18,7 @@ beforeEach(async () => {
   await t.pool.query("DELETE FROM messages"); await t.pool.query("DELETE FROM exposures"); await t.pool.query("UPDATE users SET alerts_paused=false");
 });
 
-const req = (url: string, method: string, body?: unknown) => new Request(`http://x${url}`, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+const req = (url: string, method: string, body?: unknown) => new Request(`http://x${url}`, { method, headers: { "content-type": "application/json", ...sessionCookie() }, body: body ? JSON.stringify(body) : undefined });
 const idp = (id: string) => ({ params: Promise.resolve({ id }) });
 
 async function checkHost(host: string) {

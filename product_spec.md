@@ -91,10 +91,10 @@
 - AC: `/eval` shows two tables (Claim A, Claim B): method, n, precision, recall, F1 for Bluff and the baseline, the split description, and 3+ failure cases with notes. Data comes from committed result JSON with a timestamp.
 
 **S-3.** As a privacy-minded user, I want control.
-- AC: `/privacy` shows the device/server diagram, the table of what is and isn't sent, and **Delete everything** (clears the user's exposures, verdicts, messages and game data; re-seeds the demo user).
+- AC: `/privacy` shows the device/server diagram, the table of what is and isn't sent, and **Delete everything** (clears the user's exposures, verdicts, messages and game data; re-seeds the visitor's own demo account; other visitors are untouched).
 
 ## 3. Edge cases
-- The same host is checked twice: reuse the verdict if it's < 24 h old (shows "checked earlier"), but always create a new exposure on submit.
+- The same host is checked twice: reuse the verdict if it's < 24 h old (shows "checked earlier"), but always create a new exposure on submit. Live site reviews are shared across visitors; **Re-scan site** forces a new crawl and review.
 - Exposure on a legit store, then a legit charge from it: link shown as **"Expected charge"** (green), not flagged.
 - Payment-processor descriptors (`SQ *`, `PAYPAL *`, `SP *`, `TST*`): strip the prefix before matching.
 - Two exposures match one charge: show the best match and mention "1 other possible match".

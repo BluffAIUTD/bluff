@@ -104,12 +104,12 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
   let result: RunResult | null = null;
   let errorHandled = false;
 
-  // 1. 24 h reuse of a live page verdict ("checked earlier").
+  // 1. 24 h reuse of a live page verdict ("checked earlier"; site reviews are shared across accounts).
   if (input.kind === "page" && !opts.fail && !opts.fresh) {
     try {
       const hit = await findReusablePageVerdict(db, input.userId, input.host);
       if (hit) {
-        emitStep({ kind: "tool", tool: "cache", inputSummary: input.host, outputSummary: `checked earlier (${hit.ageMinutes} min ago)`, ms: 2 });
+        emitStep({ kind: "tool", tool: "cache", inputSummary: input.host, outputSummary: `${hit.shared ? "reused a recent Bluff check" : "checked earlier"} (${hit.ageMinutes} min ago)`, ms: 2 });
         emit({ type: "verdict", data: hit.verdict });
         result = { verdict: hit.verdict, mode: "cached" };
       }

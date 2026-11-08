@@ -1,5 +1,5 @@
 import { handle } from "@/lib/errors";
-import { getContext, json } from "@/lib/api/helpers";
+import { getUserContext, json } from "@/lib/api/helpers";
 import { getPool, many } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** Recent Bluff messages for the phone preview and the Overview alert feed. */
 export const GET = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const limit = Math.min(100, Math.max(1, Number(new URL(req.url).searchParams.get("limit")) || 40));
   const rows = await many<{ id: string; direction: "in" | "out"; body: string; kind: string; status: string; created_at: Date; meta: Record<string, string> }>(
     getPool(),

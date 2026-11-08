@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getPool } from "@/lib/db";
-import { MAYA_ID } from "@/lib/config";
+import { currentUserId } from "@/lib/server/currentUser";
 import { listTransactionsWithFlags } from "@/lib/rules/flags";
 import { TransactionTable } from "@/components/charges/TransactionTable";
 import { DemoControls } from "@/components/charges/DemoControls";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function ChargesPage({ searchParams }: { searchParams: Promise<{ f?: string; demo?: string }> }) {
   const { f, demo } = await searchParams;
   let rows;
-  try { rows = await listTransactionsWithFlags(getPool(), MAYA_ID, 100); }
+  try { rows = await listTransactionsWithFlags(getPool(), await currentUserId(), 100); }
   catch { return <ErrorState title="Couldn't load charges" message="The database isn't reachable. Try again in a moment." />; }
   const flaggedOnly = f === "flagged";
   const shown = flaggedOnly ? rows.filter((r) => r.flags.length > 0) : rows;

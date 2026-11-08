@@ -1,6 +1,11 @@
 import pg from "pg";
 import { migrate } from "../lib/db/migrate";
 import { seedAll } from "../scripts/seed/seed";
+import { MAYA_ID } from "../lib/config";
+import { COOKIE_UID, signValue } from "../lib/session";
+
+/** Cookie header for a session whose account is `userId` (default: the seeded persona Maya). Each session is its own account. */
+export const sessionCookie = (userId: string = MAYA_ID) => ({ cookie: `${COOKIE_UID}=${encodeURIComponent(signValue(userId))}` });
 
 /** Creates an isolated, migrated (and optionally seeded) database for one test file. */
 export async function createTestDb(name: string, opts: { seed?: boolean; now?: Date } = {}) {

@@ -64,10 +64,16 @@ async function wayback(domain: string): Promise<SiteIntel["wayback"]> {
   } catch { return { firstSeen: null, years: null, source: "none" }; }
 }
 
+/** True when the domain is on the global allowlist or this user's own ("trust this site"). */
+export async function isAllowlisted(db: Db, userId: string, domain: string): Promise<boolean> {
+  if (!domain) return false;
+  return !!(await one(db, "SELECT 1 FROM allowlist WHERE (host = $1 OR $1 LIKE '%.' || host) AND (user_id IS NULL OR user_id = $2) LIMIT 1", [domain, userId]).catch(() => null));
+}
+
 export async function siteIntel(db: Db, userId: string, host: string): Promise<SiteIntel> {
   const slug = ownStoreSlug(host);
   const domain = slug ? `${slug}.demo` : registrableDomain(host);
-  const al = !!(await one(db, "SELECT 1 FROM allowlist WHERE (host = $1 OR $1 LIKE '%.' || host) AND (user_id IS NULL OR user_id = $2) LIMIT 1", [domain, userId]).catch(() => null));
+  const al = await isAllowlisted(db, userId, domain);
 
   if (slug) {
     // Our demo storefronts aren't registered domains; their "registry" facts come from the seeded demo registry.

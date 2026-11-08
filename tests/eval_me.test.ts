@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createTestDb } from "./testdb";
+import { createTestDb, sessionCookie } from "./testdb";
 import { closePool } from "../lib/db";
 import { MAYA_ID } from "../lib/config";
 import { detId } from "../lib/db/ids";
@@ -60,7 +60,7 @@ describe("DELETE /api/me (delete everything)", () => {
     await t.pool.query("INSERT INTO messages (user_id,phone,direction,body,kind) VALUES ($1,'p','out','b','alert')", [MAYA_ID]);
     await t.pool.query("INSERT INTO game_plays (user_id,day,score,streak) VALUES ($1,'2026-11-07',3,1)", [MAYA_ID]);
     await t.pool.query("INSERT INTO agent_runs (user_id,trigger,status) VALUES ($1,'page','ok')", [MAYA_ID]);
-    expect((await deleteMe(new Request("http://x", { method: "DELETE" }))).status).toBe(204);
+    expect((await deleteMe(new Request("http://x", { method: "DELETE", headers: sessionCookie() }))).status).toBe(204);
     for (const tbl of ["exposures", "verdicts", "messages", "game_plays", "agent_runs", "disputes"]) {
       expect(Number((await t.pool.query(`SELECT count(*) n FROM ${tbl} WHERE user_id=$1`, [MAYA_ID])).rows[0].n), tbl).toBe(0);
     }

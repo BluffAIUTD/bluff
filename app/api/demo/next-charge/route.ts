@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiError, handle } from "@/lib/errors";
-import { enforceAgentRateLimit, failureFrom, getContext, json, requireDemo } from "@/lib/api/helpers";
+import { enforceAgentRateLimit, failureFrom, getUserContext, json, requireDemo } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { findScript, nextScript, postScriptedCharge } from "@/lib/demo";
 import { startRun } from "@/lib/agent/runs";
@@ -13,7 +13,7 @@ const Body = z.object({ scriptId: z.string().optional(), store: z.string().optio
 
 /** Posts the next scripted charge (or the one for a store) and starts the agent run on it. */
 export const POST = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   requireDemo(ctx);
   const text = await req.text();
   const body = Body.parse(text ? JSON.parse(text) : {});

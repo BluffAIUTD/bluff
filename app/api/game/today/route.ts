@@ -1,5 +1,5 @@
 import { ApiError, handle } from "@/lib/errors";
-import { getContext, json } from "@/lib/api/helpers";
+import { getUserContext, json } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { generateCards } from "@/lib/gamegen";
 import { ensureBankCard } from "@/lib/bankcard";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /** Today's 5 cards (no answers). `?d=YYYY-MM-DD` opens a past day for practice. */
 export const GET = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const today = dayKey();
   const d = new URL(req.url).searchParams.get("d");
   if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new ApiError("bad_input", "Bad date");

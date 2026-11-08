@@ -5,17 +5,22 @@ import { loadFixture } from "./mock";
 
 const DAY = 86_400_000;
 
-/** A page verdict from a *live* agent run in the last 24 h can be reused ("checked earlier"). Mock/basic results never are. */
-export async function findReusablePageVerdict(db: Db, userId: string, host: string, now = new Date()): Promise<{ verdict: Verdict; ageMinutes: number } | null> {
-  const r = await one<{ payload: Verdict; created_at: Date }>(
+/**
+ * A page verdict from a *live* agent run in the last 24 h can be reused ("checked earlier"). Mock/basic results never are.
+ * Site reviews (verdicts carrying Nemotron's `analysis` of the crawled pages) are shared by everyone: they describe the
+ * website, and that run's tools see only the site. Other live page verdicts are reused only by the user who ran them.
+ * `?fresh=1` (the "Re-scan site" button) skips this lookup.
+ */
+export async function findReusablePageVerdict(db: Db, userId: string, host: string, now = new Date()): Promise<{ verdict: Verdict; ageMinutes: number; shared: boolean } | null> {
+  const r = await one<{ payload: Verdict; created_at: Date; own: boolean }>(
     db,
-    `SELECT payload, created_at FROM verdicts
-      WHERE user_id=$1 AND subject_type='page' AND subject_id=$2 AND mode='live' AND created_at > $3
+    `SELECT payload, created_at, user_id = $1 AS own FROM verdicts
+      WHERE subject_type='page' AND subject_id=$2 AND mode='live' AND created_at > $3 AND (user_id = $1 OR payload ? 'analysis')
       ORDER BY created_at DESC LIMIT 1`,
     [userId, host, new Date(now.getTime() - DAY)],
   );
   if (!r) return null;
-  return { verdict: { ...r.payload, mode: "cached" }, ageMinutes: Math.max(0, Math.round((now.getTime() - r.created_at.getTime()) / 60_000)) };
+  return { verdict: { ...r.payload, mode: "cached" }, ageMinutes: Math.max(0, Math.round((now.getTime() - r.created_at.getTime()) / 60_000)), shared: !r.own };
 }
 
 /** Persist the trace of a successful LIVE run of a scripted charge (survives demo reset). */
