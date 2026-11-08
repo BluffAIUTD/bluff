@@ -7,7 +7,7 @@ HackUTD 2026: ZeroDay · T-Mobile Safe Signal · NVIDIA Nemotron · Capital One 
 Scams don't happen when you click. They show up days later on your statement. Existing tools each see one slice: a site rater sees
 the page, a bank sees the charge, a text filter sees the message. Bluff is a scam co-pilot **with memory**:
 
-1. **Checkout Guard** (Chrome extension + `/check`): the moment a page asks for your card or personal info, a Nemotron agent rates it and logs the exposure.
+1. **Checkout Guard** (Chrome extension + `/check`): the moment a page asks for your card or personal info, Bluff crawls the site's public pages and a Nemotron agent reviews the scraped pages (plus registry facts and a rules check), rates the site and logs the exposure.
 2. **Charge Watch + Refund Builder** (`/charges`): when a charge posts, the linker ties it back to the exposure and the agent drafts a dispute letter, evidence timeline and next steps. *Drafts only; Bluff never files or sends anything.*
 3. **Bluff Text** (Photon iMessage): alerts when something risky happens, forward-a-text-for-a-verdict, replies `WATCH` / `DISPUTE` / `SAFE` / `STOP` / `HELP`.
 4. **Call the Bluff** (`/play`): a 60-second daily game on the same red flags the detector uses. It mixes in messages from the
@@ -24,7 +24,7 @@ Everything runs on **synthetic data**; demo stores are labeled *Demo store, not 
 |---|---|
 | Core loop, all 4 pillars, dashboard, extension, storefronts, API, DB | Built and tested (`npm test`: 290+ tests; `npm run e2e` in real Chromium) |
 | Runs offline with **mock** agent/messaging | Yes (`AGENT_MODE=mock`, `PHOTON_MODE=mock`, the defaults) |
-| **Live Nemotron** agent | **Runs live** on build.nvidia.com (`nvidia/nemotron-3.5-lightning-30b-a3b`, tool calling). Bank-scan deep reviews: 14/14 live in the last two full scans; under rate limiting a review falls back to the basic check (labeled). Calls are paced (`NVIDIA_MIN_GAP_MS`) and 429s retried. Page/message/charge modes use the same loop but were not re-timed against the 8/10-valid target. |
+| **Live Nemotron** agent | **Runs live** on build.nvidia.com (`nvidia/nemotron-3.5-lightning-30b-a3b`, tool calling). Bank-scan deep reviews: 14/14 live in the last two full scans; under rate limiting a review falls back to the basic check (labeled). Calls are paced (`NVIDIA_MIN_GAP_MS`) and 429s retried. Every website evaluation now sends the scraped site to Nemotron in its first request (`website_data`: registry facts, the basic check and each crawled page's text, ≈14k chars); page checks (`/check` links, the extension) crawl the site first (≤ 8 pages, 10 s, reused for 6 h). This request shape is covered by tests against a stub model but **not yet re-timed live**; the 14/14 figure is from the earlier tool-call-only flow. Page/message/charge modes were not re-timed against the 8/10-valid target. |
 | **Capital One Nessie** | **Live.** `npm run nessie:seed` wrote a demo customer, credit card account, 14 merchants and 20 purchases to the sandbox; each scan mirrors them into `transactions`. Nessie stores whole-dollar amounts (it truncates cents). |
 | **Website crawling** | **Live.** Multi-page crawler in TypeScript (robots.txt obeyed, sitemap read, policy/contact/checkout pages prioritized, ≤ 10 pages / 20 s per site), SSRF-guarded on every hop. Registry facts from live RDAP, TLS, DNS (MX) and the Internet Archive. Legit demo merchants are **real public demo shops** (books.toscrape.com, scrapeme.live, automationexercise.com, webscraper.io); scam-pattern merchants are **Bluff's own multi-page websites** served at `<store>.<domain>` and crawled over HTTP like any site. |
 | **Message dataset** | Our own **synthetic** set: 306 messages (170 scam / 136 legit, 25 categories, ⅓ hard cases), generated with Nemotron, model-audited, hand-reviewed; red flags verified verbatim. **Not T-Mobile data** (none was provided). It feeds the game; `npm run tmobile:import` can load an external set if one arrives. Not yet used for Eval Claim A. |
@@ -46,14 +46,15 @@ Re-run: `npm run eval:export && python3 scripts/eval/run_linker.py` and `./scrip
 POST /api/scan → Nessie: customers → accounts → purchases (+ merchants) → mirror into transactions (source='nessie')
               → group by merchant website; per merchant (4 at once):
    tier 1  crawl site (≤ 10 pages, robots.txt, sitemap) ‖ RDAP · TLS · MX · Internet Archive → basic check (rules) → site_scans
-   tier 2  Nemotron deep review (≤ 3 at once): site_overview → read_page ×N → [fetch_page] → txn_search → submit_verdict
+   tier 2  Nemotron deep review (≤ 3 at once): website_data (registry + basic check + every page's text) in the first request
+           → [read_page for full text] → [fetch_page] → txn_search → submit_verdict
            fallback: the basic check (labeled BASIC CHECK). One SSE stream (/api/scan/:id/stream) carries both tiers.
 ```
 
 - The website comes from the statement line (`NETFLIX.COM · netflix.com`, `SCRAPEME LIVE · scrapeme.live/shop`); without one, a DNS-checked guess from the merchant name. Bluff's own stores are written `<store>.demo` in Nessie and mapped to `<store>.<BASE_DOMAIN>`.
 - The deep review can only read pages of **this transaction's** site (`fetch_page` is same-site, ≤ 3 per review), and page text is treated as untrusted data.
 - Run it: `npm run nessie:seed` (once; `-- --reset` replaces the account), then open **/scan** → *Scan my transactions*. *Re-crawl everything* ignores cached crawls (6 h) and deep verdicts (24 h).
-- Two tiers: the **basic check** (`lib/scan/basic.ts`) turns crawl + registry facts into findings (each tied to the page it came from) and a score, with no model. The **deep analysis** (Nemotron, `site_overview` → `read_page` → optional `fetch_page` → `txn_search` → `submit_verdict`) reads the pages and reports what rules miss: e.g. on VoltDeals it caught a "Suite 0" address, a 2016 founding claim on a 20-day-old domain, and an implausible $189 console price.
+- Two tiers: the **basic check** (`lib/scan/basic.ts`) turns crawl + registry facts into findings (each tied to the page it came from) and a score, with no model. The **deep analysis** (Nemotron; the crawl's `website_data` goes in the first request, then optional `read_page` / `fetch_page` → `txn_search` → `submit_verdict`) reads the pages and reports what rules miss: e.g. on VoltDeals it caught a "Suite 0" address, a 2016 founding claim on a 20-day-old domain, and an implausible $189 console price.
 
 ## Architecture
 
@@ -67,7 +68,7 @@ iMessage (Photon)─┘   /api/*  SSE  webhooks            ├─ Tiger Data / P
 - **One agent, one Exposure Log, one database, one design system.** The agent returns a single `Verdict` schema everywhere; confidence is computed from signal agreement, not self-reported.
 - **Linker** (`lib/linker`): normalize descriptor (strip `SQ *`, `PAYPAL *`, `TST*`…) → candidates 0–45 days *after* an exposure → name score (trigram, abbreviation `fkshp ⊂ fastkicks-shop`, token overlap) → ×0.7 + time ×0.3 (+0.1 if watched) → threshold 0.55. The agent confirms; it can never invent a link.
 - **Never-blank fallbacks:** live → cached → replayed (last successful trace, labeled) → rules-only "basic check". Every result shows its mode.
-- **Privacy:** the extension never reads input values or page text (enforced by tests); only the domain, field *types* and yes/no signals leave the page. Forwarded texts are discarded after the verdict.
+- **Privacy:** the extension never reads input values or page text (enforced by tests); only the domain, field *types* and yes/no signals leave the page. With the live agent on, Bluff's server crawls the site's *public* pages itself (homepage first, never the user's URL path or query) and sends that text to Nemotron (`PAGE_CRAWL=0` turns this off for page checks). Forwarded texts are discarded after the verdict.
 
 ```
 app/ (UI + API)   components/   lib/{agent,linker,rules,photon,db,client}   extension/ (MV3)

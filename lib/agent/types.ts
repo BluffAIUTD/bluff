@@ -1,4 +1,5 @@
 import type { RunModeValue, RunStreamEvent, Verdict } from "../schemas";
+import type { Fetcher } from "../scan/net";
 
 export type RunKind = "page" | "message" | "txn" | "site";
 export type FailureMode = "timeout" | "malformed" | "ratelimit";
@@ -12,7 +13,13 @@ export type RunInput =
 
 export type Emit = (e: RunStreamEvent) => void;
 
-export type RunOptions = { fail?: FailureMode; signal?: AbortSignal };
+export type RunOptions = {
+  fail?: FailureMode; signal?: AbortSignal;
+  /** Page checks: re-crawl the site even if a recent crawl exists. */
+  fresh?: boolean;
+  /** Page checks: HTTP fetcher for the site crawl (tests serve pages from disk). */
+  fetcher?: Fetcher;
+};
 
 /** Outcome of a run. The verdict always exists (falls back to rules-only "basic"). */
 export type RunResult = { verdict: Verdict; mode: RunModeValue; error?: { code: string; message: string } };
