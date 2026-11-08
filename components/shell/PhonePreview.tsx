@@ -53,15 +53,18 @@ export function PhonePreview() {
   return (
     <>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="phone-preview" aria-label="Phone preview (T-Mobile)"
-        className="relative inline-flex min-h-[44px] items-center gap-2 rounded-control border border-line px-3 text-sm font-medium text-dim hover:text-fg">
-        <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: MAGENTA }} />
+        className="btn-rail relative inline-flex min-h-[44px] items-center gap-2.5 rounded-[14px] py-1 pl-2 pr-3.5 text-sm font-semibold">
+        <span aria-hidden className="relative grid h-8 w-[18px] place-items-center rounded-[5px] border border-[#e9cf8f]/70 bg-[#0b0b0d]">
+          <span className="absolute inset-x-[3px] top-[4px] h-[2px] rounded bg-white/30" />
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: MAGENTA }} />
+        </span>
         Phone
-        {!open && unread > 0 && <span className="absolute -right-1 -top-1 rounded-full px-1.5 text-[10px] font-bold text-white" style={{ background: MAGENTA }}>{unread}</span>}
+        {!open && unread > 0 && <span className="absolute -right-1.5 -top-1.5 rounded-full px-1.5 text-[10px] font-bold text-white ring-2 ring-[#1d1610]" style={{ background: MAGENTA }}>{unread}</span>}
       </button>
       {open && mounted && createPortal(
         // Portaled to <body>: the sticky top bar uses backdrop-blur, which would otherwise trap this fixed panel inside it.
         <aside id="phone-preview" aria-label="Phone preview (T-Mobile)"
-          className="fixed inset-x-3 bottom-20 z-40 flex max-h-[75vh] flex-col overflow-hidden rounded-[28px] border-[6px] border-[#1b1b1f] bg-[#0b0b0d] text-white shadow-2xl sm:left-auto sm:right-4 sm:w-[360px] lg:bottom-4">
+          className="fixed inset-x-3 bottom-20 z-40 flex max-h-[75vh] flex-col overflow-hidden rounded-[28px] border-[6px] border-[#2b2016] bg-[#0b0b0d] text-white shadow-2xl shadow-black/70 ring-1 ring-[#d9b46b]/60 sm:left-auto sm:right-4 sm:w-[360px] lg:bottom-4">
           <div className="flex items-center justify-between px-5 pb-1 pt-2 text-[12px] font-semibold">
             <span className="num">{now}</span>
             <span className="flex items-center gap-1.5"><span style={{ color: MAGENTA }}>T-Mobile</span> 5G
@@ -69,9 +72,9 @@ export function PhonePreview() {
             </span>
           </div>
           <header className="flex items-center gap-3 border-b border-white/10 px-4 py-2">
-            <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full font-grotesk text-sm font-bold" style={{ background: MAGENTA }}>B</span>
+            <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full serif text-base font-bold" style={{ background: MAGENTA }}>B</span>
             <div className="min-w-0 flex-1">
-              <p className="font-grotesk text-sm font-semibold leading-tight">Bluff</p>
+              <p className="serif text-base font-semibold leading-tight">Bluff</p>
               <p className="text-[11px] text-white/60">Scam alerts · Messages</p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close phone preview" className="min-h-[32px] min-w-[32px] text-white/60 hover:text-white">✕</button>

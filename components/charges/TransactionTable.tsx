@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FlagBadge } from "../ui/FlagBadge";
 import { EmptyState } from "../ui/EmptyState";
 import { money, shortDate } from "@/lib/format";
+import { ChipDisc } from "../table/chips";
 import type { TransactionDto } from "@/lib/types";
 
 export function TransactionTable({ rows }: { rows: TransactionDto[] }) {
@@ -9,10 +10,11 @@ export function TransactionTable({ rows }: { rows: TransactionDto[] }) {
     return <EmptyState title="No charges yet" hint="Simulate one from a store you checked, and Bluff will try to link it back." action={<Link href="/check" className="text-sm font-medium text-accent underline">Check a store</Link>} />;
   }
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
+    <ul className="stitch divide-y divide-[rgba(217,180,107,0.16)] overflow-hidden rounded-card border brass-hairline bg-surface">
       {rows.map((t) => (
         <li key={t.id}>
-          <Link href={`/charges/${t.id}`} className="flex min-h-[56px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 transition duration-ui hover:bg-surface2">
+          <Link href={`/charges/${t.id}`} className="shimmer relative z-10 flex min-h-[60px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 transition duration-ui hover:bg-white/[0.04]">
+            <ChipDisc tone={t.flags.some((f) => f === "exposure_link" || f === "card_test") ? "scam" : t.flags.length ? "unsure" : "ivory"} size={22} />
             <span className="num w-14 shrink-0 text-sm text-dim">{shortDate(t.ts)}</span>
             <span className="min-w-0 flex-1 truncate font-medium">{t.descriptor}{t.source === "nessie" && <span className="ml-2 align-middle text-[11px] font-normal text-dim" title="Imported from Capital One (Nessie API)">Capital One{t.website ? ` · ${t.website}` : ""}</span>}</span>
             <span className="num font-medium">{money(t.amountCents)}</span>

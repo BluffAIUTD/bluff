@@ -55,8 +55,8 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
       <header className="flex flex-col gap-2">
         <p className="text-sm text-dim">{longDateTime(t.ts)}</p>
         <div className="flex flex-wrap items-baseline gap-x-4">
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight">{t.descriptor}</h1>
-          <span className="num text-3xl font-bold">{money(t.amountCents)}</span>
+          <h1 className="text-4xl font-semibold tracking-tight">{t.descriptor}</h1>
+          <span className="num text-3xl font-bold brass-text">{money(t.amountCents)}</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {t.flags.map((f) => <FlagBadge key={f} kind={f} />)}
@@ -71,7 +71,7 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
           onDone={(v) => { setRunning(false); if (v) setLive(v); router.refresh(); }}
           renderVerdict={(v, m) => <VerdictCard verdict={v} subtitle="Charge check" checkedEarlier={m.checkedEarlier} />} />
       ) : verdict ? (
-        <VerdictCard verdict={verdict} subtitle="Charge check" />
+        <VerdictCard verdict={verdict} subtitle="Charge check" flip={false} />
       ) : (
         <div className="flex flex-col items-start gap-2">
           <Button onClick={investigate}>Investigate this charge</Button>
@@ -83,8 +83,8 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
 
       <RefundBuilder txnId={t.id} canBuild={detail.best?.kind === "flagged"} initial={detail.dispute} />
 
-      <section aria-label="Price history" className="flex flex-col gap-2">
-        <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Price history with this merchant</h2>
+      <section aria-label="Price history" className="flex flex-col gap-3 rounded-card border brass-hairline bg-surface p-4">
+        <h2 className="font-grotesk uppercase text-dim">Price history with this merchant</h2>
         <PriceSparkline points={detail.priceHistory} current={t.amountCents} />
       </section>
     </div>

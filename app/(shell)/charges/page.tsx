@@ -21,7 +21,7 @@ export default async function ChargesPage({ searchParams }: { searchParams: Prom
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight">Charges</h1>
+          <h1 className="text-4xl font-semibold tracking-tight">Charges</h1>
           <p className="text-dim">{rows.filter((r) => r.flags.length).length} flagged of {rows.length}. Capital One (Nessie sandbox) plus synthetic history. <Link href="/scan" className="font-medium text-accent underline">Scan merchant websites</Link></p>
         </div>
         <div role="tablist" aria-label="Filter" className="flex rounded-control border border-line p-1 text-sm">

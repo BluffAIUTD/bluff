@@ -55,28 +55,29 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="font-grotesk text-3xl font-bold tracking-tight">Check a store or a text</h1>
-        <p className="mt-1 text-dim">Pick a demo store, paste a link, or paste a message. Bluff checks it before you hand over your info.</p>
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brass">Checkout Guard</p>
+        <h1 className="text-4xl font-semibold tracking-tight">Check a store or a text</h1>
+        <p className="mt-2 max-w-xl text-dim">Pick a demo store, paste a link, or paste a message. Bluff checks it before you hand over your info.</p>
       </header>
 
-      <section aria-labelledby="stores-h" className="flex flex-col gap-3">
-        <h2 id="stores-h" className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Demo stores</h2>
+      <section aria-labelledby="stores-h" className="stitch flex flex-col gap-4 rounded-card border brass-hairline bg-surface p-5">
+        <h2 id="stores-h" className="font-grotesk uppercase text-dim">Demo stores</h2>
         <StorePicker selected={store} onPick={pick} disabled={starting} />
       </section>
 
       <form onSubmit={(e) => { e.preventDefault(); setStore(null); void startPage(url, null); }} className="flex flex-col gap-2">
-        <label htmlFor="url" className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Or paste a link</label>
+        <label htmlFor="url" className="font-grotesk uppercase text-dim">Or paste a link</label>
         <div className="flex gap-2">
           <input id="url" inputMode="url" autoCapitalize="none" autoCorrect="off" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example-store.com"
-            className="min-h-[44px] flex-1 rounded-control border border-line bg-surface px-3 outline-none focus:border-accent" />
+            className="field min-h-[48px] flex-1 rounded-full px-5" />
           <Button type="submit" disabled={starting}>Check link</Button>
         </div>
       </form>
 
       <form onSubmit={(e) => { e.preventDefault(); void startText(); }} className="flex flex-col gap-2">
-        <label htmlFor="msg" className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Or paste a text message</label>
+        <label htmlFor="msg" className="font-grotesk uppercase text-dim">Or paste a text message</label>
         <textarea id="msg" rows={3} maxLength={2000} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste a suspicious text or email here"
-          className="rounded-control border border-line bg-surface p-3 outline-none focus:border-accent" />
+          className="field rounded-[20px] p-4" />
         <p className="text-xs text-dim">Pasted messages are sent to Bluff for the check and not kept after the verdict.</p>
         <Button type="submit" variant="secondary" disabled={starting} className="self-start">Check text</Button>
       </form>

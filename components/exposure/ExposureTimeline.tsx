@@ -41,25 +41,25 @@ export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
   }
 
   if (!rows.length) {
-    return <EmptyState title="No exposures yet" hint="When you tell Bluff you entered info on a site, it shows up here so later charges can be linked back." action={<Link href="/check" className="text-sm font-medium text-accent underline">Check a store</Link>} />;
+    return <EmptyState title="No exposures yet" hint="When you tell Bluff you entered info on a site, it shows up here so later charges can be linked back." action={<Link href="/check" className="text-sm font-medium text-brass underline">Check a store</Link>} />;
   }
   return (
     <div className="flex flex-col gap-6">
       {err && <ErrorState message={err} />}
       {groups.map(([day, list]) => (
         <section key={day} aria-label={day} className="flex flex-col gap-2">
-          <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">{day}</h2>
+          <h2 className="font-grotesk uppercase text-dim">{day}</h2>
           <ul className="flex flex-col gap-2">
             {list.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-surface p-4">
+              <li key={r.id} className="shimmer flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border brass-hairline bg-surface p-4">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{r.host}</p>
+                  <p className="serif truncate text-lg font-semibold">{r.host}</p>
                   <p className="text-sm text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>
                 </div>
                 <ScoreBadge score={r.score} />
                 <span className="text-sm text-dim">{r.linkedCount ? `${r.linkedCount} linked charge${r.linkedCount > 1 ? "s" : ""}` : "No linked charges"}</span>
                 <label className="flex min-h-[44px] items-center gap-2 text-sm">
-                  <input type="checkbox" checked={r.watch} disabled={busy === r.id} onChange={() => toggle(r)} className="h-5 w-5 accent-[var(--accent)]" />
+                  <input type="checkbox" checked={r.watch} disabled={busy === r.id} onChange={() => toggle(r)} className="h-5 w-5 accent-[var(--brass-2)]" />
                   Watch
                 </label>
                 <Button variant="ghost" onClick={() => remove(r)} disabled={busy === r.id} aria-label={`Delete ${r.host}`}>Delete</Button>

@@ -8,10 +8,11 @@ export const dynamic = "force-dynamic";
 export default function ShellLayout({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-[#1d1610] focus:px-4 focus:py-2">Skip to content</a>
       <NavLinks />
-      <div className="lg:pl-56">
+      <div className="lg:pl-60">
         <TopBar />
-        <main id="main" className="mx-auto w-full max-w-5xl px-4 pb-28 pt-6 lg:pb-12">{children}</main>
+        <main id="main" className="mx-auto w-full max-w-5xl px-4 pb-32 pt-8 sm:px-6 lg:pb-14">{children}</main>
       </div>
     </ToastProvider>
   );

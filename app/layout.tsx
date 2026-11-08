@@ -1,17 +1,17 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-inter", display: "swap" });
-const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-grotesk", display: "swap" });
+const ui = Manrope({ subsets: ["latin"], variable: "--font-ui", display: "swap" });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap", axes: ["opsz"] });
 
-export const metadata: Metadata = { title: "Bluff — call their bluff", description: "Bluff links the site where you typed your card to the charge that follows, then helps you get your money back." };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0e1014" };
+export const metadata: Metadata = { title: "Bluff: call their bluff", description: "Bluff links the site where you typed your card to the charge that follows, then helps you get your money back." };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0a2a1f" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${grotesk.variable}`}>
+    <html lang="en" className={`${ui.variable} ${display.variable}`}>
       <body>{children}</body>
     </html>
   );

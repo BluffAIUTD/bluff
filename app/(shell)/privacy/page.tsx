@@ -17,7 +17,7 @@ export default function PrivacyPage() {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="font-grotesk text-3xl font-bold tracking-tight">Private by design</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">Private by design</h1>
         <p className="mt-1 max-w-2xl text-dim">Bluff reads the shape of a page, never what you typed into it. Forwarding a message is your choice, and the message is dropped as soon as the verdict is made.</p>
       </header>
       <DataFlowDiagram />

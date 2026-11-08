@@ -1,16 +1,16 @@
 import { getConfig } from "@/lib/config";
-import { ModeBadge } from "../ui/ModeBadge";
+import { DealerButton } from "../table/DealerButton";
 import { PhonePreview } from "./PhonePreview";
 
-/** Demo user, LIVE/DEMO badge and the T-Mobile phone preview (where Bluff's alerts arrive). */
+/** The top rail: demo user, the dealer-button mode badge (LIVE or DEMO) and the T-Mobile phone resting on the rail. */
 export function TopBar() {
   const live = getConfig().agentMode === "live";
   return (
-    <header className="sticky top-0 z-20 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur">
-      <span className="font-grotesk text-lg font-bold lg:hidden">Bluff</span>
-      <p className="text-sm text-dim">Signed in as <span className="font-medium text-fg">Maya</span> <span className="text-xs">(demo user)</span></p>
-      <div className="ml-auto flex flex-wrap items-center gap-2">
-        <ModeBadge mode={live ? "live" : "demo"} />
+    <header className="rail-edge sticky top-0 z-20 flex flex-wrap items-center gap-x-4 gap-y-2 border-b brass-hairline px-4 py-2 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.8)]">
+      <span className="relative serif text-xl font-semibold brass-text lg:hidden">Bluff</span>
+      <p className="relative text-sm text-dim">Signed in as <span className="font-semibold text-fg">Maya</span> <span className="text-xs">(demo user)</span></p>
+      <div className="relative ml-auto flex items-center gap-3">
+        <DealerButton mode={live ? "live" : "demo"} />
         <PhonePreview />
       </div>
     </header>

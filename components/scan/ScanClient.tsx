@@ -112,7 +112,7 @@ export function ScanClient() {
           <p className="mb-1 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-dim">
             <span className="h-1.5 w-1.5 rounded-full bg-safe" /> Capital One {account ? `· ${account}` : "· Nessie API"}
           </p>
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight sm:text-4xl">Who did you really pay?</h1>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Who did you really pay?</h1>
           <p className="mt-1 text-dim">Bluff pulls your recent card transactions, crawls the website behind every charge, runs a rules-based basic check, then has a Nemotron agent read the pages for what rules miss.</p>
         </div>
         <div className="flex flex-wrap gap-2">
