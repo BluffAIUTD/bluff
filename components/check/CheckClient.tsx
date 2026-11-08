@@ -8,7 +8,7 @@ import { RunView } from "../verdict/RunView";
 import { ExposureActions } from "./ExposureActions";
 import { StorePicker } from "./StorePicker";
 
-type Subject = { kind: "page"; url: string; host: string; demo: boolean } | { kind: "message" };
+type Subject = { kind: "page"; url: string; host: string; demo: boolean; siteReview: boolean } | { kind: "message" };
 
 export function CheckClient({ initialStore }: { initialStore?: string }) {
   const [store, setStore] = useState<string | null>(null);
@@ -26,8 +26,8 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
     setStarting(true); setErr(null); setRunId(null);
     try {
       const host = slug ?? value.replace(/^[a-z]+:\/\//i, "").split(/[/?#]/)[0].replace(/^www\./, "").toLowerCase();
-      const r = await api<{ runId: string }>("/api/investigate/page", { method: "POST", json: { url: value, host, fieldTypes: ["card_number", "cvv"], source: "check" } });
-      setSubject({ kind: "page", url: value.startsWith("http") ? value : `https://${value}`, host, demo: !!slug || STORES.some((s) => s.slug === host.split(".")[0]) });
+      const r = await api<{ runId: string; siteReview?: boolean }>("/api/investigate/page", { method: "POST", json: { url: value, host, fieldTypes: ["card_number", "cvv"], source: "check" } });
+      setSubject({ kind: "page", url: value.startsWith("http") ? value : `https://${value}`, host, demo: !!slug || STORES.some((s) => s.slug === host.split(".")[0]), siteReview: !!r.siteReview });
       setRunId(r.runId);
     } catch (e) { setErr(e instanceof ApiFailure ? e.message : "Couldn't start the check. Try again."); }
     finally { setStarting(false); }
@@ -85,7 +85,8 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
 
       {runId && subject && (
         <section aria-live="polite" className="flex flex-col gap-3">
-          {subject.kind === "page" && !subject.demo && <p className="text-sm text-dim">Limited check: page not analyzed. Only the domain and link were looked at.</p>}
+          {subject.kind === "page" && subject.siteReview && <p className="text-sm text-dim">Bluff is reading this site&apos;s public pages and sending them to Nemotron for review.</p>}
+          {subject.kind === "page" && !subject.siteReview && !subject.demo && <p className="text-sm text-dim">Limited check: page not analyzed. Only the domain and link were looked at.</p>}
           <RunView
             runId={runId}
             subtitle={subject.kind === "page" ? subject.host : "Message check"}

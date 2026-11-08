@@ -14,7 +14,8 @@ export function scoreFromKeys(keys: string[]): number {
   return clamp(Math.round(50 + 45 * legit - 70 * R), 2, 95);
 }
 
-const STEPS = {
+/** Next steps for a rules-only verdict on a page or message (before the user pays). */
+export const BASIC_NEXT_STEPS = {
   likely_scam: ["Don't enter any payment details", "Leave this site or message", "Check the company on its official app", "Report it to your carrier or bank"],
   unsure: ["Don't click links or share details yet", "Check the sender on its official app", "Search the company name plus \"scam\"", "Pay with a card you can dispute"],
   looks_ok: ["Use a card, not a debit or gift card", "Keep your receipt and order number", "Watch your statement for surprises"],
@@ -56,6 +57,6 @@ export function basicCheck(input: BasicCheckInput): Verdict {
   return {
     score, verdict, confidence: c.confidence, confidence_reason: c.reason, category,
     evidence: evidence.slice(0, 5), evidence_keys: ordered.slice(0, 12),
-    next_steps: (input.nextSteps ?? STEPS[verdict]).slice(0, 4).map((s) => s.slice(0, 70)), linked: {}, mode: "basic",
+    next_steps: (input.nextSteps ?? BASIC_NEXT_STEPS[verdict]).slice(0, 4).map((s) => s.slice(0, 70)), linked: {}, mode: "basic",
   };
 }

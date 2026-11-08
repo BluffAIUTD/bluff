@@ -128,6 +128,16 @@ describe("Panel", () => {
     p.close();
   });
 
+  it("shows Nemotron's site summary on AI verdicts, as text", () => {
+    const p = new Panel(handlers());
+    p.render({ phase: "done", verdict: { ...verdict, analysis: { summary: "Refunds only as <b>store credit</b>." } }, verdictId: "v", host: "x.test" });
+    expect(txt(p)).toContain("Refunds only as <b>store credit</b>.");
+    expect(p.host.shadowRoot!.querySelector("b")).toBeNull();
+    p.render({ phase: "done", verdict: { ...verdict, mode: "basic", analysis: { summary: "hidden on basic" } }, verdictId: "v", host: "x.test" });
+    expect(txt(p)).not.toContain("hidden on basic");
+    p.close();
+  });
+
   it("low confidence shows Unsure and 'What to check yourself'", () => {
     const p = new Panel(handlers());
     p.render({ phase: "done", verdict: { ...verdict, confidence: 0.3 }, verdictId: "v", host: "x.test" });

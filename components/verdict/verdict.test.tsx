@@ -28,6 +28,18 @@ describe("ScoreDial", () => {
 });
 
 describe("VerdictCard", () => {
+  it("shows Nemotron's site review (summary + findings with their page) on AI verdicts only", () => {
+    const analysis = { summary: "Refunds are store credit only and card payments are 'unavailable'.", findings: [{ title: "Store credit only", detail: "", severity: "high" as const, page: "http://voltdeals-outlet.localhost:3000/refund-policy.html" }, { title: "Demo label", detail: "", severity: "info" as const }] };
+    const { unmount } = render(<VerdictCard verdict={v({ mode: "live", analysis })} />);
+    expect(screen.getByRole("region", { name: "AI site review" })).toBeInTheDocument();
+    expect(screen.getByText(analysis.summary)).toBeInTheDocument();
+    expect(screen.getByText("Store credit only")).toBeInTheDocument();
+    expect(screen.getByText(/refund-policy\.html/)).toBeInTheDocument();
+    expect(screen.queryByText("Demo label")).toBeNull();
+    unmount();
+    render(<VerdictCard verdict={v({ mode: "basic", analysis })} />);
+    expect(screen.queryByRole("region", { name: "AI site review" })).toBeNull();
+  });
   it("scam verdict: label, mode badge, evidence, confidence with reason, 'Do this instead'", () => {
     render(<VerdictCard verdict={v()} actions={<button>Leave</button>} />);
     expect(screen.getByRole("heading", { name: "Likely scam" })).toBeInTheDocument();

@@ -7,10 +7,11 @@ import { txnSearch } from "../agent/tools/txnSearch";
 import { nessieConfigured } from "../nessie/client";
 import { syncFromNessie, type SyncResult } from "../nessie/sync";
 import type { StepEvent, Verdict } from "../schemas";
-import { basicCheck, basicVerdict, type BasicReport } from "./basic";
-import { crawlSite, splitWebsite, type Crawl } from "./crawl";
-import { siteIntel, type SiteIntel } from "./intel";
-import { latestSiteScan, saveSiteScan, type SiteScan } from "./store";
+import { basicVerdict, type BasicReport } from "./basic";
+import type { Crawl } from "./crawl";
+import type { SiteIntel } from "./intel";
+import { scanWebsite } from "./site";
+import { latestSiteScan, type SiteScan } from "./store";
 import { resolveWebsite } from "./website";
 
 /**
@@ -113,15 +114,12 @@ async function runScan(id: string, userId: string, opts: { fresh?: boolean; deep
       const cached = !!scan;
       if (!scan) {
         push(id, { type: "status", data: { key: m.key, phase: "crawling", detail: host ?? "no website found" } });
-        const siteHost = host ? splitWebsite(host).host : "";
-        const [crawl, intel] = host
-          ? await Promise.all([crawlSite(host, { onPage: (p, n) => push(id, { type: "page", data: { key: m.key, page: { path: p.path, type: p.type, title: p.title, words: p.wordCount, status: p.status }, n } }) }), siteIntel(db, userId, siteHost)])
-          : [{ host: "", origin: "", finalHost: "", https: false, redirectedOffsite: false, botBlocked: false, ms: 0, robots: { found: false, disallow: [], sitemaps: [] }, sitemapUrls: 0, candidates: 0, pages: [], failed: [], skippedByRobots: [], ownStore: null, error: "No website found for this merchant" } as Crawl,
-             { domain: "", registration: { createdAt: null, ageDays: null, expiresAt: null, registrar: null, source: "unknown" }, tls: { ok: false, issuer: null, validFrom: null, validTo: null, ageDays: null }, dns: { mx: null, ns: [] }, wayback: { firstSeen: null, years: null, source: "none" }, allowlisted: false } as SiteIntel];
         const latest = m.txns[m.txns.length - 1];
         const hist = await txnSearch({ descriptor_norm: m.descriptor, days: 365 }, { userId, db, txnTs: new Date(latest.ts) });
-        const report = basicCheck(crawl, intel, { priorCharges: hist.count });
-        scan = await saveSiteScan(db, userId, { host: host ?? m.key, merchant: m.merchant, crawl, intel, basic: report });
+        scan = await scanWebsite(db, userId, {
+          website: host, key: host ?? m.key, merchant: m.merchant, priorCharges: hist.count,
+          crawl: { onPage: (p, n) => push(id, { type: "page", data: { key: m.key, page: { path: p.path, type: p.type, title: p.title, words: p.wordCount, status: p.status }, n } }) },
+        });
       }
       push(id, { type: "basic", data: basicPayload(m.key, scan, cached) });
 
