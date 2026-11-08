@@ -20,7 +20,9 @@
     "prewarm": "tsx scripts/prewarm.ts",
     "e2e": "node e2e/run.mjs",
     "deploy:caddy": "node scripts/deploy/gen-caddyfile.mjs",
-    "demo:script": "node scripts/demo-script.mjs"
+    "demo:script": "node scripts/demo-script.mjs",
+    "nessie:seed": "tsx --env-file=.env scripts/nessie/seed.ts",
+    "tmobile:import": "tsx --env-file=.env scripts/tmobile/import.ts"
   },
   "engines": {
     "node": ">=20"

@@ -6,6 +6,7 @@ import { afterRun } from "./hooks";
 import { selectRunner } from "./index";
 import { basicVerdictFor } from "./mock";
 import { txnRulesVerdict } from "./txn";
+import { siteRulesVerdict } from "../scan/rules";
 import { subjectId, type FailureMode, type RunInput, type RunResult } from "./types";
 
 type RunState = { events: RunStreamEvent[]; listeners: Set<(e: RunStreamEvent) => void>; done: boolean; touched: number };
@@ -13,9 +14,33 @@ const g = globalThis as unknown as { __bluffRuns?: Map<string, RunState> };
 const runs = (g.__bluffRuns ??= new Map<string, RunState>());
 
 export const HARD_TIMEOUT_MS = 15_000;
+/** Site runs scrape a live website before the model decides. */
+export const SITE_HARD_TIMEOUT_MS = 45_000;
+/** At most this many site runs talk to the model at once (a bank scan starts one per merchant). */
+const SITE_CONCURRENCY = 3;
+const siteSlots = { active: 0, queue: [] as (() => void)[] };
+async function acquireSiteSlot() {
+  if (siteSlots.active < SITE_CONCURRENCY) { siteSlots.active++; return; }
+  await new Promise<void>((r) => siteSlots.queue.push(r));
+  siteSlots.active++;
+}
+function releaseSiteSlot() {
+  siteSlots.active--;
+  siteSlots.queue.shift()?.();
+}
 const RETAIN_MS = 5 * 60_000;
 
 export type StartOptions = { fail?: FailureMode; /** bypass the 24 h verdict reuse */ fresh?: boolean };
+
+/** Last live site verdict for this host within 24 h (one scan per merchant per day). */
+async function findReusableSiteVerdict(db: ReturnType<typeof getPool>, userId: string, host: string) {
+  const r = await db.query(
+    "SELECT payload, created_at FROM verdicts WHERE user_id=$1 AND subject_type='site' AND subject_id=$2 AND mode='live' AND created_at > now() - interval '24 hours' ORDER BY created_at DESC LIMIT 1",
+    [userId, host],
+  );
+  if (!r.rows[0]) return null;
+  return { verdict: { ...(r.rows[0].payload as Verdict), mode: "cached" as const }, ageMinutes: Math.max(1, Math.round((Date.now() - r.rows[0].created_at.getTime()) / 60_000)) };
+}
 
 function gc() {
   const now = Date.now();
@@ -66,8 +91,8 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
     if (e.type === "step") { seq = Math.max(seq, e.data.seq + 1); persistStep(e.data); trace.push({ kind: e.data.kind, tool: e.data.tool, inputSummary: e.data.inputSummary, outputSummary: e.data.outputSummary, ms: e.data.ms }); }
     // `done` is emitted by us (after persistence) so it can carry the verdict id.
     if (e.type === "done") return;
-    // A failed charge run is first offered a replay / rules verdict, so hold the error until we know.
-    if (e.type === "error" && input.kind === "txn") { heldError = e; return; }
+    // A failed charge/site run is first offered a replay / rules verdict, so hold the error until we know.
+    if (e.type === "error" && (input.kind === "txn" || input.kind === "site")) { heldError = e; return; }
     push(runId, e);
   };
   const emitStep = (s: Omit<StepEvent, "seq">) => emit({ type: "step", data: { seq, ...s } });
@@ -87,14 +112,27 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
       }
     } catch (e) { console.error("[runs] cache lookup failed", (e as Error).message); }
   }
+  if (input.kind === "site" && input.host && !opts.fail && !opts.fresh) {
+    try {
+      const hit = await findReusableSiteVerdict(db, input.userId, input.host);
+      if (hit) {
+        emitStep({ kind: "tool", tool: "cache", inputSummary: input.host, outputSummary: `scanned earlier (${hit.ageMinutes} min ago)`, ms: 2 });
+        emit({ type: "verdict", data: hit.verdict });
+        result = { verdict: hit.verdict, mode: "cached" };
+      }
+    } catch (e) { console.error("[runs] site cache lookup failed", (e as Error).message); }
+  }
 
   // 2. The agent.
   if (!result) {
     try {
       const runner = await selectRunner();
+      const isSite = input.kind === "site";
+      if (isSite) await acquireSiteSlot();
       let timer: NodeJS.Timeout | undefined;
-      const timeout = new Promise<"timeout">((r) => { timer = setTimeout(() => r("timeout"), HARD_TIMEOUT_MS + (opts.fail === "timeout" ? 60_000 : 0)); });
-      const raced = await Promise.race([runner(input, emit, { fail: opts.fail }), timeout]);
+      const limit = (isSite ? SITE_HARD_TIMEOUT_MS : HARD_TIMEOUT_MS) + (opts.fail === "timeout" ? 60_000 : 0);
+      const timeout = new Promise<"timeout">((r) => { timer = setTimeout(() => r("timeout"), limit); });
+      const raced = await Promise.race([runner(input, emit, { fail: opts.fail }), timeout]).finally(() => { if (isSite) releaseSiteSlot(); });
       clearTimeout(timer);
       if (raced === "timeout") {
         const fallback = basicVerdictFor(input);
@@ -129,6 +167,17 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
         errorHandled = true;
       }
     } catch (e) { console.error("[runs] replay failed", (e as Error).message); }
+  }
+  // 3b. Site failure: rules-only verdict over the real scraped website (still no invented facts).
+  if (input.kind === "site" && result.error) {
+    try {
+      const rules = await siteRulesVerdict(db, input);
+      const he = heldError as Extract<RunStreamEvent, { type: "error" }> | null;
+      for (const s of rules.steps.filter((x) => x.kind !== "plan")) emitStep(s);
+      push(runId, { type: "error", data: { code: he?.data.code ?? "upstream_down", message: he?.data.message ?? "AI check unavailable.", fallbackVerdict: rules.verdict } });
+      result = { verdict: rules.verdict, mode: "basic", error: result.error };
+      errorHandled = true;
+    } catch (e) { console.error("[runs] site rules failed", (e as Error).message); }
   }
   if (heldError && !errorHandled) push(runId, heldError);
 

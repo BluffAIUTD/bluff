@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
 import { NAV_ITEMS, isActive } from "./nav";
 
-/** Left rail on desktop (≥1024px), bottom tab bar below. Same 7 items, same order. */
+/** Left rail on desktop (≥1024px), bottom tab bar below. Same order; desktop-only items are left off the 7-slot tab bar. */
 export function NavLinks() {
   const path = usePathname() ?? "/";
   return (
@@ -24,7 +24,7 @@ export function NavLinks() {
         })}
       </nav>
       <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
-        {NAV_ITEMS.map((i) => {
+        {NAV_ITEMS.filter((i) => !("desktopOnly" in i && i.desktopOnly)).map((i) => {
           const on = isActive(path, i.href);
           return (
             <Link key={i.href} href={i.href} aria-current={on ? "page" : undefined}

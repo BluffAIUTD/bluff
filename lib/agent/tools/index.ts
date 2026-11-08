@@ -3,13 +3,20 @@ import { draftDisputeTool } from "./draftDispute";
 import { exposureLookupTool } from "./exposureLookup";
 import { notifyTool } from "./notifyTool";
 import { pageSignalsTool } from "./pageSignals";
+import { resolveWebsiteTool, scrapeSiteTool } from "./scrapeSite";
 import { submitVerdictTool } from "./submitVerdict";
 import { taxonomyMatchTool } from "./taxonomyMatch";
 import { txnSearchTool } from "./txnSearch";
 import { capJson, type ToolContext, type ToolDef } from "./types";
 
-/** Tool registry: the 8 tools of engineering_spec §6.1. */
-export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, notifyTool, submitVerdictTool];
+/** Tool registry: the 8 tools of engineering_spec §6.1 plus the 2 bank-scan tools (resolve_website, scrape_site). */
+export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, notifyTool, submitVerdictTool, resolveWebsiteTool, scrapeSiteTool];
+
+/** Tools offered per run kind (fewer tools → fewer wrong calls). */
+const BY_KIND: Record<string, string[]> = {
+  site: ["resolve_website", "scrape_site", "domain_intel", "txn_search", "taxonomy_match", "submit_verdict"],
+};
+const SITE_ONLY = new Set(["resolve_website", "scrape_site"]);
 
 export function getTool(name: string): ToolDef | undefined { return TOOLS.find((t) => t.name === name); }
 
@@ -17,7 +24,7 @@ export function getTool(name: string): ToolDef | undefined { return TOOLS.find((
 export async function runTool(name: string, args: Record<string, unknown>, ctx: ToolContext): Promise<unknown> {
   const t = getTool(name);
   if (!t) return { error: `unknown tool: ${name}` };
-  try { return capJson(await t.run(args, ctx)); } catch (e) { return { error: (e as Error).message.slice(0, 200) }; }
+  try { return capJson(await t.run(args, ctx), t.maxBytes); } catch (e) { return { error: (e as Error).message.slice(0, 200) }; }
 }
 
-export const openAiTools = () => TOOLS.map((t) => ({ type: "function" as const, function: { name: t.name, description: t.description, parameters: t.parameters } }));
+export const openAiTools = (kind?: string) => TOOLS.filter((t) => (kind && BY_KIND[kind] ? BY_KIND[kind].includes(t.name) : !SITE_ONLY.has(t.name))).map((t) => ({ type: "function" as const, function: { name: t.name, description: t.description, parameters: t.parameters } }));

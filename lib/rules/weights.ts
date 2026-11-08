@@ -20,6 +20,10 @@ export const KEYS: Record<string, KeyMeta> = {
   has_contact_page: { dir: "legit", w: 0.1, evidence: "Has a contact page" },
   has_refund_policy: { dir: "legit", w: 0.1, evidence: "Clear refund and returns policy" },
   https_ok: { dir: "legit", w: 0.05, evidence: "Served over HTTPS" },
+  // --- live site scan (bank transaction → merchant website) ---
+  site_unreachable: { dir: "scam", w: 0.12, evidence: "Merchant website could not be reached" },
+  redirects_offsite: { dir: "scam", w: 0.1, evidence: "Website redirects to an unrelated domain" },
+  has_privacy_policy: { dir: "legit", w: 0.05, evidence: "Links to a privacy policy" },
   // --- charge signals ---
   exposure_link: { dir: "scam", w: 0.35, evidence: "Lines up with a risky site you entered info on" },
   card_test: { dir: "scam", w: 0.3, evidence: "Tiny first charge from a new merchant (card test)" },

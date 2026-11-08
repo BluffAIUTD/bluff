@@ -6,6 +6,7 @@ import { basicCheck } from "../rules/basicCheck";
 import { messageKeys, pageKeys, extractUrls } from "../rules/signals";
 import { getPool } from "../db";
 import { txnRulesVerdict } from "./txn";
+import { siteRulesVerdict } from "../scan/rules";
 import type { Emit, RunInput, RunOptions, RunResult } from "./types";
 
 type Fixture = { host: string; verdict: Verdict; steps: Omit<StepEvent, "seq">[] };
@@ -80,6 +81,12 @@ export async function mockRun(input: RunInput, emit: Emit, opts: RunOptions = {}
       emit({ type: "error", data: { code: "not_found", message: "Charge not found" } });
       return { verdict, mode: "basic", error: { code: "not_found", message: "Charge not found" } };
     }
+    verdict = r.verdict;
+    steps = r.steps;
+  }
+  if (input.kind === "site") {
+    // Real scrape + domain intel over the live website; only the model is mocked ("basic").
+    const r = await siteRulesVerdict(getPool(), input);
     verdict = r.verdict;
     steps = r.steps;
   }

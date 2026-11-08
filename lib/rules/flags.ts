@@ -6,6 +6,7 @@ import type { FlagKindDto, TransactionDto } from "../types";
 type RuleRow = {
   id: string; ts: Date; descriptor: string; descriptor_norm: string; amount_cents: number; mcc_category: string | null;
   is_recurring: boolean; scripted: boolean; script_id: string | null;
+  source: string; merchant_name: string | null; website: string | null;
   price_drift: boolean; duplicate: boolean; new_subscription: boolean; card_test: boolean;
 };
 
@@ -16,6 +17,7 @@ type RuleRow = {
  */
 const RULES_SQL = `
 SELECT t.id, t.ts, t.descriptor, t.descriptor_norm, t.amount_cents, t.mcc_category, t.is_recurring, t.scripted, t.script_id,
+  t.source, t.merchant_name, t.website,
   (p.n90 >= 2 AND t.amount_cents > 1.5 * p.avg90) AS price_drift,
   EXISTS (SELECT 1 FROM transactions d WHERE d.user_id = t.user_id AND d.descriptor_norm = t.descriptor_norm
             AND d.amount_cents = t.amount_cents AND d.id <> t.id AND abs(extract(epoch FROM (d.ts - t.ts))) <= 600) AS duplicate,
@@ -54,6 +56,7 @@ async function build(db: Db, userId: string, txnId: string | null, limit: number
     out.push({
       id: r.id, ts: r.ts.toISOString(), descriptor: r.descriptor, descriptorNorm: r.descriptor_norm, amountCents: r.amount_cents,
       mccCategory: r.mcc_category, isRecurring: r.is_recurring, flags, link,
+      source: r.source, merchantName: r.merchant_name, website: r.website,
     });
   }
   return out;

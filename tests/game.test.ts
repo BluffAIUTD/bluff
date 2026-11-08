@@ -20,7 +20,7 @@ describe("daily set", () => {
   it("5 cards, 2–3 scam, deterministic by date, differs across days, no answers leaked", async () => {
     const r = await (await get()).json();
     expect(r.cards).toHaveLength(5);
-    expect(Object.keys(r.cards[0]).sort()).toEqual(["content", "id", "kind"]);
+    expect(Object.keys(r.cards[0]).sort()).toEqual(["content", "id", "kind", "origin", "source"]);
     const scam = await Promise.all(r.cards.map((c: { id: string }) => truth(c.id)));
     const n = scam.filter(Boolean).length;
     expect(n).toBeGreaterThanOrEqual(2); expect(n).toBeLessThanOrEqual(3);

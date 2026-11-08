@@ -39,7 +39,7 @@ describe("domain_intel", () => {
     const slow = ((_u: string, init: RequestInit) => new Promise((_r, rej) => init.signal!.addEventListener("abort", () => rej(new Error("aborted"))))) as unknown as typeof fetch;
     const t0 = Date.now();
     expect(await rdapAgeDays("x.com", slow)).toBeNull();
-    expect(Date.now() - t0).toBeLessThan(2600);
+    expect(Date.now() - t0).toBeLessThan(3600);
   }, 10000);
 });
 

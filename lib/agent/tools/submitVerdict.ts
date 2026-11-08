@@ -8,8 +8,25 @@ export type SubmitResult = { ok: true; verdict: Verdict } | { ok: false; errors:
  * Validates submit_verdict arguments. Confidence is computed from evidence_keys (§6.4), not the model's self-report,
  * and forced to `unsure` when below 0.5. Verdict label is derived from the score.
  */
+/**
+ * Harmless shape fixes before validation (seen from Nemotron in practice): null fields inside `linked`, one evidence line
+ * or next step too many, lines a few characters too long. Missing or out-of-range content still fails validation.
+ */
+export function normalizeVerdictArgs(args: unknown): unknown {
+  if (!args || typeof args !== "object") return args;
+  const a = { ...(args as Record<string, unknown>) };
+  if (a.linked === null) delete a.linked;
+  if (a.linked && typeof a.linked === "object") a.linked = Object.fromEntries(Object.entries(a.linked as object).filter(([, v]) => v !== null && v !== ""));
+  const lines = (v: unknown, max: number, len: number) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()).slice(0, max).map((x: string) => (x.length > len ? x.slice(0, len - 1) + "…" : x)) : v);
+  a.evidence = lines(a.evidence, 5, 90);
+  a.next_steps = lines(a.next_steps, 4, 70);
+  if (typeof a.score === "string" && /^\d+$/.test(a.score)) a.score = Number(a.score);
+  if (typeof a.score === "number" && !Number.isInteger(a.score)) a.score = Math.round(a.score);
+  return a;
+}
+
 export function submitVerdict(args: unknown, mode: Verdict["mode"] = "live"): SubmitResult {
-  const parsed = SubmitVerdictArgsSchema.safeParse(args);
+  const parsed = SubmitVerdictArgsSchema.safeParse(normalizeVerdictArgs(args));
   if (!parsed.success) return { ok: false, errors: parsed.error.issues.map((i) => `${i.path.join(".") || "args"}: ${i.message}`) };
   const a = parsed.data;
   const c = computeConfidence(a.evidence_keys);

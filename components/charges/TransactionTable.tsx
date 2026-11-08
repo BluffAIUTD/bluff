@@ -14,7 +14,7 @@ export function TransactionTable({ rows }: { rows: TransactionDto[] }) {
         <li key={t.id}>
           <Link href={`/charges/${t.id}`} className="flex min-h-[56px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 transition duration-ui hover:bg-surface2">
             <span className="num w-14 shrink-0 text-sm text-dim">{shortDate(t.ts)}</span>
-            <span className="min-w-0 flex-1 truncate font-medium">{t.descriptor}</span>
+            <span className="min-w-0 flex-1 truncate font-medium">{t.descriptor}{t.source === "nessie" && <span className="ml-2 align-middle text-[11px] font-normal text-dim" title="Imported from Capital One (Nessie API)">Capital One{t.website ? ` · ${t.website}` : ""}</span>}</span>
             <span className="num font-medium">{money(t.amountCents)}</span>
             {t.flags.length > 0 && <span className="flex w-full flex-wrap gap-1 sm:w-auto">{t.flags.map((f) => <FlagBadge key={f} kind={f} />)}</span>}
           </Link>

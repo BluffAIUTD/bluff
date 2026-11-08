@@ -1,12 +1,18 @@
 import type { Db } from "../../db";
 
-export type ToolContext = { userId: string; db: Db; now?: Date; txnTs?: Date; baseDomain?: string };
+export type ToolContext = {
+  userId: string; db: Db; now?: Date; txnTs?: Date; baseDomain?: string;
+  /** Site runs: the merchant website from the bank statement (or the one resolve_website found). scrape_site may only fetch this site. */
+  site?: { host: string | null; merchant: string; descriptor: string };
+};
 
 export type ToolDef = {
   name: string;
   description: string;
   /** JSON schema for OpenAI-compatible tool calling. */
   parameters: Record<string, unknown>;
+  /** result size cap; default 1 KB */
+  maxBytes?: number;
   run: (args: Record<string, unknown>, ctx: ToolContext) => Promise<unknown>;
 };
 

@@ -2,7 +2,14 @@
 import { highlightSpans } from "@/lib/client/highlight";
 import { Badge } from "../ui/Badge";
 
-export type CardData = { id: string; kind: string; content: { from?: string; subject?: string; body: string } };
+export type CardData = { id: string; kind: string; content: { from?: string; subject?: string; body: string }; source?: string; origin?: string | null };
+
+const SOURCE: Record<string, { label: string; tone: "accent" | "safe" | "neutral" }> = {
+  tmobile: { label: "T-Mobile Safe Signal set", tone: "accent" },
+  bank: { label: "From your Capital One scan", tone: "safe" },
+  generated: { label: "Nemotron-generated", tone: "neutral" },
+  lookalike: { label: "This week's trending scam", tone: "neutral" },
+};
 export type Reveal = { correct: boolean; isScam: boolean; redFlags: { span: string; why: string }[]; category: string; guess: "legit" | "scam" };
 
 const KIND: Record<string, string> = { text: "Text message", checkout: "Checkout page", email: "Email", receipt: "Receipt", bank_alert: "Bank alert" };
@@ -15,6 +22,7 @@ function Body({ card, reveal }: { card: CardData; reveal?: Reveal }) {
         <span className="font-medium uppercase tracking-wide">{KIND[card.kind] ?? card.kind}</span>
         {card.content.from && <span className="truncate pl-2">{card.content.from}</span>}
       </div>
+      {card.source && SOURCE[card.source] && <span className="self-start" title={card.origin ?? undefined}><Badge tone={SOURCE[card.source].tone}>{SOURCE[card.source].label}</Badge></span>}
       {card.content.subject && <p className="font-grotesk text-lg font-bold">{card.content.subject}</p>}
       <p className="text-[17px] leading-relaxed">
         {segs.map((s, i) => s.why

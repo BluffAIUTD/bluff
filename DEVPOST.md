@@ -16,22 +16,23 @@ Scams hit your statement days after the click. Bluff remembers where you entered
 - **Checkout Guard** (Chrome extension and `/check`): when a page asks for your card, Bluff scores it with reasons and safer options, and logs the exposure.
 - **Charge Watch + Refund Builder:** a new charge is linked back to the exposure (abbreviated descriptors like `FKSHP*LLC` ↔ `fastkicks-shop`), flagged for price drift, duplicates and card tests, and one tap drafts a dispute letter, evidence timeline and next steps. Bluff drafts; you decide.
 - **Bluff Text (Photon iMessage):** alerts when something risky happens, and forward any suspicious text for an explained verdict. Reply WATCH, DISPUTE, SAFE, STOP or HELP.
-- **Call the Bluff:** a 60-second daily game that trains the same red flags the detector uses.
+- **Call the Bluff:** a 60-second daily game that trains the same red flags the detector uses, with messages from the T-Mobile Safe Signal set and one card from your own bank scan.
+- **Bank Scan (Capital One Nessie):** pulls your recent card transactions, visits every merchant's website live, and a Nemotron agent rates each site you paid, so a fake store hiding in your statement gets flagged with evidence and a one-tap dispute draft.
 
-**How it's built.** Next.js on Vultr, Tiger Data (hypertable + continuous aggregate + pg_trgm), Nemotron tool-calling agent with a streamed trace, Photon for messaging, a Chrome MV3 extension. Verdicts are always labeled live / cached / replayed / basic, with graceful fallbacks.
+**How it's built.** Capital One Nessie API for accounts and purchases, an SSRF-guarded live scraper plus RDAP for each merchant site, Next.js on Vultr, Tiger Data (hypertable + continuous aggregate + pg_trgm), Nemotron tool-calling agent with a streamed trace, Photon for messaging, a Chrome MV3 extension. Verdicts are always labeled live / cached / replayed / basic, with graceful fallbacks.
 
 **Privacy by design.** The extension never reads what you type or the page text; only the domain, the kinds of fields and yes/no signals leave the page. Forwarded texts are discarded after the verdict. Everything is synthetic data.
 
 **Measured, honestly.** [Fill from `npm run demo:script` after the real runs. At time of writing the only measured numbers are on a synthetic stand-in set with the rules-only path; do not present them as results on T-Mobile's data or on the Nemotron agent.]
 
 ## Tracks
-- Sponsor (max 3): **T-Mobile Safe Signal**, **NVIDIA: Use Nemotron Beyond a Chatbot**, **Photon: Best Use of Photon API** (and the Voice Call prize only if the call works live)
+- Sponsor (max 3, **pick 3 of these 4**): **T-Mobile Safe Signal**, **NVIDIA: Use Nemotron Beyond a Chatbot**, **Capital One: Best Use of Nessie**, **Photon: Best Use of Photon API** (Photon is still mock-only; Nessie is live, so Capital One is the stronger third pick unless Photon gets wired up)
 - HackUTD (max 1): **Virality**
 - MLH (opt in on Devpost): **Tiger Data**, **Vultr**, **GoDaddy Registry**
 - Auto-entered: General
 
 ## Built with
-Next.js · TypeScript · Tailwind · PostgreSQL / Tiger Data (TimescaleDB, pg_trgm) · NVIDIA Nemotron (build.nvidia.com) · Photon · Chrome MV3 · Vultr · Caddy · Python (eval) · Playwright
+Next.js · TypeScript · Tailwind · PostgreSQL / Tiger Data (TimescaleDB, pg_trgm) · NVIDIA Nemotron (build.nvidia.com) · Capital One Nessie API · RDAP · Photon · Chrome MV3 · Vultr · Caddy · Python (eval) · Playwright
 
 ## Links to fill in
 - Live URL: [https://bluff.<domain>]

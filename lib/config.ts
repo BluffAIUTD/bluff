@@ -27,6 +27,8 @@ export function getConfig() {
       model: env.NEMOTRON_MODEL || "",
       smallModel: env.NEMOTRON_SMALL_MODEL || env.NEMOTRON_MODEL || "",
       embedModel: env.EMBED_MODEL || "",
+      /** "off" sends chat_template_kwargs.enable_thinking=false (Nemotron 3.x); unset leaves the model default. */
+      thinking: env.NEMOTRON_THINKING === "off" ? "off" : "default",
     },
     photon: {
       apiBase: env.PHOTON_API_BASE || "",
@@ -36,6 +38,11 @@ export function getConfig() {
       demoUserPhone: env.DEMO_USER_PHONE || "",
     },
     rdapEnabled: env.RDAP_ENABLED === "1",
+    nessie: {
+      baseUrl: env.NESSIE_BASE_URL || "https://api.nessieisreal.com",
+      apiKey: env.NESSIE_API_KEY || "",
+      customerId: env.NESSIE_CUSTOMER_ID || "",
+    },
   };
 }
 

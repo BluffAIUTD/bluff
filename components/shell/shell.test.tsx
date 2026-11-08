@@ -7,8 +7,9 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/charges/abc" }));
 import { NavLinks } from "./NavLinks";
 
 describe("navigation", () => {
-  it("has the 7 items in the spec order", () => {
-    expect(NAV_ITEMS.map((i) => i.href)).toEqual(["/", "/check", "/charges", "/exposure", "/play", "/eval", "/privacy"]);
+  it("has the 8 items in order, 7 of them on the phone tab bar", () => {
+    expect(NAV_ITEMS.map((i) => i.href)).toEqual(["/", "/scan", "/check", "/charges", "/exposure", "/play", "/eval", "/privacy"]);
+    expect(NAV_ITEMS.filter((i) => !("desktopOnly" in i && i.desktopOnly))).toHaveLength(7);
   });
   it("active matching: root only exact, others by prefix", () => {
     expect(isActive("/", "/")).toBe(true);

@@ -22,7 +22,7 @@ export default async function ChargesPage({ searchParams }: { searchParams: Prom
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-grotesk text-3xl font-bold tracking-tight">Charges</h1>
-          <p className="text-dim">{rows.filter((r) => r.flags.length).length} flagged of {rows.length}. Synthetic demo data.</p>
+          <p className="text-dim">{rows.filter((r) => r.flags.length).length} flagged of {rows.length}. Capital One (Nessie sandbox) plus synthetic history. <Link href="/scan" className="font-medium text-accent underline">Scan merchant websites</Link></p>
         </div>
         <div role="tablist" aria-label="Filter" className="flex rounded-control border border-line p-1 text-sm">
           <Link role="tab" aria-selected={!flaggedOnly} href={`/charges${demo === "1" ? "?demo=1" : ""}`} className={`rounded-control px-3 py-2 ${!flaggedOnly ? "bg-surface2 font-medium" : "text-dim"}`}>All</Link>

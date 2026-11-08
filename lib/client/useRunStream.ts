@@ -11,7 +11,8 @@ export type RunStream = RunState & { running: boolean; slow: boolean };
  * Subscribes to GET /api/runs/:id/stream. Returns {steps, verdict, error, done, mode, ...}.
  * `slow` flips after 12 s ("Taking longer than usual"); after 40 s without `done` the client gives up with a timeout error.
  */
-export function useRunStream(runId: string | null): RunStream {
+export function useRunStream(runId: string | null, opts: { giveUpMs?: number } = {}): RunStream {
+  const giveUpMs = opts.giveUpMs ?? GIVE_UP_AFTER_MS;
   const [state, dispatch] = useReducer(runReducer, initialRunState);
   const [slow, setSlow] = useState(false);
 
@@ -32,9 +33,9 @@ export function useRunStream(runId: string | null): RunStream {
     });
     es.addEventListener("done", (ev) => { finished = true; const d = parse(ev as MessageEvent); if (d) dispatch({ type: "done", data: d }); es.close(); });
     const slowT = setTimeout(() => setSlow(true), SLOW_AFTER_MS);
-    const giveUp = setTimeout(() => { if (!finished) { es.close(); dispatch({ type: "client_error", data: { code: "timeout", message: "The check took too long." } }); } }, GIVE_UP_AFTER_MS);
+    const giveUp = setTimeout(() => { if (!finished) { es.close(); dispatch({ type: "client_error", data: { code: "timeout", message: "The check took too long." } }); } }, giveUpMs);
     return () => { finished = true; clearTimeout(slowT); clearTimeout(giveUp); es.close(); };
-  }, [runId]);
+  }, [runId, giveUpMs]);
 
   return { ...state, running: !!runId && !state.done, slow: slow && !state.done };
 }

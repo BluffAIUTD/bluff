@@ -34,6 +34,8 @@ export async function chat(a: ChatArgs): Promise<{ content: string | null; tool_
       body: JSON.stringify({
         model: a.model, messages: a.messages, temperature: a.temperature ?? 0.2, max_tokens: a.maxTokens ?? 1024,
         ...(a.tools ? { tools: a.tools, tool_choice: "auto" } : {}),
+        // Nemotron 3.x hybrid-reasoning models: skip the reasoning trace for latency (NEMOTRON_THINKING=off).
+        ...(c.thinking === "off" ? { chat_template_kwargs: { enable_thinking: false } } : {}),
       }),
     });
   } catch (e) {

@@ -1,10 +1,11 @@
 export const NAV_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
+  { href: "/scan", label: "Scan", icon: "search" },
   { href: "/check", label: "Check", icon: "shield" },
   { href: "/charges", label: "Charges", icon: "card" },
   { href: "/exposure", label: "Exposure", icon: "eye" },
   { href: "/play", label: "Play", icon: "cards" },
-  { href: "/eval", label: "Eval", icon: "chart" },
+  { href: "/eval", label: "Eval", icon: "chart", desktopOnly: true },
   { href: "/privacy", label: "Privacy", icon: "lock" },
 ] as const;
 

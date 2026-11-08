@@ -11,12 +11,12 @@ export type DomainIntelResult = {
   allowlisted: boolean; source: "mock_registry" | "rdap" | "unknown";
 };
 
-/** RDAP lookup with a 2 s timeout (P2 feature, behind RDAP_ENABLED). Returns age in days or null. */
+/** RDAP lookup with a 3 s timeout (P2 feature, behind RDAP_ENABLED). Returns age in days or null. */
 export async function rdapAgeDays(host: string, fetchImpl: typeof fetch = fetch): Promise<{ ageDays: number; registrar: string | null } | null> {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 2000);
+  const timer = setTimeout(() => ctl.abort(), 3000);
   try {
-    const res = await fetchImpl(`https://rdap.org/domain/${encodeURIComponent(host)}`, { signal: ctl.signal, headers: { accept: "application/rdap+json" } });
+    const res = await fetchImpl(`https://rdap.org/domain/${encodeURIComponent(host)}`, { signal: ctl.signal, headers: { accept: "application/rdap+json", "user-agent": "Mozilla/5.0 (compatible; BluffScanner/1.0; +https://github.com/Sithranjan-Suresh)" } });
     if (!res.ok) return null;
     const j = (await res.json()) as { events?: { eventAction: string; eventDate: string }[]; entities?: { roles?: string[]; vcardArray?: unknown[] }[] };
     const reg = j.events?.find((e) => e.eventAction === "registration")?.eventDate;

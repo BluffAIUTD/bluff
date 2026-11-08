@@ -11,11 +11,13 @@ import type { Emit, RunInput, RunOptions, RunResult, Runner } from "./types";
 
 export const MAX_ITERATIONS = 6;
 export const LIVE_DEADLINE_MS = 15_000;
+/** A site run fetches a live website (<= 8 s) and RDAP on top of the model turns. */
+export const SITE_DEADLINE_MS = 40_000;
 
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
 function summarizeArgs(tool: string, a: Record<string, unknown>): string {
-  const v = a.host ?? a.descriptor ?? a.descriptor_norm ?? a.text ?? a.txn_id ?? (tool === "submit_verdict" ? `score ${a.score}` : JSON.stringify(a));
+  const v = a.host ?? a.merchant ?? a.descriptor ?? a.descriptor_norm ?? a.text ?? a.txn_id ?? (tool === "submit_verdict" ? `score ${a.score}` : JSON.stringify(a));
   return clip(String(v), 70);
 }
 
@@ -28,6 +30,8 @@ export function summarizeResult(tool: string, r: unknown): string {
     case "taxonomy_match": return Array.isArray(r) && r[0] ? `${r[0].category} ${r[0].score}` : "no match";
     case "exposure_lookup": return Array.isArray(r) ? (r.length ? `${r.length} match: ${r[0].host}, ${r[0].match_score}` : "no matching exposure") : "no result";
     case "txn_search": return `${o.count} prior charges, avg $${((Number(o.avg_cents) || 0) / 100).toFixed(2)}`;
+    case "resolve_website": return o.host ? `${o.host} (${o.how})` : "no website found";
+    case "scrape_site": return o.fetched ? clip(`${o.status} ${o.title || "(no title)"}${o.bot_blocked ? ", bot-blocked" : ""}${o.redirected_offsite ? `, redirects to ${o.final_host}` : ""}${o.source === "demo_store" ? " [demo store]" : ""}`, 100) : clip(`failed: ${o.error}`, 100);
     default: return clip(JSON.stringify(r), 100);
   }
 }
@@ -37,6 +41,13 @@ async function subjectMessage(input: RunInput): Promise<{ text: string; candidat
     return { text: JSON.stringify({ subject: "page", url: input.url, host: input.host, field_types: input.fieldTypes, signals: input.signals, source: input.source }), candidates: [] };
   }
   if (input.kind === "message") return { text: JSON.stringify({ subject: "message", text: input.text.slice(0, 2000) }), candidates: [] };
+  if (input.kind === "site") {
+    const t = await one<{ ts: Date; amount_cents: number; mcc_category: string | null; source: string }>(getPool(), "SELECT ts, amount_cents, mcc_category, source FROM transactions WHERE id=$1 AND user_id=$2", [input.txnId, input.userId]);
+    return {
+      text: JSON.stringify({ subject: "merchant_site", bank: t?.source === "nessie" ? "Capital One (Nessie)" : "card", merchant: input.merchant, descriptor: input.descriptor, website: input.host, amount: t ? t.amount_cents / 100 : null, posted_at: t?.ts.toISOString().slice(0, 10), merchant_category: t?.mcc_category }),
+      candidates: [], txnTs: t?.ts, txn: { descriptor: input.descriptor },
+    };
+  }
   const db = getPool();
   const t = await one<{ ts: Date; descriptor: string; descriptor_norm: string; amount_cents: number }>(db, "SELECT ts, descriptor, descriptor_norm, amount_cents FROM transactions WHERE id=$1 AND user_id=$2", [input.txnId, input.userId]);
   if (!t) throw new Error("transaction not found");
@@ -62,13 +73,14 @@ export function reconcileLink(v: Verdict, candidates: LinkCandidate[], txnId?: s
 export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOptions = {}): Promise<RunResult> => {
   const cfg = getConfig();
   const t0 = Date.now();
-  const deadline = AbortSignal.timeout(Number(process.env.AGENT_DEADLINE_MS) || LIVE_DEADLINE_MS);
+  const deadline = AbortSignal.timeout(Number(process.env.AGENT_DEADLINE_MS) || (input.kind === "site" ? SITE_DEADLINE_MS : LIVE_DEADLINE_MS));
   const signal = opts.signal ? AbortSignal.any([opts.signal, deadline]) : deadline;
   let seq = 0;
   const step = (s: Omit<StepEvent, "seq">) => emit({ type: "step", data: { seq: seq++, ...s } });
 
   const fallback = (code: "timeout" | "malformed" | "rate_limited" | "upstream_down", message: string): RunResult => {
     const v = basicVerdictFor(input);
+    console.warn(`[agent] ${input.kind} run fell back (${code}): ${message}`);
     emit({ type: "error", data: { code, message, fallbackVerdict: v } });
     return { verdict: v, mode: "basic", error: { code, message } };
   };
@@ -81,11 +93,12 @@ export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOpti
       { role: "system", content: `${SYSTEM_PROMPT}\n\n${MODE_PROMPTS[input.kind]}` },
       { role: "user", content: subj.text },
     ];
-    const ctx = { userId: input.userId, db: getPool(), txnTs: subj.txnTs };
-    const tools = openAiTools();
+    const ctx = { userId: input.userId, db: getPool(), txnTs: subj.txnTs, ...(input.kind === "site" ? { site: { host: input.host, merchant: input.merchant, descriptor: input.descriptor } } : {}) };
+    // A site run whose statement already names the website skips the lookup tool.
+    const tools = openAiTools(input.kind).filter((t) => !(input.kind === "site" && input.host && t.function.name === "resolve_website"));
     let repaired = false;
     let nudged = false;
-    step({ kind: "plan", tool: null, inputSummary: clip(input.kind === "page" ? `Check ${input.host}` : input.kind === "txn" ? `Charge ${subj.txn?.descriptor}` : `Message, ${input.text.length} chars`, 70), outputSummary: `Plan: ${MODE_PROMPTS[input.kind].split("Expected tools: ")[1]?.replace(/\.$/, "") ?? "investigate"}`, ms: Date.now() - t0 });
+    step({ kind: "plan", tool: null, inputSummary: clip(input.kind === "page" ? `Check ${input.host}` : input.kind === "txn" ? `Charge ${subj.txn?.descriptor}` : input.kind === "site" ? `${input.merchant} · ${input.host ?? "website unknown"}` : `Message, ${input.text.length} chars`, 70), outputSummary: input.kind === "site" ? `Plan: ${input.host ? "" : "find website → "}scrape site → domain age → payment history → verdict` : `Plan: ${MODE_PROMPTS[input.kind].split("Expected tools: ")[1]?.replace(/\.$/, "") ?? "investigate"}`, ms: Date.now() - t0 });
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
       const msg = await chat({ model: cfg.nvidia.model, messages, tools, signal });

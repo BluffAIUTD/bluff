@@ -22,7 +22,7 @@ describe("demo script generator", () => {
 describe("docs do not overclaim", () => {
   const readme = fs.readFileSync("README.md", "utf8");
   it("README states what is not verified", () => {
-    for (const s of ["not run against build.nvidia.com", "not run against Photon", "untested", "not deployed", "synthetic stand-in"]) expect(readme.toLowerCase()).toContain(s.toLowerCase());
+    for (const s of ["not run against Photon", "untested", "not deployed", "synthetic stand-in", "not yet run on the real T-Mobile file"]) expect(readme.toLowerCase()).toContain(s.toLowerCase());
   });
   it("no invented statistics or customer claims in the docs", () => {
     for (const f of ["README.md", "DEVPOST.md", "DEPLOY.md"]) {
