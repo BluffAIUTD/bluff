@@ -31,9 +31,26 @@ services:
       NODE_ENV: production
       # Same-host database over the private compose network (no TLS needed inside it).
       DATABASE_URL: postgres://bluff:${POSTGRES_PASSWORD}@db:5432/bluff?sslmode=disable
+      # Headless Chromium for pages built with JavaScript (lib/scan/render.ts). RENDER_ENABLED=0 in .env turns it off.
+      RENDER_URL: http://render:3000
+      RENDER_TOKEN: ${RENDER_TOKEN:-bluff-render}
     expose: ["3000"]
+    networks: [default, render]
     depends_on:
       db: { condition: service_healthy }
+
+  render:
+    # browserless/chromium, pinned by digest. Only `web` can reach it (no published port, own network). Its fixed subnet
+    # lets the host firewall drop NEW connections from it to private / link-local (cloud metadata) ranges: see DEPLOY.md.
+    image: ghcr.io/browserless/chromium@sha256:bcad9a1c271ddb9d95f7de5981c68cb2fcc9fd1f07e8da07c4e5c9d1ef4fc099
+    restart: unless-stopped
+    environment:
+      TOKEN: ${RENDER_TOKEN:-bluff-render}
+      CONCURRENT: "2"
+      QUEUED: "6"
+      TIMEOUT: "20000"
+    mem_limit: 1g
+    networks: [render]
 
   tools:
     # One-off jobs: docker compose --profile tools run --rm tools npm run db:migrate | db:seed | nessie:seed | prewarm | db:reset
@@ -69,6 +86,12 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on: [web]
+
+networks:
+  render:
+    ipam:
+      config:
+        - subnet: 172.30.99.0/24
 
 volumes:
   pgdata:

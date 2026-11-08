@@ -11,7 +11,62 @@ export type PageFacts = {
   forms: FormFacts[]; prices: number[]; discounts: number[]; emails: string[]; phones: string[]; addresses: string[];
   payments: string[]; policyFlags: Quote[]; pressure: string[]; placeholders: string[]; copyrightYears: number[];
   companyNames: string[]; selfDescribedDemo: boolean; generator: string | null; scriptHosts: string[];
+  /** Where structured data came from (json-ld, opengraph, next-data, nuxt-data); its text is appended to `text`. */
+  embedded?: string[];
+  /** True when the page was rendered in headless Chromium because its server HTML had too little text. */
+  rendered?: boolean;
 };
+
+type Embedded = { sources: string[]; text: string; prices: number[]; phones: string[]; emails: string[]; addresses: string[]; companies: string[] };
+
+/**
+ * Data that JavaScript-built pages still carry in their HTML: schema.org JSON-LD (organization, address, phone,
+ * products and prices), OpenGraph tags, and the serialized app state of Next.js / Nuxt pages. Pure; never executed.
+ */
+export function embeddedData(raw: string): Embedded {
+  const out: Embedded = { sources: [], text: "", prices: [], phones: [], emails: [], addresses: [], companies: [] };
+  const lines: string[] = [];
+  const str = (v: unknown) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim() : typeof v === "number" ? String(v) : "");
+  const walk = (node: unknown, depth = 0) => {
+    if (!node || depth > 6) return;
+    if (Array.isArray(node)) { node.slice(0, 40).forEach((n) => walk(n, depth + 1)); return; }
+    if (typeof node !== "object") return;
+    const o = node as Record<string, unknown>;
+    const type = ([] as unknown[]).concat(o["@type"] ?? []).map(String).join(",");
+    if (/Organization|LocalBusiness|Store|Corporation|OnlineStore|Brand/i.test(type)) {
+      const name = str(o.name), legal = str(o.legalName);
+      if (name || legal) out.companies.push(legal || name);
+      const tel = str(o.telephone); if (tel) out.phones.push(tel);
+      const email = str(o.email).replace(/^mailto:/i, ""); if (email) out.emails.push(email.toLowerCase());
+      const a = o.address as Record<string, unknown> | string | undefined;
+      const addr = typeof a === "string" ? a : a ? [str(a.streetAddress), str(a.addressLocality), str(a.addressRegion), str(a.postalCode), str(a.addressCountry)].filter(Boolean).join(", ") : "";
+      if (addr) out.addresses.push(addr);
+      const founded = str(o.foundingDate);
+      lines.push(`${type}: ${[legal || name, addr && `address ${addr}`, tel && `phone ${tel}`, email && `email ${email}`, founded && `founded ${founded}`].filter(Boolean).join("; ")}`);
+    } else if (/Product|Offer/i.test(type)) {
+      const offers = ([] as unknown[]).concat(o.offers ?? (/Offer/i.test(type) ? o : []));
+      const prices = offers.map((x) => { const r = (x ?? {}) as Record<string, unknown>; return Number(str(r.price ?? r.lowPrice)); }).filter((n) => n > 0 && n < 1e6);
+      out.prices.push(...prices);
+      if (str(o.name)) lines.push(`Product: ${str(o.name)}${prices.length ? ` $${prices[0]}` : ""}`);
+    }
+    for (const k of ["@graph", "mainEntity", "itemListElement", "item", "publisher", "seller", "brand"]) if (k in o) walk(o[k], depth + 1);
+  };
+  for (const m of raw.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try { walk(JSON.parse(m[1].trim())); if (!out.sources.includes("json-ld")) out.sources.push("json-ld"); } catch { /* malformed JSON-LD */ }
+  }
+  const og = (p: string) => decodeEntities(new RegExp(`<meta[^>]+property=["']og:${p}["'][^>]*content=["']([^"']*)["']`, "i").exec(raw)?.[1] ?? "").trim();
+  const ogName = og("site_name"), ogDesc = og("description");
+  if (ogName || ogDesc) { out.sources.push("opengraph"); lines.push([ogName && `Site name: ${ogName}`, ogDesc && `Description: ${ogDesc}`].filter(Boolean).join(". ")); }
+  // Serialized app state (Next.js / Nuxt): keep human-readable strings only (4+ words), never code or URLs.
+  const state = /<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i.exec(raw)?.[1] ?? /window\.__NUXT__\s*=\s*([\s\S]*?)<\/script>/i.exec(raw)?.[1];
+  if (state) {
+    const strings = [...state.matchAll(/"((?:[^"\\]|\\.){12,400})"/g)].map((m) => m[1].replace(/\\[nrt]/g, " ").replace(/\\u[0-9a-f]{4}/gi, " ").replace(/\\(.)/g, "$1"))
+      .filter((t) => t.split(/\s+/).length >= 4 && !/[{}<>;=]|https?:|\/\w+\//.test(t));
+    if (strings.length) { out.sources.push(/__NEXT_DATA__/i.test(raw) ? "next-data" : "nuxt-data"); lines.push(uniq(strings).slice(0, 60).join(" · ")); }
+  }
+  out.text = clip(lines.filter(Boolean).join("\n"), 2500);
+  return out;
+}
 
 const decodeEntities = (s: string) => s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ")
   .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16))).replace(/&[a-z]+;/gi, " ");
@@ -130,22 +185,25 @@ export function extractPage(html: string, url: string, status = 200): PageFacts 
   const years = [...flat.matchAll(/(?:©|copyright)\s*(\d{4})(?:\s*[-–]\s*(\d{4}))?/gi)].flatMap((m) => [Number(m[1])]).filter((y) => y > 1980 && y < 2100);
   const companies = uniq([...flat.matchAll(/\b([A-Z][A-Za-z&]+(?:\s[A-Z][A-Za-z&]+){0,3}),?\s(LLC|Inc\.?|Ltd\.?|Co\.,? Ltd\.?|Corporation|Corp\.?|GmbH|Limited|Media Group)(?=[\s.,;]|$)/g)].map((m) => `${m[1]} ${m[2]}`.replace(/\s+/g, " ")));
   const scriptHosts = uniq([...raw.matchAll(/<script[^>]+src=["'](https?:)?\/\/([^/"']+)/gi)].map((m) => m[2].replace(/^www\./, ""))).slice(0, 15);
+  const emb = embeddedData(raw);
+  const fullText = emb.text ? `${text}\n[Structured page data] ${emb.text}` : text;
 
   return {
     url, path: u.pathname, status, type: classify(u.pathname, title), title: clip(title, 120), description: clip(description, 200), h1: clip(h1, 120),
-    text: clip(text, 6000), wordCount: flat ? flat.split(" ").length : 0,
+    text: clip(fullText, 6000), wordCount: flat ? flat.split(" ").length : 0,
     internalLinks: internal.slice(0, 300), externalHosts: uniq(external).slice(0, 30), forms,
-    prices, discounts: uniq(discounts).filter((d) => d > 0 && d < 100),
-    emails: uniq((flat.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi) ?? []).map((e) => e.toLowerCase())).slice(0, 10),
-    phones: uniq((flat.match(/(?:\+\d{1,3}[\s.-]?)?\(?\d{3,4}\)?[\s.-]?\d{3}[\s.-]?\d{3,4}\b/g) ?? []).filter((p) => p.replace(/\D/g, "").length >= 10 && !/^\d{4}\s\d{4}\s\d{4}/.test(p))).slice(0, 6),
-    addresses: uniq(flat.match(/\b\d{1,6}\s+[A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+){0,3}\s(?:St|Street|Ave|Avenue|Blvd|Boulevard|Rd|Road|Dr|Drive|Ln|Lane|Way|Pkwy|Parkway|Hwy|Plaza|Cir|Circle)\.?(?:,?\s(?:Suite|Ste|Unit|#)\s?\w+)?,?\s[A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+)?,?\s[A-Z]{2}\s\d{5}\b/g) ?? []).slice(0, 4),
+    prices: uniq([...prices, ...emb.prices]).slice(0, 40), discounts: uniq(discounts).filter((d) => d > 0 && d < 100),
+    emails: uniq((flat.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi) ?? []).map((e) => e.toLowerCase()).concat(emb.emails)).slice(0, 10),
+    phones: uniq((flat.match(/(?:\+\d{1,3}[\s.-]?)?\(?\d{3,4}\)?[\s.-]?\d{3}[\s.-]?\d{3,4}\b/g) ?? []).filter((p) => p.replace(/\D/g, "").length >= 10 && !/^\d{4}\s\d{4}\s\d{4}/.test(p)).concat(emb.phones)).slice(0, 6),
+    addresses: uniq((flat.match(/\b\d{1,6}\s+[A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+){0,3}\s(?:St|Street|Ave|Avenue|Blvd|Boulevard|Rd|Road|Dr|Drive|Ln|Lane|Way|Pkwy|Parkway|Hwy|Plaza|Cir|Circle)\.?(?:,?\s(?:Suite|Ste|Unit|#)\s?\w+)?,?\s[A-Z][A-Za-z]+(?:\s[A-Z][A-Za-z]+)?,?\s[A-Z]{2}\s\d{5}\b/g) ?? ([] as string[])).concat(emb.addresses)).slice(0, 4),
     payments: PAYMENTS.filter(([, re]) => re.test(flat)).map(([k]) => k),
     policyFlags: POLICY.map(([id, re]) => { const q = sentence(re); return q ? { id, quote: q } : null; }).filter((x): x is Quote => !!x),
     pressure: uniq([...PRESSURE.filter(([, re]) => re.test(flat)).map(([k]) => k), ...(/data-countdown/i.test(raw) ? ["countdown"] : [])]),
     placeholders: uniq(flat.match(/\[(?:company|store|business|shop) name\]|lorem ipsum|your (?:store|company) name here/gi) ?? []),
-    copyrightYears: uniq(years), companyNames: companies.slice(0, 6),
+    copyrightYears: uniq(years), companyNames: uniq([...companies, ...emb.companies]).slice(0, 6),
     selfDescribedDemo: /demo (website|store|site|shop)|for (web )?scraping (purposes|practice)|test sites?|practice (website|site)|automation (practice|exercise)/i.test(flat),
     generator: /<meta[^>]+name=["']generator["'][^>]*content=["']([^"']+)["']/i.exec(raw)?.[1]?.slice(0, 40) ?? (/cdn\.shopify\.com/i.test(raw) ? "Shopify" : /wp-content/i.test(raw) ? "WordPress" : null),
     scriptHosts,
+    ...(emb.sources.length ? { embedded: emb.sources } : {}),
   };
 }
