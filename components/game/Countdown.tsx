@@ -13,7 +13,7 @@ export function Countdown({ nextAt, serverNow }: { nextAt: string; serverNow: st
     return () => clearInterval(id);
   }, [target, skew]);
   if (left <= 0) {
-    return <p className="text-sm">A new puzzle is ready. <a href="/play" className="font-medium text-accent underline">Play today&apos;s Bluff</a></p>;
+    return <p className="text-sm">A new puzzle is ready. <a href="/play" className="font-medium text-brass underline">Play today&apos;s Bluff</a></p>;
   }
   return (
     <p className="text-sm text-dim">

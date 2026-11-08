@@ -1,5 +1,6 @@
 "use client";
-import { Badge } from "../ui/Badge";
+import { FlipCard } from "../table/FlipCard";
+import { CornerIndex } from "../table/PlayingCardFace";
 import { revealSegments, tapRange, wordTokens, type RevealSegment, type Tap } from "./text";
 
 export type Difficulty = "easy" | "medium" | "hard";
@@ -10,36 +11,43 @@ export type Reveal = {
 };
 
 /** Where a card came from. Shown only after the guess: on the front it would hint at the answer. */
-const SOURCE: Record<string, { label: string; tone: "accent" | "safe" | "neutral" }> = {
-  dataset: { label: "Bluff message set (synthetic)", tone: "accent" },
-  seed: { label: "Bluff starter card", tone: "neutral" },
-  tmobile: { label: "Imported message set", tone: "accent" },
-  bank: { label: "From your Capital One scan", tone: "safe" },
-  generated: { label: "Nemotron-generated", tone: "neutral" },
-  lookalike: { label: "Nemotron lookalike of this week's top scam", tone: "neutral" },
+const SOURCE: Record<string, { label: string; tone: "good" | "plain" }> = {
+  dataset: { label: "Bluff message set (synthetic)", tone: "plain" },
+  seed: { label: "Bluff starter card", tone: "plain" },
+  tmobile: { label: "Imported message set", tone: "plain" },
+  bank: { label: "From your Capital One scan", tone: "good" },
+  generated: { label: "Nemotron-generated", tone: "plain" },
+  lookalike: { label: "Nemotron lookalike of this week's top scam", tone: "plain" },
 };
 
 const KIND: Record<string, string> = { text: "Text message", checkout: "Checkout page", email: "Email", receipt: "Receipt", bank_alert: "Bank alert" };
 const DIFF_LABEL: Record<Difficulty, string> = { easy: "Easy", medium: "Medium", hard: "Hard" };
 
+/** On the felt (below the card and in the review list). */
 export function DifficultyPill({ level }: { level: Difficulty }) {
   const n = level === "easy" ? 1 : level === "medium" ? 2 : 3;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface2 px-2 py-[2px] text-xs font-medium text-dim">
-      <span aria-hidden className="flex gap-[2px]">{[1, 2, 3].map((i) => <span key={i} className={`h-1.5 w-1.5 rounded-full ${i <= n ? "bg-fg" : "bg-gray-5"}`} />)}</span>
+    <span className="inline-flex items-center gap-1.5 rounded-full border brass-hairline bg-black/25 px-2.5 py-[2px] text-xs font-semibold text-dim">
+      <span aria-hidden className="flex gap-[2px]">{[1, 2, 3].map((i) => <span key={i} className={`h-1.5 w-1.5 rotate-45 rounded-[1px] ${i <= n ? "bg-brass" : "bg-gray-5"}`} />)}</span>
       {DIFF_LABEL[level]}
     </span>
   );
 }
 
+/** A small label on ivory card stock. */
+function Chipped({ tone, children }: { tone: "good" | "bad" | "plain"; children: React.ReactNode }) {
+  const cls = tone === "good" ? "border-[#17734c]/60 bg-[#17734c]/10 text-[#0f5a3a]" : tone === "bad" ? "border-[#b3281f]/60 bg-[#b3281f]/10 text-[#8e1d16]" : "border-[#6a5a36]/40 bg-[#6a5a36]/10 text-[#5a4a2a]";
+  return <span className={`inline-flex items-center rounded-full border px-2.5 py-[2px] text-xs font-bold ${cls}`}>{children}</span>;
+}
+
 function Header({ card }: { card: CardData }) {
   return (
     <>
-      <div className="flex items-center justify-between gap-2 text-xs text-dim">
-        <span className="shrink-0 font-medium uppercase tracking-wide">{KIND[card.kind] ?? card.kind}</span>
+      <div className="flex items-center justify-between gap-2 text-xs text-[#5a4a2a]">
+        <span className="shrink-0 font-bold uppercase tracking-[0.14em]">{KIND[card.kind] ?? card.kind}</span>
         {card.content.from && <span className="min-w-0 truncate">{card.content.from}</span>}
       </div>
-      {card.content.subject && <p className="font-grotesk text-lg font-bold [overflow-wrap:anywhere]">{card.content.subject}</p>}
+      {card.content.subject && <p className="serif text-xl font-bold [overflow-wrap:anywhere]">{card.content.subject}</p>}
     </>
   );
 }
@@ -53,13 +61,13 @@ function Front({ card, onTap, busy }: { card: CardData; onTap?: (t: Tap) => void
     <p className={BODY}>
       {wordTokens(card.content.body).map((t) => t.word
         ? <button key={t.start} type="button" data-tap-word disabled={busy} onClick={() => onTap(tapRange(t))}
-            className="inline rounded-sm text-left underline decoration-gray-4 decoration-dotted underline-offset-4 transition duration-ui hover:bg-accent/25 hover:decoration-accent focus-visible:bg-accent/25 focus-visible:outline-none disabled:cursor-wait">{t.text}</button>
+            className="inline rounded-sm text-left underline decoration-[#6a5a36] decoration-dotted underline-offset-4 transition duration-ui hover:bg-[#d9b46b]/45 hover:decoration-[#7a4a05] focus-visible:bg-[#d9b46b]/45 disabled:cursor-wait">{t.text}</button>
         : <span key={t.start}>{t.text}</span>)}
     </p>
   );
 }
 
-const Part = ({ s }: { s: RevealSegment }) => (s.tapped ? <span className="rounded-sm outline outline-2 outline-offset-1 outline-accent">{s.text}</span> : <>{s.text}</>);
+const Part = ({ s }: { s: RevealSegment }) => (s.tapped ? <span className="rounded-sm outline outline-2 outline-offset-1 outline-[#7a4a05]">{s.text}</span> : <>{s.text}</>);
 
 function RevealBody({ card, reveal }: { card: CardData; reveal: Reveal }) {
   // One <mark> per red flag, with the tapped word (if any) outlined inside it.
@@ -72,7 +80,7 @@ function RevealBody({ card, reveal }: { card: CardData; reveal: Reveal }) {
   return (
     <p className={BODY}>
       {groups.map((g, i) => g.why
-        ? <mark key={i} title={g.why} className="rounded bg-scam/30 px-0.5 text-fg underline decoration-scam decoration-2 underline-offset-2">{g.parts.map((s, k) => <Part key={k} s={s} />)}</mark>
+        ? <mark key={i} title={g.why} className="rounded bg-[#b3281f]/20 px-0.5 text-[inherit] underline decoration-[#b3281f] decoration-2 underline-offset-2">{g.parts.map((s, k) => <Part key={k} s={s} />)}</mark>
         : <span key={i}>{g.parts.map((s, k) => <Part key={k} s={s} />)}</span>)}
     </p>
   );
@@ -81,44 +89,59 @@ function RevealBody({ card, reveal }: { card: CardData; reveal: Reveal }) {
 function TapNote({ card, reveal }: { card: CardData; reveal: Reveal }) {
   if (reveal.guess !== "scam" || !reveal.tap) return null;
   const word = card.content.body.slice(reveal.tap.start, reveal.tap.end);
-  if (reveal.giveaway) return <p className="rounded-control border border-accent/50 bg-accent/10 px-3 py-2 text-sm">🔍 Giveaway spotted: you tapped &ldquo;{word}&rdquo;, one of the red flags.</p>;
-  return <p className="rounded-control bg-surface2 px-3 py-2 text-sm text-dim">You tapped &ldquo;{word}&rdquo;{reveal.isScam ? ", which isn't one of the flagged giveaways." : ", but this one was legit."}</p>;
+  if (reveal.giveaway) return <p className="rounded-control border border-[#7a4a05]/50 bg-[#d9b46b]/25 px-3 py-2 text-sm font-semibold">🔍 Giveaway spotted: you tapped &ldquo;{word}&rdquo;, one of the red flags.</p>;
+  return <p className="rounded-control bg-[#6a5a36]/10 px-3 py-2 text-sm text-[#4d4128]">You tapped &ldquo;{word}&rdquo;{reveal.isScam ? ", which isn't one of the flagged giveaways." : ", but this one was legit."}</p>;
 }
 
 /**
  * A literal card: flips (400 ms) after you answer; red-flag spans light up with a one-line why each, the word you tapped
  * is outlined, legit cards say why they're fine, and the card's source shows only now.
  */
-export function GameCard({ card, reveal, onTap, busy }: { card: CardData; reveal?: Reveal; onTap?: (t: Tap) => void; busy?: boolean }) {
+export function GameCard({ card, reveal, onTap, busy, rank }: { card: CardData; reveal?: Reveal; onTap?: (t: Tap) => void; busy?: boolean; rank?: number }) {
   const src = reveal?.source ? SOURCE[reveal.source] : undefined;
+  const inner = <span aria-hidden className="pointer-events-none absolute inset-[8px] rounded-[11px] border" style={{ borderColor: "rgba(120,90,30,0.28)" }} />;
   return (
-    <div className="[perspective:1200px]">
-      <div className={`grid transition-transform duration-[400ms] [transform-style:preserve-3d] ${reveal ? "[transform:rotateY(180deg)]" : ""}`}>
-        <div aria-hidden={!!reveal} className={`col-start-1 row-start-1 flex min-w-0 flex-col gap-2 rounded-card border bg-surface p-5 shadow-lg [backface-visibility:hidden] ${onTap ? "border-accent/60" : "border-line"}`}>
-          <Header card={card} />
-          <Front card={card} onTap={reveal ? undefined : onTap} busy={busy} />
+    <FlipCard
+      flipped={!!reveal}
+      className="mx-auto w-full max-w-[600px]"
+      front={
+        <div aria-hidden={!!reveal} className={`card-face relative flex min-h-[300px] min-w-0 flex-col justify-center gap-2 rounded-[16px] px-6 py-10 pl-16 sm:px-12 sm:pl-20 ${onTap ? "!border-[#7a4a05] ring-2 ring-[#d9b46b]/70" : ""}`}>
+          {inner}
+          <CornerIndex rank={rank ?? ""} suit="unsure" />
+          <CornerIndex rank={rank ?? ""} suit="unsure" flip />
+          <div className="relative z-10 flex min-w-0 flex-col gap-2">
+            <Header card={card} />
+            <Front card={card} onTap={reveal ? undefined : onTap} busy={busy} />
+          </div>
         </div>
-        <div aria-hidden={!reveal} className="col-start-1 row-start-1 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-lg [backface-visibility:hidden] [transform:rotateY(180deg)]">
+      }
+      back={
+        <div aria-hidden={!reveal} className="card-face relative flex min-h-[300px] min-w-0 flex-col gap-4 rounded-[16px] px-6 py-10 pl-16 sm:px-12 sm:pl-20">
+          {inner}
           {reveal && (
             <>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={reveal.correct ? "safe" : "scam"}>{reveal.correct ? "Correct" : "Not quite"}</Badge>
-                <Badge tone={reveal.isScam ? "scam" : "safe"}>{reveal.isScam ? "It was a bluff" : "It was legit"}</Badge>
-                <span className="text-xs text-dim">{reveal.category.replace(/_/g, " ")}</span>
+              <CornerIndex rank={rank ?? ""} suit={reveal.isScam ? "scam" : "safe"} />
+              <CornerIndex rank={rank ?? ""} suit={reveal.isScam ? "scam" : "safe"} flip />
+              <div className="relative z-10 flex flex-wrap items-center gap-2">
+                <Chipped tone={reveal.correct ? "good" : "bad"}>{reveal.correct ? "Correct" : "Not quite"}</Chipped>
+                <Chipped tone={reveal.isScam ? "bad" : "good"}>{reveal.isScam ? "It was a bluff" : "It was legit"}</Chipped>
+                <span className="text-xs text-[#5a4a2a]">{reveal.category.replace(/_/g, " ")}</span>
               </div>
-              <div className="flex min-w-0 flex-col gap-2">
+              <div className="relative z-10 flex min-w-0 flex-col gap-2">
                 <Header card={card} />
                 <RevealBody card={card} reveal={reveal} />
               </div>
-              <TapNote card={card} reveal={reveal} />
-              {reveal.redFlags.length > 0
-                ? <ul className="flex flex-col gap-1 text-sm">{reveal.redFlags.map((f) => <li key={f.span}><span className="font-medium text-scam">&ldquo;{f.span}&rdquo;</span> — {f.why}</li>)}</ul>
-                : <p className="text-sm text-dim">{reveal.whyLegit ? `Why it's legit: ${reveal.whyLegit}` : "No red flags: nothing here asks for secrets, money or a rushed click."}</p>}
-              {src && <span className="self-start" title={reveal.origin ?? undefined}><Badge tone={src.tone}>{src.label}</Badge></span>}
+              <div className="relative z-10 flex flex-col gap-3">
+                <TapNote card={card} reveal={reveal} />
+                {reveal.redFlags.length > 0
+                  ? <ul className="flex flex-col gap-1.5 text-sm">{reveal.redFlags.map((f) => <li key={f.span}><span className="font-bold text-[#8e1d16]">&ldquo;{f.span}&rdquo;</span>: {f.why}</li>)}</ul>
+                  : <p className="text-sm text-[#4d4128]">{reveal.whyLegit ? `Why it's legit: ${reveal.whyLegit}` : "No red flags: nothing here asks for secrets, money or a rushed click."}</p>}
+                {src && <span className="self-start" title={reveal.origin ?? undefined}><Chipped tone={src.tone}>{src.label}</Chipped></span>}
+              </div>
             </>
           )}
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 }
