@@ -7,9 +7,11 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/charges/abc" }));
 import { NavLinks } from "./NavLinks";
 
 describe("navigation", () => {
-  it("has the 8 items in order, 7 of them on the phone tab bar", () => {
+  it("has the 8 items in order: 3 tabs, the floating Check action, 4 in the More sheet", () => {
     expect(NAV_ITEMS.map((i) => i.href)).toEqual(["/", "/scan", "/check", "/charges", "/exposure", "/play", "/eval", "/privacy"]);
-    expect(NAV_ITEMS.filter((i) => !("desktopOnly" in i && i.desktopOnly))).toHaveLength(7);
+    expect(NAV_ITEMS.filter((i) => i.slot === "tab")).toHaveLength(3);
+    expect(NAV_ITEMS.filter((i) => i.slot === "fab").map((i) => i.href)).toEqual(["/check"]);
+    expect(NAV_ITEMS.filter((i) => i.slot === "more")).toHaveLength(4);
   });
   it("active matching: root only exact, others by prefix", () => {
     expect(isActive("/", "/")).toBe(true);

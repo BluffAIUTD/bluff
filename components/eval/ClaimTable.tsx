@@ -10,18 +10,18 @@ export function ClaimTable({ title, subtitle, rows, verdict }: { title: string; 
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="font-grotesk text-xl font-bold">{title}</h2>
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
         {verdict && <Badge tone={verdict.tone}>{verdict.text}</Badge>}
       </div>
       <p className="text-sm text-dim">{subtitle}</p>
-      <div className="overflow-x-auto rounded-card border border-line bg-surface">
+      <div className="panel overflow-x-auto">
         <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="text-xs uppercase tracking-wide text-dim">
-            <tr><th className="px-4 py-3">Method</th><th className="px-4 py-3">n</th><th className="px-4 py-3">Precision</th><th className="px-4 py-3">Recall</th><th className="px-4 py-3">F1</th></tr>
+          <thead>
+            <tr className="label border-b border-line"><th className="px-4 py-3 font-medium">Method</th><th className="px-4 py-3 font-medium">n</th><th className="px-4 py-3 font-medium">Precision</th><th className="px-4 py-3 font-medium">Recall</th><th className="px-4 py-3 font-medium">F1</th></tr>
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((r) => (
-              <tr key={r.method} className={r.highlight ? "bg-accent/10" : ""}>
+              <tr key={r.method} className={r.highlight ? "bg-accent/[0.06]" : ""}>
                 <th scope="row" className="px-4 py-3 font-medium">{r.method}{r.note && <span className="block text-xs font-normal text-dim">{r.note}</span>}</th>
                 <td className="num px-4 py-3">{r.n}</td>
                 {r.prf ? <><td className="num px-4 py-3">{pct(r.prf.p)}</td><td className="num px-4 py-3">{pct(r.prf.r)}</td><td className="num px-4 py-3 font-bold">{pct(r.prf.f1)}</td></>

@@ -52,11 +52,11 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <p className="text-sm text-dim">{longDateTime(t.ts)}</p>
-        <div className="flex flex-wrap items-baseline gap-x-4">
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight">{t.descriptor}</h1>
-          <span className="num text-3xl font-bold">{money(t.amountCents)}</span>
+      <header className="flex flex-col gap-3">
+        <p className="label">Charge · <span className="mono normal-case tracking-normal">{longDateTime(t.ts)}</span></p>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <h1 className="mono break-all text-2xl font-semibold tracking-tight sm:text-3xl">{t.descriptor}</h1>
+          <span className="num text-3xl font-semibold tracking-tight sm:text-4xl">{money(t.amountCents)}</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {t.flags.map((f) => <FlagBadge key={f} kind={f} />)}
@@ -67,13 +67,14 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
       <LinkedChargeCard link={linkInfoFor(detail, verdict)} charge={{ descriptor: t.descriptor, amountCents: t.amountCents, ts: t.ts }} pending={running} />
 
       {runId ? (
-        <RunView runId={runId} onRetry={investigate}
+        <RunView runId={runId} onRetry={investigate} source="charge" subtitle={t.descriptor}
           onDone={(v) => { setRunning(false); if (v) setLive(v); router.refresh(); }}
           renderVerdict={(v, m) => <VerdictCard verdict={v} subtitle="Charge check" checkedEarlier={m.checkedEarlier} />} />
       ) : verdict ? (
         <VerdictCard verdict={verdict} subtitle="Charge check" />
       ) : (
-        <div className="flex flex-col items-start gap-2">
+        <div className="panel flex flex-col items-start gap-3 p-4">
+          <p className="label">Agent</p>
           <Button onClick={investigate}>Investigate this charge</Button>
           <p className="text-xs text-dim">Bluff runs its agent over your history and Exposure Log.</p>
         </div>
@@ -83,8 +84,8 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
 
       <RefundBuilder txnId={t.id} canBuild={detail.best?.kind === "flagged"} initial={detail.dispute} />
 
-      <section aria-label="Price history" className="flex flex-col gap-2">
-        <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Price history with this merchant</h2>
+      <section aria-label="Price history" className="panel flex flex-col gap-3 p-4">
+        <h2 className="label">Price history with this merchant</h2>
         <PriceSparkline points={detail.priceHistory} current={t.amountCents} />
       </section>
     </div>

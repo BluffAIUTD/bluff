@@ -7,6 +7,7 @@ import { Button } from "../ui/Button";
 import { ErrorState } from "../ui/ErrorState";
 import { useToast } from "../ui/Toast";
 import { STORES } from "@/data/stores";
+import { EVT, fire } from "../shell/nav";
 import type { ExposureDto } from "@/lib/types";
 
 /** Leave / Continue / Continue and watch my charges (P1-2). Continue* log an exposure; then the core-loop CTA appears. */
@@ -25,6 +26,7 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
       const r = await api<{ exposure: ExposureDto; alert?: string }>("/api/exposures", { method: "POST", json: { verdictId, url, host, fieldTypes: ["card_number", "cvv"], action } });
       setLogged(r.exposure); setAlert(r.alert);
       toast("Logged in your Exposure Log");
+      fire(EVT.refresh);
     } catch (e) { setErr(e instanceof ApiFailure ? e.message : "Couldn't log this. Try again."); }
     finally { setBusy(null); }
   }
@@ -42,11 +44,11 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
     return (
       <div className="flex w-full flex-col gap-3">
         <p className="text-sm" role="status">
-          Logged: <span className="font-medium">{logged.host}</span> is now in your <Link className="text-accent underline" href="/exposure">Exposure Log</Link>{logged.watch ? ", and I\u2019ll watch your charges." : "."}
+          <span className="mono mr-2 text-safe">&#10003; LOGGED</span> <span className="font-medium">{logged.host}</span> is now in your <Link className="text-accent underline underline-offset-4" href="/exposure">Exposure Log</Link>{logged.watch ? ", and I\u2019ll watch your charges." : "."}
           {alert === "delivered" && <span className="text-dim">{" I\u2019ve sent an alert to your phone."}</span>}
         </p>
         {slug ? <Button onClick={simulate} disabled={busy === "sim"}>{busy === "sim" ? "Posting charge…" : "Simulate a charge from this store"}</Button>
-          : <p className="text-xs text-dim">Charge simulation is available for the 8 demo stores.</p>}
+          : <p className="mono text-xs text-dim">Charge simulation is available for the demo stores.</p>}
         {err && <ErrorState message={err} />}
       </div>
     );
@@ -58,7 +60,7 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
         <Button variant="secondary" onClick={() => log("continue")} disabled={!!busy} aria-describedby="continue-hint">{busy === "continue" ? "Logging…" : "Continue"}</Button>
         <Button onClick={() => log("watch")} disabled={!!busy}>{busy === "watch" ? "Logging…" : "Continue and watch my charges"}</Button>
       </div>
-      <p id="continue-hint" className="text-xs text-dim">Continue means you entered info here. Bluff logs it so a later charge can be linked back to this site.</p>
+      <p id="continue-hint" className="max-w-xl text-xs leading-relaxed text-dim">Continue means you entered info here. Bluff logs it so a later charge can be linked back to this site.</p>
       {err && <ErrorState message={err} />}
     </div>
   );

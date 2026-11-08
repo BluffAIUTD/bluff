@@ -23,8 +23,8 @@ export function DemoControls() {
     finally { setBusy(null); }
   }
   return (
-    <section aria-label="Demo controls" className="flex flex-col gap-2 rounded-card border border-dashed border-accent/50 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-dim">Demo controls</p>
+    <section aria-label="Demo controls" className="flex flex-col gap-3 rounded-card border border-dashed border-accent/40 bg-accent/[0.03] p-4">
+      <p className="label !text-accent">Demo controls · presenter</p>
       <div className="flex flex-wrap gap-3">
         <Button onClick={next} disabled={!!busy}>{busy === "next" ? "Posting…" : "Post next charge"}</Button>
         <Button variant="secondary" onClick={reset} disabled={!!busy}>{busy === "reset" ? "Resetting…" : "Reset demo"}</Button>

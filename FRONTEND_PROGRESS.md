@@ -20,8 +20,17 @@ Branch `feat/frontend-b`, port 3102, DB `bluff_b`. Frontend only (components, ap
 
 **How it serves the product.** Honest confidence (always shown with its reason), mode label on every result, privacy one click away (rail icon, palette, and a "what leaves your device" strip in the check panel), dispute packet as a split view (letter left, evidence timeline and next steps right), "Bluff drafts. You decide." always visible. The trace dock only shows real run steps or real recent data (latest exposures and alerts); nothing is simulated.
 
-## Checklist status
-Updated at the end of the work (see bottom).
+## Checklist status (verified in Chromium at 1280 and 390)
+- F1 shell: done (icon rail, top bar, Cmd/Ctrl+K palette, phone preview opens from button/palette/More sheet, mode badge, skip link, focus ring).
+- F2 overview bento: done, with empty and DB-error states.
+- F3 /scan: restyled, `?start=1` autostarts. In this mock env Nessie is not configured, so the scan button is disabled and the honest "not connected" notice shows; streaming rows could not be exercised live here (code path unchanged, deep steps also feed the dock).
+- F4 /check: done end to end (trace, verdict, Leave/Continue/Continue and watch, exposure, simulate charge).
+- F5 /charges, /charges/[id]: done (timeline link with travelling pulse, split dispute packet).
+- F6 /exposure, F7 /play, F8 /eval, F9 /privacy: restyled, behavior unchanged.
+- F10: no console errors or overflow across routes (shoot.cjs, e2e), reduced motion disables sweeps/pulses.
+- Checks: typecheck, lint, vitest (334 pass), build, e2e all pass. Tests updated for the new nav slots and trace timing markup.
+
+Known tradeoffs: the dock is hidden below 1280px (sheet instead); the inline trace and dock intentionally mirror each other; phone preview keeps T-Mobile magenta branding.
 
 ## Assumptions
 - Mock agent mode is the backend's own labeled offline mode; the UI keeps its labels.

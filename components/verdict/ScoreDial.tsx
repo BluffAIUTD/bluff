@@ -6,20 +6,24 @@ function prefersReducedMotion() {
   return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Half-circle "chip" gauge. The number counts from 100 down/up to the score over 600 ms (instant with reduced motion). */
+const SEGMENTS = 25;
+const zoneColor = (v: number) => (v < 40 ? "var(--scam)" : v < 70 ? "var(--unsure)" : "var(--safe)");
+
+/**
+ * Segmented trust meter (25 segments, zones: risky < 40, unsure < 70, safe). The number and the lit segments climb to the
+ * real score in ~700 ms (instant under reduced motion). Higher is safer.
+ */
 export function ScoreDial({ score, size = 168, animate = true }: { score: number; size?: number; animate?: boolean }) {
   const final = Math.max(0, Math.min(100, Math.round(score)));
-  const [shown, setShown] = useState(animate && !prefersReducedMotion() ? 100 : final);
+  const [shown, setShown] = useState(animate && !prefersReducedMotion() ? 0 : final);
 
   useEffect(() => {
     if (!animate || prefersReducedMotion()) { setShown(final); return; }
     let raf = 0;
     const t0 = performance.now();
-    const from = 100;
     const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / 600);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setShown(Math.round(from + (final - from) * eased));
+      const p = Math.min(1, (now - t0) / 800);
+      setShown(Math.round(final * (1 - Math.pow(1 - p, 3))));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -27,15 +31,24 @@ export function ScoreDial({ score, size = 168, animate = true }: { score: number
   }, [final, animate]);
 
   const tone = toneFor(shown);
+  const lit = Math.ceil((shown / 100) * SEGMENTS);
+  const big = size >= 140;
   return (
-    <div role="img" aria-label={`Trust score ${final} out of 100`} className="relative" style={{ width: size, height: size * 0.62 }}>
-      <svg viewBox="0 0 120 70" width={size} height={size * 0.58} aria-hidden>
-        <path d="M10 62 A50 50 0 0 1 110 62" fill="none" stroke="var(--gray-6)" strokeWidth="10" strokeLinecap="round" pathLength={100} />
-        <path d="M10 62 A50 50 0 0 1 110 62" fill="none" stroke={tone.stroke} strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${shown} 100`} />
-      </svg>
-      <div className="absolute inset-x-0 bottom-0 text-center">
-        <span className={`num text-4xl font-bold leading-none ${tone.text}`}>{shown}</span>
-        <span className="block text-[11px] uppercase tracking-wide text-dim">Trust score</span>
+    <div role="img" aria-label={`Trust score ${final} out of 100`} className="flex flex-col gap-2" style={{ width: Math.min(size * 1.7, 320), maxWidth: "100%" }}>
+      <div className="flex items-end justify-between">
+        <span className="label">Trust score</span>
+        <span className="mono text-[10px] text-dim">/100</span>
+      </div>
+      <span className={`num font-semibold leading-none tracking-tight ${tone.text}`} style={{ fontSize: big ? 56 : 34 }}>{shown}</span>
+      <div aria-hidden className="flex gap-[3px]" style={{ height: big ? 22 : 14 }}>
+        {Array.from({ length: SEGMENTS }).map((_, i) => {
+          const on = i < lit;
+          const c = zoneColor(((i + 0.5) / SEGMENTS) * 100);
+          return <span key={i} className="seg flex-1 rounded-[2px]" style={{ background: on ? c : "var(--surface-3)", boxShadow: on ? `0 0 8px -1px ${c}` : undefined, opacity: on ? 1 : 0.9 }} />;
+        })}
+      </div>
+      <div aria-hidden className="mono flex text-[9.5px] uppercase tracking-wider text-dim">
+        <span style={{ width: "40%" }}>risky</span><span style={{ width: "30%" }}>unsure</span><span>safe</span>
       </div>
     </div>
   );

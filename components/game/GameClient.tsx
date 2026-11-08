@@ -62,24 +62,24 @@ export function GameClient({ day }: { day?: string }) {
 
   function again() { setI(0); setAnswers([]); setReveal(null); setResult(null); void load(); }
 
-  if (loadErr) return <ErrorState title="Can't load Call the Bluff" message={loadErr} action={<button type="button" onClick={load} className="self-start text-sm font-medium text-accent underline">Try again</button>} />;
+  if (loadErr) return <ErrorState title="Can't load Call the Bluff" message={loadErr} action={<button type="button" onClick={load} className="self-start text-sm font-medium text-accent underline underline-offset-4">Try again</button>} />;
   if (!data) return <div aria-busy className="flex flex-col gap-3"><Skeleton className="h-8 w-64" /><Skeleton className="h-52 w-full" /></div>;
 
   if (result) {
     return (
-      <section aria-label="Result" className="flex flex-col gap-5 rounded-card border border-line bg-surface p-6">
-        <p className="text-sm text-dim">Call the Bluff #{data.n}{result.practice && " · practice (today's score already counted)"}</p>
-        <p className="num text-6xl font-bold" aria-label={`Score ${result.score} out of 5`}>{result.score}<span className="text-2xl text-dim">/5</span></p>
+      <section aria-label="Result" className="panel flex flex-col gap-5 p-6">
+        <p className="label">Call the Bluff #{data.n}{result.practice && " · practice (today's score already counted)"}</p>
+        <p className="num text-7xl font-semibold tracking-tight" aria-label={`Score ${result.score} out of 5`}>{result.score}<span className="text-2xl text-dim">/5</span></p>
         <p className="text-2xl tracking-wide" aria-hidden>{result.results.map((r) => (r ? "🟩" : "🟥")).join("")}</p>
         <dl className="grid grid-cols-2 gap-4 text-sm">
-          <div><dt className="text-dim">Streak</dt><dd className="num text-2xl font-bold">{result.streak} day{result.streak === 1 ? "" : "s"}</dd></div>
-          <div><dt className="text-dim">Weakest spot</dt><dd className="text-lg font-medium">{result.weakest ? result.weakest.replace(/_/g, " ") : "None. Clean sweep."}</dd></div>
+          <div><dt className="label">Streak</dt><dd className="num mt-1 text-2xl font-semibold">{result.streak} day{result.streak === 1 ? "" : "s"}</dd></div>
+          <div><dt className="label">Weakest spot</dt><dd className="mt-1 text-lg font-medium">{result.weakest ? result.weakest.replace(/_/g, " ") : "None. Clean sweep."}</dd></div>
         </dl>
         <div className="flex flex-wrap gap-3">
           <Button onClick={share}>Share</Button>
           <Button variant="secondary" onClick={again}>Play again (practice)</Button>
         </div>
-        <p className="rounded-control bg-surface2 p-3 text-sm" aria-label="Share preview">{result.shareText}</p>
+        <p className="mono rounded-control border border-line2 bg-surface2 p-3 text-sm" aria-label="Share preview">{result.shareText}</p>
         {err && <ErrorState message={err} />}
       </section>
     );
@@ -90,13 +90,17 @@ export function GameClient({ day }: { day?: string }) {
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight">Call the Bluff <span className="text-dim">#{data.n}</span></h1>
-          <p className="text-dim">Is it legit, or a bluff? Five cards, about a minute.</p>
+          <p className="label">Training</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Call the Bluff <span className="text-dim">#{data.n}</span></h1>
+          <p className="mt-1 text-dim">Is it legit, or a bluff? Five cards, about a minute.</p>
         </div>
-        <p className="text-sm text-dim">Streak <span className="num font-bold text-fg">{data.streak}</span></p>
+        <p className="mono text-xs text-dim">STREAK <span className="num text-base font-semibold text-fg">{data.streak}</span></p>
       </header>
-      {data.alreadyPlayed && <p role="status" className="rounded-control bg-surface2 px-3 py-2 text-sm">You scored {data.alreadyPlayed.score}/5 today. Replays are practice and won&apos;t change your streak.</p>}
-      <p className="text-sm text-dim" aria-live="polite">Card {i + 1} of {data.cards.length}</p>
+      {data.alreadyPlayed && <p role="status" className="mono rounded-control border border-line2 bg-surface2 px-3 py-2 text-xs">You scored {data.alreadyPlayed.score}/5 today. Replays are practice and won&apos;t change your streak.</p>}
+      <div className="flex items-center gap-3">
+        <p className="mono text-xs text-dim" aria-live="polite">Card {i + 1} of {data.cards.length}</p>
+        <div aria-hidden className="flex flex-1 gap-1">{data.cards.map((_, k) => <span key={k} className={`h-1 flex-1 rounded-full ${k < i ? "bg-accent" : k === i ? "bg-gray-3" : "bg-surface3"}`} />)}</div>
+      </div>
       <GameCard card={card} reveal={reveal ?? undefined} />
       {err && <ErrorState message={err} />}
       {!reveal ? (

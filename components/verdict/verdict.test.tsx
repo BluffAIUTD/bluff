@@ -80,8 +80,8 @@ describe("AgentTrace", () => {
     render(<AgentTrace steps={steps} running={false} totalMs={6200} />);
     expect(screen.getByText("domain_intel")).toBeInTheDocument();
     expect(screen.getByText("→ 4 days old")).toBeInTheDocument();
-    expect(screen.getByText("1.4 s")).toBeInTheDocument();
-    expect(screen.getByText("310 ms")).toBeInTheDocument();
+    expect(screen.getByText("+1.4 s")).toBeInTheDocument();
+    expect(screen.getByText("+310 ms")).toBeInTheDocument();
     expect(screen.getByText(/Verdict ready · 6\.2 s/)).toBeInTheDocument();
   });
   it("running: starting, thinking, and the slow hint", () => {
