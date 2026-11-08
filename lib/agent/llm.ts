@@ -47,7 +47,7 @@ export async function chat(a: ChatArgs): Promise<{ content: string | null; tool_
       return await chatOnce(a);
     } catch (e) {
       if (!(e instanceof LlmError) || e.kind !== "rate_limited" || attempt >= retries) throw e;
-      const ms = (e.retryAfterSec ?? 0) * 1000 || 2500 * 2 ** attempt;
+      const ms = (e.retryAfterSec ?? 0) * 1000 || Number(process.env.NVIDIA_RETRY_BASE_MS ?? 2500) * 2 ** attempt;
       try { await wait(ms, a.signal); } catch { throw new LlmError("timeout", "model request timed out"); }
     }
   }

@@ -115,6 +115,16 @@ describe("live agent loop", () => {
     expect((o.ev.find((e) => e.type === "error") as Extract<RunStreamEvent, { type: "error" }>).data.code).toBe("malformed");
   });
 
+  it("a 429 is retried with backoff and then succeeds (no fallback)", async () => {
+    process.env.NVIDIA_RETRIES = "3"; process.env.NVIDIA_RETRY_BASE_MS = "1";
+    try {
+      queue = [{ status: 429, body: {} }, { status: 429, body: {} }, msg([call("submit_verdict", goodVerdict)])];
+      const { r } = await run();
+      expect(r.mode).toBe("live");
+      expect(seen.length).toBe(3);
+    } finally { process.env.NVIDIA_RETRIES = "0"; delete process.env.NVIDIA_RETRY_BASE_MS; }
+  });
+
   it("deadline: a hung model → timeout fallback", async () => {
     process.env.AGENT_DEADLINE_MS = "300";
     queue = [{ hang: true }];

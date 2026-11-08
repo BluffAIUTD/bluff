@@ -24,7 +24,9 @@
     "nessie:seed": "tsx --env-file-if-exists=.env scripts/nessie/seed.ts",
     "tmobile:import": "tsx --env-file-if-exists=.env scripts/tmobile/import.ts",
     "stores:build": "node scripts/stores/build.mjs && node scripts/stores/build-sites.mjs",
-    "deploy:up": "bash scripts/deploy/up.sh"
+    "deploy:up": "bash scripts/deploy/up.sh",
+    "livecheck": "tsx --env-file-if-exists=.env scripts/livecheck.ts",
+    "embed-taxonomy": "tsx --env-file-if-exists=.env scripts/embed-taxonomy.ts"
   },
   "engines": {
     "node": ">=20"

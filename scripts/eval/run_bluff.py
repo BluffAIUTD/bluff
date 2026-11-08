@@ -36,11 +36,12 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=os.environ.get("BLUFF_BASE", "http://localhost:3000"))
     ap.add_argument("--key", default=os.environ.get("EVAL_KEY", "eval"))
+    ap.add_argument("--concurrency", type=int, default=int(os.environ.get("EVAL_CONCURRENCY", "3")), help="3 for mock; use 1 with the hosted model (it rate-limits overlapping calls)")
     a = ap.parse_args()
     split = json.load(open(os.path.join(ROOT, "eval", "split.json")))
     rows = {r["id"]: r for r in load()}
     out = {}
-    with cf.ThreadPoolExecutor(max_workers=3) as ex:
+    with cf.ThreadPoolExecutor(max_workers=max(1, a.concurrency)) as ex:
         for mid, res in ex.map(lambda i: one(a.base, a.key, i, rows[i]["text"]), split["test"]):
             out[mid] = res
     json.dump(out, open(os.path.join(ROOT, "eval", "bluff_a.json"), "w"), indent=2)

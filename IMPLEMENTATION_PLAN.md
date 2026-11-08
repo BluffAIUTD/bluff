@@ -281,3 +281,8 @@ Run on the final tree:
 | Vultr + GoDaddy + DNS + keys | deployment (44) |
 | Video, public repo, Devpost, rehearsals, 40–50 hand-labeled stretch cases, FTC figure (only if fetched) | submission (45), stretch (37) |
 - Task 46 — done — FINAL: typecheck/lint/build clean; 293 vitest tests (40 files) exit 0; 11 Python tests OK; Caddyfile fresh; production-build e2e (real Chromium) all pass; secret scan clean; plan statuses updated (37 done, 8 partial for live/human-only steps, 1 deliberately deferred).
+
+### Merged from `claude/confident-fermi-l9r4j4` (2026-11-08)
+- That branch verified the live agent on `nvidia/nemotron-3-ultra-550b-a55b` (10/10 page runs valid and correct, p50 7.8 s) after the 30B model hit the 15 s deadline on 4/10 runs **with reasoning on**. Main kept the 30B lightning model with `NEMOTRON_THINKING=off`, which is faster; re-timed after the merge: 11/12 live, 12/12 correct, p50 6.6 s.
+- Taken: `npm run embed-taxonomy` (embeddings for `taxonomy_match`), `npm run livecheck`, the eval runner's `--concurrency`, an honest per-run caveat in `score.py` (now also reports mixed live/fallback runs), and a 429-retry test.
+- Not taken: its own concurrency semaphore and second retry loop (main already paces calls and retries 429s), the 550B model switch, the prewarm delay (alerts are in-app and synchronous now), and its Claim A numbers (F1 0.88, 18/21 live, produced with the 550B setup); re-run Claim A on the current config before quoting numbers.
