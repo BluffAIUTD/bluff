@@ -66,9 +66,10 @@ export function GameClient({ day }: { day?: string }) {
     if (!data) return;
     setBusy(true); setErr(null);
     try {
-      // Today's answers are already locked on the server; only practice days send them.
-      const answers = data.practice ? data.cards.flatMap((c) => (reveals[c.id] ? [{ cardId: c.id, guess: reveals[c.id].guess, tap: reveals[c.id].tap ?? null }] : [])) : undefined;
-      adopt(await api<GameState>("/api/game/finish", { method: "POST", json: { day: data.day, ...(answers ? { answers } : {}) } }));
+      // Always send what we have: a live day is scored from the server's locked answers (the body is ignored), but a game
+      // loaded before midnight and answered after it became practice on the server and is scored from these.
+      const answers = data.cards.flatMap((c) => (reveals[c.id] ? [{ cardId: c.id, guess: reveals[c.id].guess, tap: reveals[c.id].tap ?? null }] : []));
+      adopt(await api<GameState>("/api/game/finish", { method: "POST", json: { day: data.day, answers } }));
     } catch (e) { setErr(e instanceof ApiFailure ? e.message : "Couldn't save your score. Try again."); }
     finally { setBusy(false); }
   }

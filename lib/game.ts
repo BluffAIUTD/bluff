@@ -2,7 +2,7 @@ import type { Db } from "./db";
 import { many, one } from "./db";
 import { appHost } from "./config";
 import { ApiError } from "./errors";
-import type { GameTap } from "./schemas";
+import { isCalendarDay, type GameTap } from "./schemas";
 import { ensureBankCard } from "./bankcard";
 
 /**
@@ -62,6 +62,15 @@ export function dayKey(now = new Date()): string {
 }
 
 export const addDays = (day: string, n: number) => new Date(Date.parse(day) + n * DAY_MS).toISOString().slice(0, 10);
+
+/** A day that has a puzzle: a real calendar date from GAME_START up to today. */
+export const isPuzzleDay = (day: string, today: string) => isCalendarDay(day) && day >= GAME_START && day <= today;
+
+function checkDay(day: string, today: string) {
+  if (!isCalendarDay(day)) throw new ApiError("bad_input", "Bad date");
+  if (day > today) throw new ApiError("bad_input", "That day hasn't happened yet");
+  if (day < GAME_START) throw new ApiError("bad_input", "There's no puzzle for that day");
+}
 
 export function puzzleNumber(day: string): number {
   return Math.max(1, Math.round((Date.parse(day) - Date.parse(GAME_START)) / DAY_MS) + 1);
@@ -128,28 +137,30 @@ export function pickDaily(pool: CardRow[], day: string): CardRow[] {
   return out;
 }
 
-async function loadSet(db: Db, day: string): Promise<{ raw: string; cards: CardRow[] | null } | null> {
+/** The frozen set: the cards that still exist, in set order, and whether all of them do. */
+async function loadSet(db: Db, day: string): Promise<{ raw: string; cards: CardRow[]; complete: boolean } | null> {
   const meta = await one<{ value: string }>(db, "SELECT value FROM bluff_meta WHERE key=$1", [`game_set:${day}`]);
   if (!meta) return null;
   const ids = JSON.parse(meta.value) as string[];
   const rows = await many<CardRow>(db, `SELECT ${COLS} FROM game_cards WHERE id = ANY($1::uuid[])`, [ids]);
   const byId = new Map(rows.map((c) => [c.id, c]));
   const ordered = ids.map((i) => byId.get(i)).filter((c): c is CardRow => !!c);
-  return { raw: meta.value, cards: ordered.length === ids.length ? ordered : null };
+  return { raw: meta.value, cards: ordered, complete: ordered.length === ids.length };
 }
 
 /**
- * The day's set is frozen the first time it is opened. It is rebuilt only when cards were deleted (e.g. a reseed), or,
- * while nobody has started that day, when Nemotron cards for the day arrived after it was frozen.
+ * The day's set is frozen the first time it is opened. Once anyone has played the day it never changes: if cards were
+ * deleted since (e.g. a reseed), the surviving cards are kept in place so locked answers and finished boards still
+ * match. While nobody has played it, it is rebuilt when cards were deleted or Nemotron cards for the day arrived late.
  */
 export async function cardsForDay(db: Db, day: string): Promise<CardRow[]> {
   const frozen = await loadSet(db, day);
-  if (frozen?.cards) {
-    const newer = await one<{ newer: boolean }>(db,
-      `SELECT NOT EXISTS (SELECT 1 FROM game_plays WHERE day=$1)
-          AND EXISTS (SELECT 1 FROM game_cards WHERE day=$1 AND user_id IS NULL AND source IN ('generated','lookalike') AND NOT (id = ANY($2::uuid[]))) AS newer`,
+  if (frozen?.cards.length) {
+    const s = await one<{ played: boolean; newer: boolean }>(db,
+      `SELECT EXISTS (SELECT 1 FROM game_plays WHERE day=$1) AS played,
+              EXISTS (SELECT 1 FROM game_cards WHERE day=$1 AND user_id IS NULL AND source IN ('generated','lookalike') AND NOT (id = ANY($2::uuid[]))) AS newer`,
       [day, frozen.cards.map((c) => c.id)]);
-    if (!newer?.newer) return frozen.cards;
+    if (s?.played || (frozen.complete && !s?.newer)) return frozen.cards;
   }
   const pool = await many<CardRow>(db, `SELECT ${COLS} FROM game_cards WHERE (day IS NULL OR day = $1) AND user_id IS NULL AND source <> 'bank'`, [day]);
   if (pool.length < CARDS_PER_DAY) throw new ApiError("upstream_down", "The card pool is empty. Seed the database.");
@@ -157,7 +168,8 @@ export async function cardsForDay(db: Db, day: string): Promise<CardRow[]> {
   const value = JSON.stringify(picks.map((c) => c.id));
   if (frozen) await db.query("UPDATE bluff_meta SET value=$2 WHERE key=$1 AND value=$3", [`game_set:${day}`, value, frozen.raw]);
   else await db.query("INSERT INTO bluff_meta (key, value) VALUES ($1,$2) ON CONFLICT (key) DO NOTHING", [`game_set:${day}`, value]);
-  return (await loadSet(db, day))?.cards ?? picks; // a concurrent request may have frozen it first
+  const after = await loadSet(db, day); // a concurrent request may have frozen it first
+  return after?.cards.length ? after.cards : picks;
 }
 
 export const toPublic = (c: CardRow): CardPublic => ({ id: c.id, kind: c.kind, content: c.content, difficulty: c.difficulty ?? "medium" });
@@ -203,6 +215,20 @@ const isLive = (day: string, today: string, row: PlayRow | null) => day === toda
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Cards of the user's dailies still open to scoring: today's set until today is finished, plus yesterday's set while a
+ * game started before midnight is unfinished. Practice never reveals these (every day draws from the same pool).
+ */
+async function openDailyCardIds(db: Db, userId: string, today: string): Promise<Set<string>> {
+  const ids = new Set<string>();
+  if (!(await playRow(db, userId, today))?.finished) for (const c of await cardsForDay(db, today)) ids.add(c.id);
+  const yday = addDays(today, -1);
+  const y = yday >= GAME_START ? await playRow(db, userId, yday) : null;
+  if (y && !y.finished) for (const c of await cardsForDay(db, yday)) ids.add(c.id);
+  return ids;
+}
+const OPEN_CARD = "That card is in today's puzzle. Finish today's puzzle first.";
+
+/**
  * Check one call. For the daily puzzle the FIRST answer per card is stored and every later call returns that locked
  * answer; answering the last card finishes the game. Past days (practice) and the user's own bonus card are stateless.
  */
@@ -210,7 +236,7 @@ export async function answerCard(db: Db, userId: string, input: { cardId: string
   if (!UUID.test(input.cardId)) throw new ApiError("bad_input", "Unknown card");
   const today = dayKey(now);
   const day = input.day ?? today;
-  if (day > today) throw new ApiError("bad_input", "That day hasn't happened yet");
+  checkDay(day, today);
   const set = await cardsForDay(db, day);
   const card = set.find((c) => c.id === input.cardId);
   const tap = input.guess === "scam" ? input.tap ?? null : null;
@@ -221,7 +247,10 @@ export async function answerCard(db: Db, userId: string, input: { cardId: string
   }
   if (tap && !tapIsValid(card, tap)) throw new ApiError("bad_input", "Tap a single word of the message");
   let row = await playRow(db, userId, day);
-  if (!isLive(day, today, row) && !row?.finished) return { ...revealCard(card, input.guess, tap), done: null };
+  if (!isLive(day, today, row) && !row?.finished) {
+    if ((await openDailyCardIds(db, userId, today)).has(card.id)) throw new ApiError("bad_input", OPEN_CARD);
+    return { ...revealCard(card, input.guess, tap), done: null };
+  }
 
   if (!row) await db.query("INSERT INTO game_plays (user_id, day, answers, score, streak, practice, finished_at) VALUES ($1,$2,'[]',0,0,false,NULL) ON CONFLICT DO NOTHING", [userId, day]);
   await db.query(
@@ -277,11 +306,13 @@ async function finishDaily(db: Db, userId: string, day: string, set: CardRow[], 
  */
 export async function finishGame(db: Db, userId: string, day: string, answers: StoredAnswer[] = [], now = new Date()): Promise<FinishResult> {
   const today = dayKey(now);
-  if (day > today) throw new ApiError("bad_input", "That day hasn't happened yet");
+  checkDay(day, today);
   const set = await cardsForDay(db, day);
   const row = await playRow(db, userId, day);
   if (row?.finished) return resultFrom(set, row.answers, day, row.streak, false);
   if (isLive(day, today, row)) return finishDaily(db, userId, day, set, now);
+  const open = await openDailyCardIds(db, userId, today);
+  if (answers.some((a) => open.has(a.cardId) && set.some((c) => c.id === a.cardId))) throw new ApiError("bad_input", OPEN_CARD);
   return resultFrom(set, answers, day, 0, true);
 }
 

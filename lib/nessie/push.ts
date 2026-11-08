@@ -122,16 +122,33 @@ export async function pushPurchase(db: Db, userId: string, input: { preset: stri
 }
 
 // ---- limits: the sandbox key is shared by every visitor ---------------------------------------------------------------
-const g = globalThis as unknown as { __bluffPushLimits?: { user: TokenBucket; global: TokenBucket } };
-const newLimits = () => ({ user: new TokenBucket(6, 6 / 600_000), global: new TokenBucket(60, 60 / 3_600_000) });
+type PushLimits = { user: TokenBucket; ip: TokenBucket; global: TokenBucket };
+const g = globalThis as unknown as { __bluffPushLimits?: PushLimits };
+const newLimits = (): PushLimits => ({
+  user: new TokenBucket(6, 6 / 600_000),
+  // Every cookieless request is a brand-new visitor, so the per-visitor bucket alone can't stop a script from emptying
+  // the site-wide budget. One address gets at most a third of it (generous enough for a venue NAT full of judges).
+  ip: new TokenBucket(20, 20 / 3_600_000),
+  global: new TokenBucket(60, 60 / 3_600_000),
+});
 let limits = (g.__bluffPushLimits ??= newLimits());
+if (!limits.ip) limits = g.__bluffPushLimits = newLimits(); // hot reload from the shape without the ip bucket
 
-/** 6 pushes per 10 minutes per visitor, ~60 per hour for the whole site. */
-export function takePushToken(userId: string): { ok: true } | { ok: false; retryAfterSec: number; scope: "user" | "global" } {
+/**
+ * 6 pushes per 10 minutes per visitor, 20 per hour per IP, ~60 per hour for the whole site. The unlocked presenter
+ * skips the IP and site-wide buckets so a judge (or a script) can never make the stage demo say "busy".
+ */
+export function takePushToken(userId: string, opts: { ip?: string; presenter?: boolean } = {}): { ok: true } | { ok: false; retryAfterSec: number; scope: "user" | "global" } {
+  const sec = (ms: number) => Math.max(1, Math.ceil(ms / 1000));
   const u = limits.user.take(userId);
-  if (!u.ok) return { ok: false, retryAfterSec: Math.max(1, Math.ceil(u.retryAfterMs / 1000)), scope: "user" };
+  if (!u.ok) return { ok: false, retryAfterSec: sec(u.retryAfterMs), scope: "user" };
+  if (opts.presenter) return { ok: true };
+  if (opts.ip) {
+    const i = limits.ip.take(opts.ip);
+    if (!i.ok) return { ok: false, retryAfterSec: sec(i.retryAfterMs), scope: "user" };
+  }
   const all = limits.global.take("all");
-  if (!all.ok) return { ok: false, retryAfterSec: Math.max(1, Math.ceil(all.retryAfterMs / 1000)), scope: "global" };
+  if (!all.ok) return { ok: false, retryAfterSec: sec(all.retryAfterMs), scope: "global" };
   return { ok: true };
 }
 

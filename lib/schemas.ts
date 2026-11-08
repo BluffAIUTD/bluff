@@ -112,7 +112,13 @@ export type ExposureCreateInput = z.infer<typeof ExposureCreateSchema>;
 export const GameTapSchema = z.object({ start: z.number().int().min(0).max(2000), end: z.number().int().min(1).max(2000) })
   .refine((t) => t.end > t.start && t.end - t.start <= 64, { message: "Tap one word" });
 export type GameTap = z.infer<typeof GameTapSchema>;
-const GameDaySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** A real calendar day as YYYY-MM-DD (2026-02-30 and 2026-13-01 match the shape but are not days). */
+export function isCalendarDay(d: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false;
+  const t = Date.parse(`${d}T00:00:00Z`);
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === d;
+}
+const GameDaySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(isCalendarDay, { message: "Bad date" });
 export const GameAnswerSchema = z.object({
   cardId: z.string().min(1),
   guess: z.enum(["legit", "scam"]),
@@ -123,6 +129,6 @@ export const GameAnswerSchema = z.object({
 export type GameAnswerInput = z.infer<typeof GameAnswerSchema>;
 export const GameFinishSchema = z.object({
   day: GameDaySchema,
-  /** Practice days only: today's answers are already locked on the server. */
+  /** Practice days use these; on a live day the server scores its locked answers and ignores them. */
   answers: z.array(z.object({ cardId: z.string(), guess: z.enum(["legit", "scam"]), tap: GameTapSchema.nullable().optional() })).max(5).optional(),
 });

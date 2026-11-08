@@ -61,6 +61,8 @@ export function PhonePreview() {
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Errors from the user's own send/report: kept apart from `err` so the 4 s poll can't clear them before they're seen.
+  const [actionErr, setActionErr] = useState<string | null>(null);
   const [seenAt, setSeenAt] = useState<string | null>(null);
   const [now, setNow] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -72,6 +74,7 @@ export function PhonePreview() {
   const [loaded, setLoaded] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
   const lastOut = useRef<string | null | undefined>(undefined);
+  const scrolledFor = useRef<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -112,8 +115,14 @@ export function PhonePreview() {
     setPeek(null);
     const latest = msgs[msgs.length - 1]?.createdAt;
     if (latest && latest !== seenAt) { setSeenAt(latest); store.set("bluff:phone:seenAt", latest); }
+    // The poll hands back a new array every 4 s; only jump to the bottom when the thread actually changed (or was just
+    // opened), so someone scrolled up reading an older alert isn't pulled away.
+    const key = `${tab}|${checking}|${msgs.length}|${msgs[msgs.length - 1]?.id ?? ""}`;
+    if (scrolledFor.current === key) return;
+    scrolledFor.current = key;
     bottom.current?.scrollIntoView({ block: "end" });
   }, [open, tab, msgs, seenAt, checking]);
+  useEffect(() => { if (!open) scrolledFor.current = null; }, [open]);
 
   useEffect(() => {
     if (!open || tab !== "messages" || inbox) return;
@@ -122,13 +131,15 @@ export function PhonePreview() {
       .catch(() => setInboxErr(true));
   }, [open, tab, inbox]);
 
-  async function sendText(body: string) {
-    if (!body || busy) return;
-    setBusy(true);
+  /** Sends a text to Bluff; resolves true when the server accepted it. */
+  async function sendText(body: string): Promise<boolean> {
+    if (!body || busy) return false;
+    setBusy(true); setActionErr(null);
     try {
       const r = await fetch("/api/demo/inbound", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: body }) });
       if (!r.ok) throw new Error();
-    } catch { setErr("Couldn't send. Try again."); }
+      return true;
+    } catch { setActionErr("Couldn't send. Try again."); return false; }
     finally { setBusy(false); void load(); }
   }
 
@@ -136,18 +147,18 @@ export function PhonePreview() {
     const body = text.trim();
     if (!body || busy) return;
     setText("");
-    await sendText(body);
+    if (!(await sendText(body))) setText((t) => t || body); // give the typed text back so it can be resent
   }
 
   async function report(id: string) {
     if (busy) return;
-    setBusy(true); setChecking(true); setTab("bluff"); setReading(null);
-    const next = [...new Set([...reported, id])];
-    setReported(next); store.set("bluff:phone:reported", JSON.stringify(next));
+    setBusy(true); setChecking(true); setTab("bluff"); setReading(null); setActionErr(null);
     try {
       const r = await fetch("/api/demo/scam-text", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
       if (!r.ok) throw new Error();
-    } catch { setErr("Couldn't report that text. Try again."); }
+      // Only a report the server took counts as reported; a failed one keeps its "Report to Bluff" button for a retry.
+      setReported((cur) => { const next = [...new Set([...cur, id])]; store.set("bluff:phone:reported", JSON.stringify(next)); return next; });
+    } catch { setActionErr("Couldn't report that text. Try again."); }
     finally { setBusy(false); setChecking(false); void load(); }
   }
 
@@ -223,7 +234,7 @@ export function PhonePreview() {
           {tab === "bluff" ? (
             <>
               <div className="flex-1 space-y-2 overflow-y-auto bg-[#0b0b0d] p-3">
-                {err && <p role="alert" className="text-xs text-red-400">{err}</p>}
+                {(actionErr ?? err) && <p role="alert" className="text-xs text-red-400">{actionErr ?? err}</p>}
                 {msgs.length === 0 && <p className="py-8 text-center text-sm text-white/60">No messages yet. Bluff texts you here when it spots a risky site or charge. Report a text from Messages, or forward one below.</p>}
                 {msgs.map((m) => {
                   const chips = m.id === chipId ? actionsFor(m, hold) : [];

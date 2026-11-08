@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { PhonePreview, actionsFor, chipTargetId, unreadCount, type PhoneMsg } from "./PhonePreview";
 
 const m = (o: Partial<PhoneMsg>): PhoneMsg => ({ id: "m", direction: "out", body: "b", kind: "alert", status: "delivered", createdAt: "2026-11-07T18:00:00Z", meta: {}, ...o });
@@ -81,5 +81,51 @@ describe("PhonePreview", () => {
     expect(screen.getByRole("tab", { name: /Bluff/ })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("tab", { name: "Messages" }));
     expect(await screen.findByText("Reported to Bluff")).toBeInTheDocument();
+  });
+
+  it("a failed report shows its error (the poll doesn't wipe it) and stays retryable; a failed send gives the text back", async () => {
+    const base = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (url, init) => (init?.method === "POST" ? new Response("{}", { status: 429 }) : base(url, init)));
+    render(<PhonePreview />);
+    fireEvent.click(screen.getByRole("button", { name: /Phone preview/ }));
+    fireEvent.click(screen.getByRole("tab", { name: "Messages" }));
+    fireEvent.click(await screen.findByRole("button", { name: /\(214\) 555-0147/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Report to Bluff" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Couldn't report that text. Try again.");
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([u]) => u === "/api/messages").length).toBeGreaterThan(1)); // reload after the failure
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't report that text.");
+    expect(window.localStorage.getItem("bluff:phone:reported")).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: "Messages" }));
+    expect(screen.queryByText("Reported to Bluff")).toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: /\(214\) 555-0147/ }));
+    expect(screen.getByRole("button", { name: "Report to Bluff" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("tab", { name: /Bluff/ }));
+    fireEvent.change(screen.getByLabelText("Text Bluff"), { target: { value: "is this real?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Couldn't send. Try again."));
+    await waitFor(() => expect(screen.getByLabelText("Text Bluff")).toHaveValue("is this real?"));
+  });
+
+  it("the 4 s poll doesn't yank the thread to the bottom unless a new message arrived", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const scroll = vi.mocked(Element.prototype.scrollIntoView);
+      render(<PhonePreview />);
+      fireEvent.click(screen.getByRole("button", { name: /Phone preview/ }));
+      await screen.findByText(/New charge: \$189/);
+      const polls = () => vi.mocked(fetch).mock.calls.filter(([u]) => u === "/api/messages").length;
+      await waitFor(() => expect(scroll).toHaveBeenCalled());
+      const before = scroll.mock.calls.length, p0 = polls();
+      await act(async () => { await vi.advanceTimersByTimeAsync(8_500); });
+      expect(polls()).toBeGreaterThan(p0); // same messages, new array each poll
+      expect(scroll.mock.calls.length).toBe(before);
+      messages.push(m({ id: "a3", body: "Another alert", meta: { txn_id: "t2" }, createdAt: "2026-11-07T18:09:00Z" }));
+      try {
+        await act(async () => { await vi.advanceTimersByTimeAsync(4_500); });
+        await screen.findByText("Another alert");
+        expect(scroll.mock.calls.length).toBeGreaterThan(before);
+      } finally { messages.pop(); }
+    } finally { vi.useRealTimers(); }
   });
 });

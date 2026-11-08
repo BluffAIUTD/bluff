@@ -37,6 +37,7 @@ const DAY = 86_400_000;
 const ymd = (daysAgo: number) => new Date(Date.now() - daysAgo * DAY).toISOString().slice(0, 10);
 let calls: Call[] = [];
 let failPurchasePost = 0;
+let failPurchasesGet = new Set<string>();
 const nessie = {
   customers: [{ _id: "c1", first_name: "Maya", last_name: "Patel", address: { street_number: "800", street_name: "W Campbell Rd", city: "Richardson", state: "TX", zip: "75080" } }],
   accounts: [{ _id: "a1", type: "Credit Card", nickname: "Quicksilver", rewards: 0, balance: 1200, account_number: "4417000012344778", customer_id: "c1" }],
@@ -56,6 +57,7 @@ function resetNessie() {
   ];
   calls = [];
   failPurchasePost = 0;
+  failPurchasesGet = new Set();
 }
 
 let server: http.Server;
@@ -79,6 +81,7 @@ beforeAll(async () => {
       let m: RegExpExecArray | null;
       if (req.method === "GET" && path === "/customers") return send(200, nessie.customers);
       if (req.method === "GET" && (m = /^\/customers\/([^/]+)\/accounts$/.exec(path))) return send(200, nessie.accounts.filter((a) => a.customer_id === m![1]));
+      if (req.method === "GET" && (m = /^\/accounts\/([^/]+)\/purchases$/.exec(path)) && failPurchasesGet.has(m[1])) return send(500, { message: "timeout" });
       if (req.method === "GET" && (m = /^\/accounts\/([^/]+)\/purchases$/.exec(path))) return nessie.accounts.some((a) => a._id === m![1]) ? send(200, nessie.purchases) : send(404, { message: "no account" });
       if (req.method === "POST" && (m = /^\/accounts\/([^/]+)\/purchases$/.exec(path))) {
         if (!nessie.accounts.some((a) => a._id === m![1])) return send(404, { code: 404, message: "Invalid account" });
@@ -153,6 +156,13 @@ describe("live push helpers", () => {
     expect(mirroredTs("2026-11-07", now)).toEqual(now);
     expect(mirroredTs("2026-11-01", now).toISOString()).toBe("2026-11-01T18:00:00.000Z");
   });
+  it("a purchase dated today (Chicago) is mirrored at now, so an afternoon charge lands after an afternoon scam text", () => {
+    const now = new Date("2026-11-07T21:00:00Z"); // 3 pm in Dallas
+    expect(mirroredTs("2026-11-07", now)).toEqual(now); // not 18:00Z, three hours before the text
+    expect(mirroredTs("2026-11-06", now).toISOString()).toBe("2026-11-06T18:00:00.000Z");
+    const lateNight = new Date("2026-11-08T03:00:00Z"); // 9 pm on the 7th in Dallas
+    expect(mirroredTs("2026-11-07", lateNight)).toEqual(lateNight);
+  });
   it("presets are seed merchants and resolve by key, seed key or store slug", () => {
     for (const p of LIVE_PUSH_PRESETS) expect(NESSIE_SEED.some((m) => m.key === p.seedKey), p.key).toBe(true);
     expect(livePushPreset("voltdeals-outlet")?.merchant.website).toBe("voltdeals-outlet.demo");
@@ -166,6 +176,19 @@ describe("live push helpers", () => {
     expect(r.ok).toBe(false);
     expect(!r.ok && r.scope).toBe("user");
     expect(takePushToken("u2").ok).toBe(true);
+  });
+  it("cookieless visitors from one IP share an IP bucket, so they can't empty the site-wide budget; the presenter skips it", () => {
+    for (let i = 0; i < 20; i++) expect(takePushToken(`fresh-${i}`, { ip: "6.6.6.6" }).ok).toBe(true);
+    const r = takePushToken("fresh-20", { ip: "6.6.6.6" });
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.scope).toBe("user");
+    expect(takePushToken("someone", { ip: "7.7.7.7" }).ok).toBe(true); // the rest of the site still has budget
+    expect(takePushToken("presenter", { ip: "6.6.6.6", presenter: true }).ok).toBe(true);
+    // The site-wide bucket (60/h) still applies to everyone else, but never to the presenter.
+    for (let i = 0; i < 39; i++) takePushToken(`other-${i}`, { ip: `10.0.0.${i}` });
+    const busy = takePushToken("late", { ip: "10.0.1.1" });
+    expect(!busy.ok && busy.scope).toBe("global");
+    expect(takePushToken("presenter", { ip: "10.0.1.1", presenter: true }).ok).toBe(true);
   });
   it("topFinding picks the most severe risk, or the first good sign for a safe site", () => {
     const report = { score: 20, label: "likely_scam", confidence: 0.8, category: "fake_store", findings: [
@@ -244,6 +267,39 @@ describe("sync from Nessie", () => {
     await syncFromNessie(getPool(), u, { maxAgeMs: 60_000 }); // same (older) list: no purchaseId in it
     expect((await nessieRows(u)).some((r) => r.external_id === purchaseId)).toBe(true);
   });
+
+  it("a list read just after a push started (but before Nessie has it) never deletes the pushed row; stale rows still go", async () => {
+    const u = await newUser();
+    await syncFromNessie(getPool(), u);
+    const row = (externalId: string, ts: Date) => ({ externalId, ts, descriptor: "FKSHP*LLC", amountCents: 100, category: null, merchantName: "FastKicks LLC", website: null });
+    // pushPurchase stamps ts before its POST; this list is read after that and doesn't contain the purchase yet.
+    await withNessieLock(getPool(), u, (c) => insertNessieRows(c, u, [row("p_in_flight", new Date(Date.now() - 2_000)), row("p_gone", new Date(Date.now() - 3_600_000))]));
+    const s = await syncFromNessie(getPool(), u);
+    expect(s.removed).toBe(1);
+    const ids = (await nessieRows(u)).map((r) => r.external_id);
+    expect(ids).toContain("p_in_flight");
+    expect(ids).not.toContain("p_gone");
+  });
+
+  it("a partial first sync doesn't mark the visitor as synced, so the failed account's history is never texted as new", async () => {
+    const u = await newUser();
+    nessie.accounts.push({ _id: "a2", type: "Checking", nickname: "360 Checking", rewards: 0, balance: 500, account_number: "1111222233334444", customer_id: "c1" });
+    try {
+      failPurchasesGet.add("a2");
+      const partial = await syncFromNessie(getPool(), u);
+      expect(partial.firstSync).toBe(true);
+      expect((await t.pool.query("SELECT 1 FROM bluff_meta WHERE key=$1", [`nessie_account:${u}`])).rowCount).toBe(0);
+      failPurchasesGet.delete("a2");
+      forgetNessieCache();
+      expect((await syncFromNessie(getPool(), u)).firstSync).toBe(true); // still the starting point
+      expect((await t.pool.query("SELECT 1 FROM bluff_meta WHERE key=$1", [`nessie_account:${u}`])).rowCount).toBe(1);
+      forgetNessieCache();
+      expect((await syncFromNessie(getPool(), u)).firstSync).toBe(false);
+    } finally {
+      nessie.accounts = nessie.accounts.filter((a) => a._id !== "a2");
+      forgetNessieCache();
+    }
+  });
 });
 
 // ---- POST /api/scan/push ---------------------------------------------------------------------------------------------
@@ -314,6 +370,25 @@ describe("live push", () => {
     expect(safesignal.cardHold).toHaveBeenCalledWith(expect.anything(), u);
     expect(calls.some((c) => c.method === "POST")).toBe(false);
     expect(await nessieRows(u)).toHaveLength(0);
+  });
+
+  it("declined pushes on a held card don't use up the visitor's push tokens", async () => {
+    const u = await newUser();
+    for (let i = 0; i < 7; i++) vi.mocked(safesignal.cardHold).mockResolvedValueOnce({ held: true, since: new Date().toISOString() });
+    for (let i = 0; i < 7; i++) expect((await pushRoute(post("/api/scan/push", { preset: "fastkicks-shop" }, u))).status).toBe(409);
+    const res = await pushRoute(post("/api/scan/push", { preset: "fastkicks-shop" }, u)); // after UNHOLD
+    expect(res.status).toBe(200);
+    await untilDone((await res.json()).scanId, u);
+  });
+
+  it("the route keys the IP bucket on the client address", async () => {
+    for (let i = 0; i < 20; i++) takePushToken(`script-${i}`, { ip: "6.6.6.6" });
+    const u = await newUser();
+    const req = post("/api/scan/push", { preset: "fastkicks-shop" }, u);
+    req.headers.set("x-forwarded-for", "6.6.6.6");
+    const res = await pushRoute(req);
+    expect(res.status).toBe(429);
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
   });
 
   it("rejects unknown presets and maps Nessie failures to upstream_down", async () => {

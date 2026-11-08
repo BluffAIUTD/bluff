@@ -2,7 +2,7 @@ import { ApiError, handle } from "@/lib/errors";
 import { getUserContext, json } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { generateCards } from "@/lib/gamegen";
-import { addDays, dayKey, gameState } from "@/lib/game";
+import { addDays, dayKey, gameState, isPuzzleDay } from "@/lib/game";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,7 +16,8 @@ export const GET = handle(async (req: Request) => {
   const today = dayKey();
   const d = new URL(req.url).searchParams.get("d");
   if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new ApiError("bad_input", "Bad date");
-  const day = d && d <= today ? d : today;
+  // Future, pre-launch or impossible dates (2026-02-30) open today's puzzle instead.
+  const day = d && isPuzzleDay(d, today) ? d : today;
   const db = getPool();
   // Pre-generate tomorrow's Nemotron cards in the background (live model only) so they are there when the set freezes.
   void generateCards(db, addDays(today, 1)).catch((e) => console.error("[gamegen]", (e as Error).message));

@@ -97,7 +97,8 @@ describe("GameClient", () => {
     fireEvent.click(screen.getByRole("button", { name: "Share" }));
     await waitFor(() => expect(clip).toHaveBeenCalledWith(share));
     expect(body(f, "/api/game/answer")).toEqual([{ cardId: "c1", guess: "scam", tap: { start: 0, end: 3 }, day: "2026-11-07" }, { cardId: "c2", guess: "legit", tap: null, day: "2026-11-07" }]);
-    expect(body(f, "/api/game/finish")).toEqual([{ day: "2026-11-07" }]); // today's answers are locked server-side
+    // Always sent: ignored on a live day, but they score a game that became practice at midnight.
+    expect(body(f, "/api/game/finish")).toEqual([{ day: "2026-11-07", answers: [{ cardId: "c1", guess: "scam", tap: { start: 0, end: 3 } }, { cardId: "c2", guess: "legit", tap: null }] }]);
   });
 
   it("'Just lock it in' submits a Bluff! with no tap; Back returns to the two calls", async () => {

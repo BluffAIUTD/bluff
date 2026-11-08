@@ -94,4 +94,31 @@ describe("ScanClient", () => {
     expect(within(rows[0]).getByText(/Likely scam/)).toBeInTheDocument();
     expect(es.readyState).toBe(2);
   });
+
+  it("a server-sent 'Scan not found' error ends the scan instead of reconnecting forever; a plain network error keeps retrying", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === "/api/scan" && init?.method === "POST") return ok({ scanId: "s1" });
+      if (url === "/api/scan") return ok({ merchants: [{ ...merchant("netflix.com", "Netflix", 1500, "n1"), basic: basicOf("netflix.com", 90, "looks_ok"), deep: null }], deepAvailable: false, configured: true, account: null, lastSyncAt: null });
+      if (url === "/api/scan/watch") return ok({ configured: true, checkedAt: null, scanId: null, newTxnIds: [], imported: 0, firstSync: false, throttled: false });
+      return ok({});
+    }));
+    render(<ScanClient />);
+    await screen.findByText("Netflix");
+    fireEvent.click(screen.getByRole("button", { name: "Scan again" }));
+    await waitFor(() => expect(ES.all.some((e) => e.url === "/api/scan/s1/stream")).toBe(true));
+    const es = ES.all.find((e) => e.url === "/api/scan/s1/stream")!;
+    expect(screen.getByRole("button", { name: /Scanning/ })).toBeDisabled();
+    act(() => es.emit("merchants", { sync: null, merchants: [merchant("netflix.com", "Netflix", 1500, "n1")], deepAvailable: false }));
+    act(() => es.emit("status", { key: "netflix.com", phase: "crawling" }));
+    // A dropped connection (no data, still reconnecting): the scan keeps going.
+    act(() => { for (const fn of es.listeners.get("error") ?? []) fn({} as MessageEvent); });
+    expect(es.readyState).toBe(1);
+    expect(screen.getByRole("button", { name: /Scanning/ })).toBeDisabled();
+    // The server lost the scan (restart): its error event is final.
+    act(() => es.emit("error", { message: "Scan not found" }));
+    expect(es.readyState).toBe(2);
+    expect(screen.getByRole("button", { name: "Scan my transactions" })).toBeEnabled(); // no longer "Scanning…"
+    expect(screen.getByText("That scan is no longer running. Press Scan again.")).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "Merchants" })).queryByText(/Crawling site/)).toBeNull();
+  });
 });

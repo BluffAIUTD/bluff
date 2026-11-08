@@ -4,7 +4,7 @@ import { refreshMerchantDaily } from "../db/aggregate";
 import { websiteFromText } from "../scan/website";
 import { accountPurchases, bankAccounts, BANK_TTL_MS, forgetNessieCache, merchantById, type PurchaseList } from "./cache";
 import { NessieError, type NessieAccount, type NessiePurchase } from "./client";
-import { pushRef, splitRef } from "./ref";
+import { chicagoDate, pushRef, splitRef } from "./ref";
 import { insertNessieRows, withNessieLock, type NessieRow } from "./rows";
 
 export type SyncResult = {
@@ -35,8 +35,13 @@ export function descriptorFrom(description: string | undefined, merchantName: st
   return (d || merchantName || "UNKNOWN MERCHANT").slice(0, 120);
 }
 
-/** Nessie dates are calendar days: pin to midday Central so the day never shifts in the UI, but never in the future. */
+/**
+ * Nessie dates are calendar days: pin older days to midday Central so the day never shifts in the UI. A purchase dated
+ * today (Chicago) is mirrored at `now`: it was just seen, and a midday pin would put an afternoon charge before the scam
+ * text reported earlier that afternoon, so the text-to-charge link (`created_at <= txn.ts`) would never match.
+ */
 export function mirroredTs(purchaseDate: string, now = new Date()): Date {
+  if (purchaseDate === chicagoDate(now)) return now;
   const ts = new Date(`${purchaseDate}T18:00:00Z`);
   return Number.isNaN(ts.getTime()) || ts > now ? now : ts;
 }
@@ -101,11 +106,12 @@ export async function syncFromNessie(db: Db, userId: string, opts: SyncOptions =
     if ((applied.get(userId) ?? 0) > fetchedAt) return { inserted: [] as { id: string; externalId: string }[], removed: 0 };
     const ins = await insertNessieRows(c, userId, rows);
     // Nessie is the source of truth for imported rows: purchases that no longer exist there (e.g. after a sandbox
-    // reset) are removed locally. Only after a complete fetch, and only rows older than that fetch (a live push
-    // inserted after the list was read is kept).
+    // reset) are removed locally. Only after a complete fetch, and only rows older than that fetch by a grace window:
+    // a live push stamps its row before its Nessie POST, so a list read during the POST (or by merchantIdFor) is newer
+    // than the row but doesn't have the purchase yet. Deleting it would lose its alert and 404 its txn link.
     let rm = 0;
     if (complete && lists.length) {
-      const r = await c.query("DELETE FROM transactions WHERE user_id=$1 AND source='nessie' AND NOT (external_id = ANY($2::text[])) AND ts < $3", [userId, [...current], new Date(fetchedAt)]);
+      const r = await c.query("DELETE FROM transactions WHERE user_id=$1 AND source='nessie' AND NOT (external_id = ANY($2::text[])) AND ts < $3::timestamptz - interval '10 minutes'", [userId, [...current], new Date(fetchedAt)]);
       rm = r.rowCount ?? 0;
     }
     if (applied.size > 50_000) applied.clear();
@@ -116,7 +122,9 @@ export async function syncFromNessie(db: Db, userId: string, opts: SyncOptions =
 
   const card = accounts.find((a) => a.type === "Credit Card") ?? accounts[0];
   const checkedAt = new Date(fetchedAt).toISOString();
-  if (card) await db.query("INSERT INTO bluff_meta (key, value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value",
+  // Only a complete sync marks the visitor as synced: after a partial first sync the next one is still a first sync, so
+  // the history of the account that failed is imported as a starting point, not texted as "New charge".
+  if (card && complete) await db.query("INSERT INTO bluff_meta (key, value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value",
     [metaKey(userId), JSON.stringify({ name: `${customer.first_name} ${customer.last_name}`, nickname: `${card.nickname} ••${(card.account_number ?? "").slice(-4)}`, type: card.type, accountId: card._id, syncedAt: checkedAt })]).catch(() => {});
 
   const tsOf = new Map(rows.map((r) => [r.externalId, r.ts.getTime()]));

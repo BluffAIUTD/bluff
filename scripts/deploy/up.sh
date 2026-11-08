@@ -17,8 +17,15 @@ if grep -q '^EMBED_MODEL=..*' .env && grep -q '^NVIDIA_API_KEY=..*' .env; then
   docker compose --profile tools run --rm tools npm run embed-taxonomy || echo "embed-taxonomy failed; taxonomy_match falls back to keywords"
 fi
 # Headless Chromium for JavaScript-built pages, plus host firewall rules that stop it opening connections to private ranges.
-bash scripts/deploy/render-firewall.sh || echo "render firewall rules not applied (needs root + iptables); set RENDER_ENABLED=0 in .env to skip rendering"
-docker compose up -d render web caddy
+# Fail closed: without the rules the renderer is not started (crawls then use plain HTML; renderPage returns null when unreachable).
+# The rules don't survive a reboot: re-run this script (or render-firewall.sh) after rebooting the VPS.
+if bash scripts/deploy/render-firewall.sh; then
+  docker compose up -d render web caddy
+else
+  echo "render firewall rules NOT applied (needs root + iptables): the headless renderer stays off"
+  docker compose stop render 2>/dev/null || true
+  docker compose up -d web caddy
+fi
 docker compose restart caddy                                                # load a changed deploy/Caddyfile (a single-file bind mount keeps the old file until restart; certs persist)
 docker compose --profile ops up -d backup                                   # nightly pg_dump → ./backups
 

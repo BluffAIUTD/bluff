@@ -126,6 +126,26 @@ describe("daily set", () => {
     expect((await cardsForDay(t.pool, day)).map((c) => c.id)).toEqual(rebuilt.map((c) => c.id));
   });
 
+  it("a reseed that deletes a card keeps a played day's surviving cards in place; an unplayed day is re-picked", async () => {
+    const [played, fresh] = ["2026-11-25", "2026-11-26"];
+    const p = await pool();
+    for (const day of [played, fresh]) {
+      const tmp = (await t.pool.query("INSERT INTO game_cards (kind, content, is_scam, red_flags, category, source, origin, difficulty) VALUES ('text',$1,false,'[]','tmp_cat','seed','tmp-origin','hard') RETURNING id",
+        [JSON.stringify({ body: `Temp card ${day}` })])).rows[0].id as string;
+      const ids = [...pickDaily(p, day).slice(0, 4).map((c) => c.id), tmp];
+      await t.pool.query("INSERT INTO bluff_meta (key, value) VALUES ($1,$2)", [`game_set:${day}`, JSON.stringify(ids)]);
+    }
+    const before = await cardsForDay(t.pool, played);
+    await answerCard(t.pool, MAYA_ID, { cardId: before[0].id, guess: truth(before[0]), day: played }, noonCst(played));
+    await t.pool.query("DELETE FROM game_cards WHERE origin='tmp-origin'");
+    expect((await cardsForDay(t.pool, played)).map((c) => c.id)).toEqual(before.slice(0, 4).map((c) => c.id));
+    const r = await answerCard(t.pool, MAYA_ID, { cardId: before[1].id, guess: truth(before[1]), day: played }, noonCst(played));
+    expect(r.correct).toBe(true);
+    const repicked = await cardsForDay(t.pool, fresh);
+    expect(repicked).toHaveLength(5);
+    expect(repicked.map((c) => c.id)).toEqual(pickDaily(p, fresh).map((c) => c.id));
+  });
+
   it("puzzle number, Chicago day key and bad dates", async () => {
     expect(puzzleNumber("2026-11-07")).toBe(1);
     expect(puzzleNumber("2026-11-09")).toBe(3);
@@ -255,21 +275,60 @@ describe("answering", () => {
   });
 
   it("past days are unscored practice: nothing is stored or locked, the finish is practice and stats don't move", async () => {
-    const past = addDays(dayKey(), -3);
+    const past = addDays(dayKey(), -1); // the oldest day that is always >= GAME_START
     const r = await (await get(`?d=${past}`)).json();
     expect(r).toMatchObject({ day: past, isToday: false, practice: true, done: null });
-    const c0 = await card(r.cards[0].id);
+    // A card that isn't also in today's open puzzle (those are never revealed in practice).
+    const todays = new Set((await cardsForDay(t.pool, dayKey())).map((c) => c.id));
+    const k = r.cards.findIndex((c: { id: string }) => !todays.has(c.id));
+    const c0 = await card(r.cards[k].id);
     const a = await (await answer(post("/api/game/answer", { cardId: c0.id, guess: "scam", day: past }))).json();
     const b = await (await answer(post("/api/game/answer", { cardId: c0.id, guess: "legit", day: past }))).json();
     expect(a.correct).not.toBe(b.correct);
     expect(Number((await t.pool.query("SELECT count(*) n FROM game_plays")).rows[0].n)).toBe(0);
     const state = await (await finish(post("/api/game/finish", { day: past, answers: [{ cardId: c0.id, guess: truth(c0) }] }))).json();
-    expect(state.done).toMatchObject({ practice: true, score: 1, results: [true, false, false, false, false] });
+    expect(state.done).toMatchObject({ practice: true, score: 1, results: [0, 1, 2, 3, 4].map((i) => i === k) });
     expect(state.done.shareText).toMatch(/^Call the Bluff #\d+ \(practice\) · 1\/5\n/u);
     expect(state.progress).toHaveLength(1);
     expect(state.stats.played).toBe(0);
     expect(state.bonus).toBeNull();
     await expect(finishGame(t.pool, MAYA_ID, "2999-01-01", [], new Date())).rejects.toThrow(/hasn't happened/);
+  });
+
+  it("practice never reveals a card that is also in today's unfinished puzzle (no bypassing the answer lock)", async () => {
+    const day = "2026-11-20", past = "2026-11-12", now = noonCst(day);
+    const todays = await cardsForDay(t.pool, day);
+    // Every day draws from the same pool: make a past day's set repeat today's cards.
+    await t.pool.query("INSERT INTO bluff_meta (key, value) VALUES ($1,$2)", [`game_set:${past}`, JSON.stringify(todays.map((c) => c.id))]);
+    const x = todays[0];
+    await expect(answerCard(t.pool, MAYA_ID, { cardId: x.id, guess: "scam", day: past }, now)).rejects.toThrow(/Finish today's puzzle first/);
+    await expect(finishGame(t.pool, MAYA_ID, past, [{ cardId: x.id, guess: "scam" }], now)).rejects.toThrow(/Finish today's puzzle first/);
+    // Halfway through today it is still refused; once today is finished, practice may show it.
+    await answerCard(t.pool, MAYA_ID, { cardId: todays[1].id, guess: truth(todays[1]), day }, now);
+    await expect(answerCard(t.pool, MAYA_ID, { cardId: x.id, guess: "scam", day: past }, now)).rejects.toThrow(/Finish today's puzzle first/);
+    await playDay(MAYA_ID, day);
+    const r = await answerCard(t.pool, MAYA_ID, { cardId: x.id, guess: "scam", day: past }, now);
+    expect(r).toMatchObject({ cardId: x.id, isScam: x.is_scam, done: null });
+    expect((await finishGame(t.pool, MAYA_ID, past, [{ cardId: x.id, guess: truth(x) }], now)).practice).toBe(true);
+  });
+
+  it("days before the first puzzle and impossible dates are refused (API) or open today (page)", async () => {
+    for (const d of ["2026-02-30", "2026-13-01", "2026-01-01"]) {
+      expect((await get(`?d=${d}`)).status).toBe(200);
+      expect((await (await get(`?d=${d}`)).json()).isToday).toBe(true);
+      expect((await answer(post("/api/game/answer", { cardId: "00000000-0000-4000-8000-0000000000aa", guess: "scam", day: d }))).status).toBe(400);
+      expect((await finish(post("/api/game/finish", { day: d }))).status).toBe(400);
+    }
+    await expect(finishGame(t.pool, MAYA_ID, "2026-11-06", [], new Date())).rejects.toThrow(/no puzzle/);
+    expect(Number((await t.pool.query("SELECT count(*) n FROM bluff_meta WHERE key < 'game_set:2026-11-07' AND key LIKE 'game_set:%'")).rows[0].n)).toBe(0);
+  });
+
+  it("a game loaded before midnight and first answered after it is scored as practice from the client's answers", async () => {
+    const day = "2026-11-15", after = new Date("2026-11-16T06:10:00Z"); // 12:10 AM on the 16th
+    const set = await cardsForDay(t.pool, day);
+    const answers = [];
+    for (const c of set) { await answerCard(t.pool, MAYA_ID, { cardId: c.id, guess: truth(c), day }, after); answers.push({ cardId: c.id, guess: truth(c) }); }
+    expect((await finishGame(t.pool, MAYA_ID, day, answers, after))).toMatchObject({ practice: true, score: 5 });
   });
 
   it("share text: multi-line, no labels, giveaways without a denominator, the app's own host", () => {

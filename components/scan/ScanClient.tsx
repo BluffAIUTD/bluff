@@ -81,11 +81,13 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
     const es = new EventSource(`/api/scan/${scanId}/stream`);
     streams.current.set(scanId, es);
     const close = () => { es.close(); streams.current.delete(scanId); if (!partial) setScanning(false); };
+    let keys: string[] = []; // this scan's merchant rows, so a lost scan can stop showing them as in progress
     const on = <T,>(type: string, fn: (d: T) => void) => es.addEventListener(type, (ev) => { try { fn(JSON.parse((ev as MessageEvent).data)); } catch { /* ignore */ } });
     on<MerchantsEvent>("merchants", (d) => {
       setDeepAvailable(d.deepAvailable);
       if (d.sync) { const a = d.sync.accounts.find((x) => x.type === "Credit Card") ?? d.sync.accounts[0]; setAccount(`${d.sync.customer.name} · ${a ? `${a.nickname} ••${a.last4}` : ""}`); }
       if (d.syncError) setNotice(d.syncError);
+      keys = d.merchants.map((m) => m.key);
       const fresh = (m: MerchantView): MerchantView => ({ ...m, phase: "queued", pagesSeen: [], basic: null, deep: null, steps: [] });
       if (d.partial) {
         const at = Date.now();
@@ -106,7 +108,16 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
     on<{ key: string; runId: string; step: StepEvent }>("deep_step", (d) => patch(d.key, (m) => ({ ...m, steps: [...m.steps, d.step] })));
     on<{ key: string; runId: string; verdict: Verdict | null; mode: string; error?: string }>("deep", (d) => patch(d.key, (m) => ({ ...m, deep: { verdict: d.verdict, mode: d.mode, error: d.error, runId: d.runId } })));
     on("done", close);
-    es.addEventListener("error", () => { if (es.readyState === EventSource.CLOSED) close(); });
+    es.addEventListener("error", (ev) => {
+      // A server-sent `event: error` (e.g. "Scan not found" after a restart) carries data and is final: without this the
+      // browser reconnects forever and the scan never ends. A plain network error has no data; let it retry unless closed.
+      if (typeof (ev as MessageEvent).data === "string") {
+        close();
+        const live = new Set(keys);
+        setItems((xs) => xs.map((m) => (live.has(m.key) && m.phase !== "idle" && m.phase !== "done" && m.phase !== "error" ? { ...m, phase: "error", detail: "Scan stopped" } : m)));
+        setNotice("That scan is no longer running. Press Scan again.");
+      } else if (es.readyState === EventSource.CLOSED) close();
+    });
   }, [patch]);
 
   const start = useCallback(async (fresh: boolean) => {

@@ -5,6 +5,7 @@ import { getPool } from "@/lib/db";
 import { nessieConfigured, NessieError } from "@/lib/nessie/client";
 import { CardHeldError, HOLD_MESSAGE, pushPurchase, takePushToken } from "@/lib/nessie/push";
 import { startBankScan } from "@/lib/scan";
+import { cardHold } from "@/lib/safesignal";
 import { livePushPreset } from "@/data/nessieSeed";
 
 export const runtime = "nodejs";
@@ -28,7 +29,11 @@ export const POST = handle(async (req: Request) => {
   const body = await parseBody(req, PushSchema);
   if (!livePushPreset(body.preset)) throw new ApiError("bad_input", "Unknown store. Pick one of the presets.");
   if (!nessieConfigured()) throw new ApiError("upstream_down", "Capital One Nessie isn't connected on this server (NESSIE_API_KEY).");
-  const lim = takePushToken(ctx.userId);
+  // A held card is declined before a rate-limit token is taken, so trying the decline a few times never blocks the
+  // purchase after UNHOLD. pushPurchase checks again (the hold can change in between); a failing check never blocks.
+  const hold = await cardHold(getPool(), ctx.userId).catch(() => ({ held: false, since: null as string | null }));
+  if (hold.held) return json(ctx, { error: { code: "card_on_hold", message: HOLD_MESSAGE }, held: true, since: hold.since }, { status: 409 });
+  const lim = takePushToken(ctx.userId, { ip: ctx.ip, presenter: ctx.demoUnlocked });
   if (!lim.ok) {
     throw new ApiError("rate_limited", lim.scope === "user"
       ? `That's a lot of test purchases. Try again in ${lim.retryAfterSec}s.`
