@@ -1,4 +1,4 @@
-# Bluff
+# Bluff by Team All In
 
 **Bluff watches your card.** It pulls every charge from your bank (Capital One's Nessie API), crawls the website behind
 each one, has an NVIDIA Nemotron agent read those pages like an investigator, and when a charge looks like a scam it
