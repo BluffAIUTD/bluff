@@ -52,7 +52,7 @@
   color-scheme: dark;
 }
 
-html { background: var(--felt-0); }
+html { background: #0a2c20; }
 body { background: transparent; color: var(--text); font-family: var(--font-sans-ui); -webkit-font-smoothing: antialiased; min-height: 100vh; }
 
 /* The felt: layered light, weave and fine grain. Fixed so it never scrolls with long pages. */

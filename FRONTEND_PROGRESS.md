@@ -19,4 +19,31 @@
 - **Mobile (390px)**: table stays usable, nav becomes the bottom tray, cards stack vertically.
 
 ## Checklist status
-(see bottom; updated at the end)
+
+
+| Item | Status |
+|---|---|
+| F1 Shell: tray nav (8 routes), active state, dealer-button LIVE/DEMO, demo user, phone preview (alerts, forward, commands), keyboard + focus ring, skip link | done, verified in Chromium 1280 and 390 |
+| F2 Overview: counts, needs attention, latest exposures with chip scores, alerts, CTA, empty + DB-error states | done |
+| F3 /scan: restyled (felt panels, chips). In mock mode with no Nessie key it shows the honest "not connected" empty state; streaming and merchant detail restyled via tokens, not exercised live here | done, live path not verifiable offline |
+| F4 /check: 10 store chips, URL, paste text, streamed trace, verdict card flip + chip stack, Leave / Continue / Continue and watch chips with slide-to-place, Simulate a charge | done |
+| F5 /charges, /charges/[id]: linked cards with gold line + reason chips, trace, sparkline, Refund Builder as "your hand" (cream letter, dealt timeline cards) | done |
+| F6 /exposure, F7 /play (card flip, chips for result), F8 /eval, F9 /privacy | done (eval and privacy restyle through tokens) |
+| F10 Quality | reduced motion collapses all animation; no overflow at 390; no console or failed requests in the shoot and journey scripts |
+
+## Verification
+typecheck, lint clean; `npm test`: 333/334, the one failure (tests/transactions.test.ts "legit store ... no alert") depends on DB state left by manual e2e runs on the same DB; passes after `npm run db:reset`. `npm run build` passes. `E2E_BASE=http://localhost:3103 npm run e2e`: all checks passed.
+
+## Notes and assumptions
+- Score semantics unchanged: higher = safer ("Trust score"). One chip per 10 points; chip color = band (under 40 red, 40 to 69 amber, 70+ green), top chip in the verdict color.
+- ScoreDial keeps its name and aria-label (now draws the chip stack). VerdictCard gained an optional `flip` prop (stored verdicts render face up).
+- Fonts: Fraunces + Manrope via next/font/google. No new dependencies.
+- Store chip colors are decoration and never hint at scam/legit.
+- Screenshots in /home/user/bluff-wt/shots/poker (full-page captures show a dark band under the fold because the felt is `position: fixed`; viewport shots are accurate). Animation: anim-chipstack-cardflip-chipplace.webm.
+- No backend blockers found.
+
+## Restart
+`cd /home/user/bluff-wt/poker && npx next dev -p 3103`
+
+## Remaining
+Scan streaming and ScanDetail get the global felt/brass look but no bespoke poker elements; light theme removed (dark only).

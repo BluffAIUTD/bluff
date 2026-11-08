@@ -21,12 +21,12 @@ function GoldLink() {
   return (
     <>
       <svg aria-hidden viewBox="0 0 120 24" className="mx-auto hidden h-6 w-28 sm:block">
-        <defs><linearGradient id="gold-h" x1="0" x2="1"><stop offset="0" stopColor="#a47b33" /><stop offset=".5" stopColor="#f1d894" /><stop offset="1" stopColor="#a47b33" /></linearGradient></defs>
+        <defs><linearGradient id="gold-h" gradientUnits="userSpaceOnUse" x1="6" x2="114" y1="0" y2="0"><stop offset="0" stopColor="#a47b33" /><stop offset=".5" stopColor="#f1d894" /><stop offset="1" stopColor="#a47b33" /></linearGradient></defs>
         <path className="connector-line" d="M6 12 H114" pathLength={100} stroke="url(#gold-h)" strokeWidth="2" strokeLinecap="round" fill="none" />
         <circle cx="6" cy="12" r="4" fill="#f1d894" stroke="#6e4d14" /><circle cx="114" cy="12" r="4" fill="#f1d894" stroke="#6e4d14" />
       </svg>
       <svg aria-hidden viewBox="0 0 24 64" className="mx-auto h-14 w-6 sm:hidden">
-        <defs><linearGradient id="gold-v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a47b33" /><stop offset=".5" stopColor="#f1d894" /><stop offset="1" stopColor="#a47b33" /></linearGradient></defs>
+        <defs><linearGradient id="gold-v" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="4" y2="60"><stop offset="0" stopColor="#a47b33" /><stop offset=".5" stopColor="#f1d894" /><stop offset="1" stopColor="#a47b33" /></linearGradient></defs>
         <path className="connector-line" d="M12 4 V60" pathLength={100} stroke="url(#gold-v)" strokeWidth="2" strokeLinecap="round" fill="none" />
         <circle cx="12" cy="4" r="4" fill="#f1d894" stroke="#6e4d14" /><circle cx="12" cy="60" r="4" fill="#f1d894" stroke="#6e4d14" />
       </svg>
