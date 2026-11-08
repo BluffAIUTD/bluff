@@ -56,7 +56,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-08T07:10:45Z",
+  "generated_at": "2026-11-08T07:14:07Z",
   "claimA": {
     "n": 91,
     "split": "held-out TEST split (n=91) of a seed-42, 70/30 split stratified by category (eval/messages_split.json, committed before any tuning); rules were tuned on the 215 train messages only",
@@ -133,7 +133,7 @@
         "unsure": 1,
         "errors": 0
       },
-      "rules_ece": 0.1414
+      "rules_ece": 0.1407
     },
     "methods": [
       {
@@ -270,7 +270,7 @@
         "category_accuracy": 0.8333,
         "calibration": {
           "n": 86,
-          "ece": 0.0656,
+          "ece": 0.065,
           "buckets": [
             {
               "range": "0.00–0.50",
@@ -298,14 +298,14 @@
             },
             {
               "range": "0.80–0.90",
-              "n": 49,
-              "stated": 0.8147,
-              "observed": 0.8571
+              "n": 48,
+              "stated": 0.8138,
+              "observed": 0.8542
             },
             {
               "range": "0.90–1.00",
-              "n": 33,
-              "stated": 0.9261,
+              "n": 34,
+              "stated": 0.9256,
               "observed": 1
             }
           ]
