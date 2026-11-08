@@ -8,14 +8,14 @@
 :root {
   --ink: #15130f;
   --paper: #f4ecd8;
-  --scam: #ff8f84;
-  --unsure: #e8a83a;
-  --safe: #5fcf97;
-  --accent: #d9b46b;
-  --scam-rgb: 255 143 132;
-  --unsure-rgb: 232 168 58;
-  --safe-rgb: 95 207 151;
-  --accent-rgb: 217 180 107;
+  --scam: #ffa097;
+  --unsure: #f4bf5e;
+  --safe: #7fe0ae;
+  --accent: #e8c681;
+  --scam-rgb: 255 160 151;
+  --unsure-rgb: 244 191 94;
+  --safe-rgb: 127 224 174;
+  --accent-rgb: 232 198 129;
   --gray-1: #f2eee2;
   --gray-2: #d9d3c1;
   --gray-3: #b7c3b5;
@@ -37,7 +37,7 @@
 
   --bg: #082318;
   /* One raised surface: a lighter felt panel (or ivory stock) sits on the darker felt stage. */
-  --surface: #1b5643;
+  --surface: #174d3c;
   --surface-2: rgba(255, 244, 214, 0.07);
   --border: rgba(217, 180, 107, 0.34);
   --text: #f6efdc;

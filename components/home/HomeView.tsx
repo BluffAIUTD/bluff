@@ -121,7 +121,7 @@ export function HomeView({ o, now = new Date() }: { o: Overview; now?: Date }) {
         </p>
       )}
 
-      <header className="stitch flex items-center gap-6 rounded-card border brass-hairline bg-surface p-6 sm:p-8" style={{ backgroundImage: "radial-gradient(ellipse 60% 120% at 18% 0%, rgba(255,246,220,.10), rgba(255,246,220,0) 70%), linear-gradient(135deg, #24694f, #174f3d)" }}>
+      <header className="stitch flex items-center gap-6 rounded-card border brass-hairline bg-surface p-6 sm:p-8" style={{ backgroundImage: "radial-gradient(ellipse 60% 120% at 18% 0%, rgba(255,246,220,.10), rgba(255,246,220,0) 70%), linear-gradient(135deg, #1d5c45, #174d3c)" }}>
         <div className="relative z-10 flex flex-1 flex-col gap-3">
           <p className="inline-flex items-center gap-2 self-start rounded-full border brass-hairline bg-black/25 px-3 py-1 text-xs text-dim" title="Capital One Nessie sandbox account with synthetic charges">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-safe" /> {s.account ? `Capital One · ${s.account}` : "Capital One (Nessie sandbox)"}

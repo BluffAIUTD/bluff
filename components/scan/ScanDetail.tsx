@@ -144,7 +144,7 @@ export function ScanDetail({ m }: { m: MerchantView }) {
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
             <h3 className="font-sans mb-2 text-lg font-bold tracking-tight">Site facts</h3>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
               <dt className="whitespace-nowrap text-dim">Domain age</dt><dd>{fmtAge(i.registration.ageDays)}{i.registration.createdAt ? ` (since ${i.registration.createdAt.slice(0, 10)})` : ""}{i.registration.source === "demo_registry" ? " · demo registry" : ""}</dd>
               <dt className="whitespace-nowrap text-dim">Registrar</dt><dd className="break-words">{i.registration.registrar ?? "unknown"}</dd>
               <dt className="whitespace-nowrap text-dim">First archived</dt><dd>{i.wayback.firstSeen ?? (i.wayback.source === "archive.org" ? "never" : "n/a")}</dd>

@@ -60,7 +60,7 @@ export function LivePush({ initialPreset, defaultOpen, disabled, tracked, onPush
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="livepush-body"
         className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-2 text-left">
         <span className="min-w-0">
-          <span id="livepush-h" className="serif block text-lg font-semibold">Try it: make a purchase on Maya&apos;s test card</span>
+          <span id="livepush-h" className="block text-base font-bold tracking-tight">Try it: make a purchase on Maya&apos;s test card</span>
           {!open && <span className="block truncate text-xs text-dim">Posts a real purchase to the Capital One Nessie sandbox. Bluff checks it like any new charge.</span>}
         </span>
         <span aria-hidden className={`shrink-0 text-brass transition duration-ui ${open ? "rotate-180" : ""}`}>▾</span>
