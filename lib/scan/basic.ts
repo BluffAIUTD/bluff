@@ -1,6 +1,6 @@
 import { verdictLabel, type Verdict } from "../schemas";
 import type { Crawl } from "./crawl";
-import { RISKY_PAYMENTS, type PageFacts } from "./extract";
+import { RISKY_PAYMENTS, classify, type PageFacts } from "./extract";
 import type { SiteIntel } from "./intel";
 import { registrableDomain } from "./intel";
 
@@ -55,7 +55,11 @@ export function basicCheck(crawl: Crawl, intel: SiteIntel, history: { priorCharg
     if (!crawl.ownStore && intel.tls.issuer === null && crawl.https === false) { /* covered above */ }
     if (crawl.redirectedOffsite) add({ id: "redirect_offsite", severity: "medium", title: `Redirects to ${crawl.finalHost}`, detail: "The address on your statement sends visitors to a different site." });
     if (crawl.botBlocked) add({ id: "bot_blocked", severity: "info", title: "Site blocks automated visits", detail: "Common for big brands; the check relies more on registry facts." });
-    if (pages[0] && pages[0].wordCount < 60 && !crawl.botBlocked) add({ id: "thin_content", severity: "info", title: "Little readable text", detail: "The homepage renders mostly with JavaScript." });
+    if (pages[0]?.rendered) add({ id: "rendered", severity: "info", title: "Read with a browser", detail: "The homepage builds its content with JavaScript, so Bluff loaded it in a headless browser to read it." });
+    else if (pages[0] && pages[0].wordCount < 60 && !crawl.botBlocked) add({ id: "thin_content", severity: "info", title: "Little readable text", detail: "The homepage renders mostly with JavaScript." });
+    // robots.txt doesn't stop a check the user asked for, but a shop hiding its policies from automated checks is worth noting.
+    const hiddenPolicies = (crawl.robotsHidden ?? []).filter((path) => ["refund", "terms", "contact", "shipping", "privacy", "checkout", "about"].includes(classify(path)));
+    if (hiddenPolicies.length && !established) add({ id: "robots_hides_policies", severity: "low", title: "Hides its policy pages from automated checks", detail: `robots.txt tells scanners to skip ${hiddenPolicies.slice(0, 3).join(", ")}; Bluff read them anyway.`, page: where(pages, (pg) => hiddenPolicies.includes(pg.path)) });
   }
 
   // --- pages ------------------------------------------------------------------------------------------------------

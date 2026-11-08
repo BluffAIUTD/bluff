@@ -1,5 +1,6 @@
 import { extractPage, classify, type PageFacts, type PageType } from "./extract";
 import { guardedFetch, type Fetcher } from "./net";
+import { renderConfig, renderPage, type Rendered } from "./render";
 import { ownStoreSlug, storeOrigin } from "./stores";
 import { normalizeHost } from "./website";
 
@@ -13,16 +14,34 @@ export function splitWebsite(website: string): { host: string; path: string } {
 }
 
 /**
- * Bounded, polite site crawler (the bank scan's "deep scrape"). Starts at the homepage, reads robots.txt and the sitemap,
+ * Bounded site crawler (the bank scan's "deep scrape"). Starts at the homepage, reads robots.txt and the sitemap,
  * then fetches the pages that matter for a scam check first: refunds, contact, terms, about, checkout, shipping, privacy,
- * FAQ and a couple of product pages. Same-site only, robots.txt Disallow rules obeyed, every request SSRF-guarded.
+ * FAQ and a couple of product pages. Same-site only, at most 10 pages / 20 s, every request SSRF-guarded, no forms submitted.
+ *
+ * robots.txt: every check is started by a person about a site they paid or are about to pay, so Bluff reads the pages that
+ * person would see even when robots.txt disallows them (like a browser or a link preview does). robots.txt is still read
+ * for its sitemap, and paths it hides are recorded: a store hiding its refund or terms pages from automated checks is a
+ * finding in itself. Pages whose server HTML has too little text are rendered in headless Chromium (render.ts) when enabled.
  */
-export type CrawlOptions = { maxPages?: number; budgetMs?: number; concurrency?: number; fetcher?: Fetcher; onPage?: (p: PageFacts, n: number) => void };
+export type CrawlOptions = {
+  maxPages?: number; budgetMs?: number; concurrency?: number; fetcher?: Fetcher; onPage?: (p: PageFacts, n: number) => void;
+  /** Headless renderer for thin pages; defaults to renderPage (off unless RENDER_URL is set); false disables it. */
+  render?: ((url: string, signal?: AbortSignal) => Promise<Rendered | null>) | false;
+};
+/** Fewer readable words than this on a page's server HTML means it is probably built with JavaScript. */
+export const THIN_WORDS = 60;
 export type FailedPage = { url: string; error: string };
 export type Crawl = {
   host: string; origin: string; finalHost: string; https: boolean; redirectedOffsite: boolean; botBlocked: boolean; ms: number;
   robots: { found: boolean; disallow: string[]; sitemaps: string[] }; sitemapUrls: number; candidates: number;
-  pages: PageFacts[]; failed: FailedPage[]; skippedByRobots: string[]; ownStore: string | null; error?: string;
+  pages: PageFacts[]; failed: FailedPage[];
+  /** Always empty now (robots.txt no longer blocks a user-requested check); kept for older stored crawls and the UI. */
+  skippedByRobots: string[];
+  /** Paths robots.txt disallows that Bluff read anyway, e.g. ["/refund-policy.html"]. */
+  robotsHidden?: string[];
+  /** Pages rendered in headless Chromium because their HTML had too little text. */
+  rendered?: number;
+  ownStore: string | null; error?: string;
 };
 
 const PRIORITY: Record<PageType, number> = { refund: 100, contact: 95, terms: 90, about: 85, checkout: 80, shipping: 70, faq: 65, privacy: 60, product: 40, other: 10, home: 0 };
@@ -63,8 +82,22 @@ export async function crawlSite(rawHost: string, opts: CrawlOptions = {}): Promi
   const { host: rawOnly, path: startPath } = splitWebsite(rawHost);
   const slug = ownStoreSlug(rawOnly);
   const host = slug ? rawOnly.toLowerCase() : normalizeHost(rawOnly);
-  const out: Crawl = { host, origin: "", finalHost: host, https: false, redirectedOffsite: false, botBlocked: false, ms: 0, robots: { found: false, disallow: [], sitemaps: [] }, sitemapUrls: 0, candidates: 0, pages: [], failed: [], skippedByRobots: [], ownStore: slug };
+  const out: Crawl = { host, origin: "", finalHost: host, https: false, redirectedOffsite: false, botBlocked: false, ms: 0, robots: { found: false, disallow: [], sitemaps: [] }, sitemapUrls: 0, candidates: 0, pages: [], failed: [], skippedByRobots: [], robotsHidden: [], rendered: 0, ownStore: slug };
   const fetchOne = (url: string) => fetcher(url, AbortSignal.any([signal, AbortSignal.timeout(8_000)]));
+  // Headless fallback: only for real sites (our demo stores are static HTML), only for thin pages, a few per site.
+  const render = opts.render === false || slug ? null : (opts.render ?? (renderConfig().enabled ? renderPage : null));
+  const renderCap = renderConfig().maxPages;
+  const maybeRender = async (p: PageFacts, status: number): Promise<PageFacts> => {
+    if (!render || p.wordCount >= THIN_WORDS || (out.rendered ?? 0) >= renderCap || signal.aborted || status >= 400) return p;
+    out.rendered = (out.rendered ?? 0) + 1;
+    const r = await render(p.url, signal).catch(() => null);
+    if (!r) return p;
+    const q = extractPage(r.html, p.url, status);
+    if (q.wordCount <= p.wordCount) return p;
+    q.type = p.type;
+    q.rendered = true;
+    return q;
+  };
 
   // 1. Homepage (https first; http only when TLS itself fails).
   let home: Awaited<ReturnType<Fetcher>>;
@@ -86,10 +119,11 @@ export async function crawlSite(rawHost: string, opts: CrawlOptions = {}): Promi
   out.finalHost = homeUrl.host.replace(/^www\./, "");
   out.https = homeUrl.protocol === "https:";
   out.redirectedOffsite = !slug && registrable(homeUrl.hostname.replace(/^www\./, "")) !== registrable(host.replace(/:\d+$/, ""));
-  const homePage = extractPage(home.body, home.url, home.status);
+  let homePage = extractPage(home.body, home.url, home.status);
   homePage.type = "home";
   const homePath = homeUrl.pathname.replace(/index\.html?$/, "");
   out.botBlocked = home.status === 403 || home.status === 429 || home.status === 503 || (BLOCK_RE.test(homePage.title) && homePage.wordCount < 400);
+  if (!out.botBlocked) homePage = await maybeRender(homePage, home.status);
   out.pages.push(homePage);
   opts.onPage?.(homePage, 1);
 
@@ -113,7 +147,7 @@ export async function crawlSite(rawHost: string, opts: CrawlOptions = {}): Promi
     const inScope = homePath === "/" || u.pathname.startsWith(homePath) || classify(u.pathname, "", anchor) !== "other" && classify(u.pathname, "", anchor) !== "product";
     const key = keyOf(u);
     if (!inScope || seen.has(key) || queue.has(key) || SKIP.test(u.pathname + u.search)) return;
-    if (!robotsAllows(u.pathname, out.robots.disallow)) { if (out.skippedByRobots.length < 10) out.skippedByRobots.push(u.pathname); return; }
+    if (!robotsAllows(u.pathname, out.robots.disallow) && out.robotsHidden!.length < 10 && !out.robotsHidden!.includes(u.pathname)) out.robotsHidden!.push(u.pathname);
     const type = classify(u.pathname, "", anchor);
     queue.set(key, { url: u.toString(), type, score: PRIORITY[type] - u.pathname.split("/").length });
   };
@@ -151,8 +185,9 @@ export async function crawlSite(rawHost: string, opts: CrawlOptions = {}): Promi
       try {
         const r = await fetchOne(c.url);
         if (!r.body || !isHtml(r)) { out.failed.push({ url: c.url, error: `${r.status} non-HTML` }); return; }
-        const p = extractPage(r.body, r.url, r.status);
+        let p = extractPage(r.body, r.url, r.status);
         if (p.type === "other" || p.type === "home") p.type = c.type;
+        p = await maybeRender(p, r.status);
         out.pages.push(p);
         opts.onPage?.(p, out.pages.length);
         for (const l of p.internalLinks) offer(l.url, l.text);
