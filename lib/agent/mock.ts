@@ -6,7 +6,7 @@ import { basicCheck } from "../rules/basicCheck";
 import { messageKeys, pageKeys, extractUrls } from "../rules/signals";
 import { getPool } from "../db";
 import { txnRulesVerdict } from "./txn";
-import { siteRulesVerdict } from "../scan/rules";
+import { siteBasicFallback } from "../scan/fallback";
 import type { Emit, RunInput, RunOptions, RunResult } from "./types";
 
 type Fixture = { host: string; verdict: Verdict; steps: Omit<StepEvent, "seq">[] };
@@ -85,8 +85,8 @@ export async function mockRun(input: RunInput, emit: Emit, opts: RunOptions = {}
     steps = r.steps;
   }
   if (input.kind === "site") {
-    // Real scrape + domain intel over the live website; only the model is mocked ("basic").
-    const r = await siteRulesVerdict(getPool(), input);
+    // Model off: the site's verdict is its basic check (real crawl + registry facts, rules only).
+    const r = await siteBasicFallback(getPool(), input);
     verdict = r.verdict;
     steps = r.steps;
   }

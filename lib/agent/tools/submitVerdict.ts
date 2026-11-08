@@ -22,14 +22,24 @@ export function normalizeVerdictArgs(args: unknown): unknown {
   a.next_steps = lines(a.next_steps, 4, 70);
   if (typeof a.score === "string" && /^\d+$/.test(a.score)) a.score = Number(a.score);
   if (typeof a.score === "number" && !Number.isInteger(a.score)) a.score = Math.round(a.score);
+  // Deep site review: top-level summary/findings become `analysis`.
+  if (typeof a.summary === "string" || Array.isArray(a.findings)) {
+    const sev = new Set(["high", "medium", "low", "good", "info"]);
+    const findings = (Array.isArray(a.findings) ? a.findings : []).filter((f): f is Record<string, unknown> => !!f && typeof f === "object" && typeof (f as Record<string, unknown>).title === "string").slice(0, 8)
+      .map((f) => ({ title: String(f.title).slice(0, 90), detail: typeof f.detail === "string" ? f.detail.slice(0, 240) : "", severity: sev.has(String(f.severity)) ? String(f.severity) : "medium", ...(typeof f.page === "string" && f.page ? { page: f.page.slice(0, 200) } : {}) }));
+    const summary = typeof a.summary === "string" && a.summary.trim() ? a.summary.trim().slice(0, 900) : null;
+    if (summary) a.analysis = { summary, findings, ...(typeof a.agrees_with_basic === "boolean" ? { agrees_with_basic: a.agrees_with_basic } : {}) };
+    delete a.summary; delete a.findings; delete a.agrees_with_basic;
+  }
   return a;
 }
 
-export function submitVerdict(args: unknown, mode: Verdict["mode"] = "live"): SubmitResult {
+/** `extraKeys`: evidence the server already holds (e.g. the basic check's), counted toward confidence. */
+export function submitVerdict(args: unknown, mode: Verdict["mode"] = "live", extraKeys: string[] = []): SubmitResult {
   const parsed = SubmitVerdictArgsSchema.safeParse(normalizeVerdictArgs(args));
   if (!parsed.success) return { ok: false, errors: parsed.error.issues.map((i) => `${i.path.join(".") || "args"}: ${i.message}`) };
   const a = parsed.data;
-  const c = computeConfidence(a.evidence_keys);
+  const c = computeConfidence([...a.evidence_keys, ...extraKeys]);
   let verdict = verdictLabel(a.score);
   let score = a.score;
   if (c.confidence < 0.5) { verdict = "unsure"; score = Math.min(69, Math.max(40, score)); }
@@ -37,6 +47,23 @@ export function submitVerdict(args: unknown, mode: Verdict["mode"] = "live"): Su
   if (!out.success) return { ok: false, errors: out.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) };
   return { ok: true, verdict: out.data };
 }
+
+/** submit_verdict as offered to a deep site review: the verdict plus a narrative and cited findings. */
+export const siteSubmitParameters = {
+  type: "object",
+  properties: {
+    score: { type: "integer", minimum: 0, maximum: 100, description: "0-100, higher = safer" },
+    verdict: { type: "string", enum: ["likely_scam", "unsure", "looks_ok"] },
+    category: { type: "string" },
+    summary: { type: "string", description: "3-5 plain sentences for the account holder: what this site is, what you found, what it means for their charge" },
+    findings: { type: "array", maxItems: 8, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" }, severity: { type: "string", enum: ["high", "medium", "low", "good", "info"] }, page: { type: "string", description: "path of the page this came from" } }, required: ["title", "severity"] } },
+    agrees_with_basic: { type: "boolean" },
+    evidence: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 5 },
+    evidence_keys: { type: "array", items: { type: "string" } },
+    next_steps: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4 },
+  },
+  required: ["score", "verdict", "category", "summary", "findings", "evidence", "evidence_keys", "next_steps"],
+};
 
 export const submitVerdictTool: ToolDef = {
   name: "submit_verdict",

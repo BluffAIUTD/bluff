@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import type pg from "pg";
 import { ALLOWLIST_HOSTS, STORES } from "../../data/stores";
 import { CARD_SEEDS } from "../../data/cards";
@@ -78,6 +80,29 @@ export async function seedGlobal(db: pg.Pool | pg.PoolClient, now = new Date()) 
       [c.kind, JSON.stringify(c.content), c.isScam, JSON.stringify(c.redFlags), c.category],
     );
   }
+  await seedMessageDataset(db);
+}
+
+type DatasetRow = { id: string; channel: string; sender?: string | null; subject?: string | null; text: string; label: "scam" | "legit"; category: string; red_flags: { span: string; why: string }[] };
+
+/**
+ * Bluff's own synthetic scam/legit message set (data/messages/bluff-messages.jsonl, see its README) → the game's card
+ * pool (source 'dataset'). Red flags are kept only if they appear verbatim. Re-runnable: replaces earlier dataset rows.
+ */
+export async function seedMessageDataset(db: pg.Pool | pg.PoolClient, file = path.join(process.cwd(), "data", "messages", "bluff-messages.jsonl")): Promise<number> {
+  if (!fs.existsSync(file)) return 0;
+  const rows = fs.readFileSync(file, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l) as DatasetRow);
+  await db.query("DELETE FROM game_cards WHERE source='dataset'");
+  let n = 0;
+  for (const r of rows) {
+    const flags = (r.red_flags ?? []).filter((f) => f.span && r.text.includes(f.span));
+    if (r.label === "scam" && !flags.length) continue;
+    const content = { ...(r.sender ? { from: r.sender } : {}), ...(r.subject ? { subject: r.subject } : {}), body: r.text };
+    await db.query("INSERT INTO game_cards (kind, content, is_scam, red_flags, category, source, origin) VALUES ($1,$2,$3,$4,$5,'dataset',$6)",
+      [r.channel === "email" ? "email" : "text", JSON.stringify(content), r.label === "scam", JSON.stringify(r.label === "scam" ? flags : []), r.category, `Bluff message set · ${r.id}`]);
+    n++;
+  }
+  return n;
 }
 
 export async function seedMaya(db: pg.Pool | pg.PoolClient, now = new Date()) {

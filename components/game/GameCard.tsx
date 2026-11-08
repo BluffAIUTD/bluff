@@ -5,7 +5,8 @@ import { Badge } from "../ui/Badge";
 export type CardData = { id: string; kind: string; content: { from?: string; subject?: string; body: string }; source?: string; origin?: string | null };
 
 const SOURCE: Record<string, { label: string; tone: "accent" | "safe" | "neutral" }> = {
-  tmobile: { label: "T-Mobile Safe Signal set", tone: "accent" },
+  dataset: { label: "Scam message set", tone: "accent" },
+  tmobile: { label: "Imported message set", tone: "accent" },
   bank: { label: "From your Capital One scan", tone: "safe" },
   generated: { label: "Nemotron-generated", tone: "neutral" },
   lookalike: { label: "This week's trending scam", tone: "neutral" },

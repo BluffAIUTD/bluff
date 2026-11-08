@@ -2,7 +2,7 @@
 // Usage: node scripts/deploy/gen-caddyfile.mjs [--check]   (--check fails if the committed file is stale)
 import fs from "node:fs";
 
-export const STORE_SLUGS = ["fastkicks-shop", "deliveryfix-help", "tollpay-tx", "bayou-bakery", "northloop-books", "campus-tech", "lonestar-tickets", "greenleaf-grocer"];
+export const STORE_SLUGS = ["fastkicks-shop", "deliveryfix-help", "tollpay-tx", "voltdeals-outlet", "cinevault-trial", "bayou-bakery", "northloop-books", "campus-tech", "lonestar-tickets", "greenleaf-grocer"];
 
 export function caddyfile(slugs = STORE_SLUGS) {
   const stores = slugs.map((s) => `${s}.{$BASE_DOMAIN} {

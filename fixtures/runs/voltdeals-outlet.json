@@ -1,0 +1,59 @@
+{
+  "host": "voltdeals-outlet",
+  "verdict": {
+    "score": 24,
+    "verdict": "likely_scam",
+    "confidence": 0.9,
+    "confidence_reason": "Several independent signals point the same way",
+    "category": "fake_store",
+    "evidence": [
+      "Site is 21 days old",
+      "Clearance prices up to 89% off",
+      "Card payments 'unavailable': Zelle or Bitcoin only",
+      "Refunds only as store credit"
+    ],
+    "evidence_keys": [
+      "domain_age_lt_30",
+      "too_good_discount",
+      "gift_card_only"
+    ],
+    "next_steps": [
+      "Don't enter any card details",
+      "Leave this site",
+      "Shop at a retailer you know",
+      "Report it to your bank if you paid"
+    ],
+    "linked": {},
+    "mode": "cached"
+  },
+  "steps": [
+    {
+      "kind": "plan",
+      "tool": null,
+      "inputSummary": "Check voltdeals-outlet: card field detected",
+      "outputSummary": "Plan: domain age → page signals → taxonomy → verdict",
+      "ms": 300
+    },
+    {
+      "kind": "tool",
+      "tool": "domain_intel",
+      "inputSummary": "voltdeals-outlet",
+      "outputSummary": "21 days old",
+      "ms": 420
+    },
+    {
+      "kind": "tool",
+      "tool": "page_signals",
+      "inputSummary": "voltdeals-outlet",
+      "outputSummary": "signals: too_good_discount, no card payments",
+      "ms": 380
+    },
+    {
+      "kind": "final",
+      "tool": "submit_verdict",
+      "inputSummary": "score 24",
+      "outputSummary": "likely_scam (90% sure)",
+      "ms": 120
+    }
+  ]
+}

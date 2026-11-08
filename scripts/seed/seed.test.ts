@@ -46,8 +46,9 @@ describe("seed", () => {
     expect(await count("SELECT count(*) n FROM transactions WHERE user_id=$1", [MAYA_ID])).toBe(60);
     expect(await count("SELECT count(*) n FROM transactions WHERE user_id=$1", [EVAL_USER_ID])).toBe(30);
     expect(await count("SELECT count(*) n FROM transactions WHERE user_id=$1 AND true_exposure_id IS NOT NULL", [EVAL_USER_ID])).toBe(20);
-    expect(await count("SELECT count(*) n FROM mock_registry")).toBe(8);
-    expect(await count("SELECT count(*) n FROM game_cards WHERE day IS NULL")).toBe(15);
+    expect(await count("SELECT count(*) n FROM mock_registry")).toBe(10);
+    expect(await count("SELECT count(*) n FROM game_cards WHERE day IS NULL AND source='seed'")).toBe(15);
+    expect(await count("SELECT count(*) n FROM game_cards WHERE source='dataset'")).toBeGreaterThanOrEqual(300); // data/messages/bluff-messages.jsonl
     expect(await count("SELECT count(*) n FROM allowlist WHERE user_id IS NULL")).toBeGreaterThanOrEqual(50);
     expect(await count("SELECT count(*) n FROM taxonomy WHERE is_placeholder")).toBeGreaterThan(5);
     expect(await count("SELECT count(*) n FROM merchant_daily WHERE user_id=$1", [MAYA_ID])).toBeGreaterThan(20);

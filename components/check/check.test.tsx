@@ -10,9 +10,9 @@ beforeEach(() => { vi.stubGlobal("EventSource", ES); });
 afterEach(() => { vi.unstubAllGlobals(); });
 
 describe("CheckClient", () => {
-  it("shows all 8 store chips", () => {
+  it("shows all 10 store chips", () => {
     render(<CheckClient />);
-    expect(screen.getByRole("group", { name: "Demo stores" }).querySelectorAll("button")).toHaveLength(8);
+    expect(screen.getByRole("group", { name: "Demo stores" }).querySelectorAll("button")).toHaveLength(10);
   });
   it("empty link and empty text show specific messages and do not call the API", async () => {
     const f = vi.fn(); vi.stubGlobal("fetch", f);

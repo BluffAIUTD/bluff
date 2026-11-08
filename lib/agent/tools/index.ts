@@ -3,20 +3,20 @@ import { draftDisputeTool } from "./draftDispute";
 import { exposureLookupTool } from "./exposureLookup";
 import { notifyTool } from "./notifyTool";
 import { pageSignalsTool } from "./pageSignals";
-import { resolveWebsiteTool, scrapeSiteTool } from "./scrapeSite";
+import { fetchPageTool, readPageTool, siteOverviewTool } from "./siteTools";
 import { submitVerdictTool } from "./submitVerdict";
 import { taxonomyMatchTool } from "./taxonomyMatch";
 import { txnSearchTool } from "./txnSearch";
 import { capJson, type ToolContext, type ToolDef } from "./types";
 
-/** Tool registry: the 8 tools of engineering_spec §6.1 plus the 2 bank-scan tools (resolve_website, scrape_site). */
-export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, notifyTool, submitVerdictTool, resolveWebsiteTool, scrapeSiteTool];
+/** Tool registry: the 8 tools of engineering_spec §6.1 plus the 3 deep-site-review tools of the bank scan. */
+export const TOOLS: ToolDef[] = [domainIntelTool, pageSignalsTool, taxonomyMatchTool, exposureLookupTool, txnSearchTool, draftDisputeTool, notifyTool, submitVerdictTool, siteOverviewTool, readPageTool, fetchPageTool];
 
 /** Tools offered per run kind (fewer tools → fewer wrong calls). */
 const BY_KIND: Record<string, string[]> = {
-  site: ["resolve_website", "scrape_site", "domain_intel", "txn_search", "taxonomy_match", "submit_verdict"],
+  site: ["site_overview", "read_page", "fetch_page", "txn_search", "submit_verdict"],
 };
-const SITE_ONLY = new Set(["resolve_website", "scrape_site"]);
+const SITE_ONLY = new Set(["site_overview", "read_page", "fetch_page"]);
 
 export function getTool(name: string): ToolDef | undefined { return TOOLS.find((t) => t.name === name); }
 

@@ -25,7 +25,7 @@ describe("fixtures", () => {
       expect(f.steps.length).toBeGreaterThanOrEqual(3);
     }
     expect(loadFixture("txn_demo_link_1")!.verdict.linked.txn_id).toBe("txn_demo_link_1");
-    expect(fs.readdirSync(path.join(process.cwd(), "fixtures/runs")).length).toBe(9);
+    expect(fs.readdirSync(path.join(process.cwd(), "fixtures/runs")).length).toBe(STORES.length + 1);
   });
   it("rejects path-traversal keys", () => { expect(loadFixture("../package")).toBeNull(); expect(loadFixture("a/b")).toBeNull(); });
 });

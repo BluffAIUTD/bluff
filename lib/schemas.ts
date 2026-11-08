@@ -28,6 +28,19 @@ export const LinkedSchema = z.object({
   kind: z.enum(["flagged", "expected", "possible"]).optional(),
 });
 
+export const AnalysisFindingSchema = z.object({
+  title: z.string().min(1).max(90),
+  detail: z.string().max(240).default(""),
+  severity: z.enum(["high", "medium", "low", "good", "info"]).default("medium"),
+  page: z.string().max(200).optional(),
+});
+export const AnalysisSchema = z.object({
+  summary: z.string().min(1).max(900),
+  findings: z.array(AnalysisFindingSchema).max(8).default([]),
+  agrees_with_basic: z.boolean().optional(),
+});
+export type Analysis = z.infer<typeof AnalysisSchema>;
+
 /** The single output of every agent run (engineering_spec §2.1). */
 export const VerdictSchema = z.object({
   score: z.number().int().min(0).max(100),
@@ -40,6 +53,8 @@ export const VerdictSchema = z.object({
   next_steps: z.array(z.string().min(1).max(70)).min(2).max(4),
   linked: LinkedSchema.default({}),
   mode: z.enum(MODE_VALUES),
+  /** Deep site analysis (bank scan, Nemotron): a short narrative plus findings that cite the page they came from. */
+  analysis: AnalysisSchema.optional(),
 });
 export type Verdict = z.infer<typeof VerdictSchema>;
 

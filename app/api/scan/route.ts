@@ -1,26 +1,20 @@
-import { ApiError, handle } from "@/lib/errors";
+import { handle } from "@/lib/errors";
 import { enforceAgentRateLimit, getContext, json } from "@/lib/api/helpers";
-import { nessieConfigured } from "@/lib/nessie/client";
 import { scanState, startBankScan } from "@/lib/scan";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Current bank-scan state: recent Nessie merchants with their latest site verdicts. Starts nothing. */
+/** Bank-scan state for page load: recent Nessie merchants with their latest basic check and deep analysis. Starts nothing. */
 export const GET = handle(async (req: Request) => {
   const ctx = getContext(req);
-  return json(ctx, { configured: nessieConfigured(), ...(await scanState(ctx.userId)) });
+  return json(ctx, await scanState(ctx.userId));
 });
 
-/** Sync from Capital One Nessie, then start one Nemotron site run per merchant. `?fresh=1` ignores today's verdicts. */
+/** Start a scan: Nessie sync → crawl + basic check per merchant → Nemotron deep review. `?fresh=1` re-crawls everything. */
 export const POST = handle(async (req: Request) => {
   const ctx = getContext(req);
-  if (!nessieConfigured()) throw new ApiError("upstream_down", "Capital One Nessie isn't configured (NESSIE_API_KEY).");
   enforceAgentRateLimit(ctx);
-  try {
-    return json(ctx, { configured: true, ...(await startBankScan(ctx.userId, { fresh: new URL(req.url).searchParams.get("fresh") === "1" })) });
-  } catch (e) {
-    if (e instanceof ApiError) throw e;
-    throw new ApiError("upstream_down", `Couldn't reach Capital One Nessie: ${(e as Error).message.slice(0, 160)}`);
-  }
+  const q = new URL(req.url).searchParams;
+  return json(ctx, { scanId: startBankScan(ctx.userId, { fresh: q.get("fresh") === "1", deep: q.get("deep") !== "0" }) });
 });

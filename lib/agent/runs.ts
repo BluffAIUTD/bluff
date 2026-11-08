@@ -6,7 +6,7 @@ import { afterRun } from "./hooks";
 import { selectRunner } from "./index";
 import { basicVerdictFor } from "./mock";
 import { txnRulesVerdict } from "./txn";
-import { siteRulesVerdict } from "../scan/rules";
+import { siteBasicFallback } from "../scan/fallback";
 import { subjectId, type FailureMode, type RunInput, type RunResult } from "./types";
 
 type RunState = { events: RunStreamEvent[]; listeners: Set<(e: RunStreamEvent) => void>; done: boolean; touched: number };
@@ -14,8 +14,8 @@ const g = globalThis as unknown as { __bluffRuns?: Map<string, RunState> };
 const runs = (g.__bluffRuns ??= new Map<string, RunState>());
 
 export const HARD_TIMEOUT_MS = 15_000;
-/** Site runs scrape a live website before the model decides. */
-export const SITE_HARD_TIMEOUT_MS = 45_000;
+/** Deep site reviews read several crawled pages before deciding. */
+export const SITE_HARD_TIMEOUT_MS = 120_000;
 /** At most this many site runs talk to the model at once (a bank scan starts one per merchant). */
 const SITE_CONCURRENCY = 3;
 const siteSlots = { active: 0, queue: [] as (() => void)[] };
@@ -168,10 +168,10 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
       }
     } catch (e) { console.error("[runs] replay failed", (e as Error).message); }
   }
-  // 3b. Site failure: rules-only verdict over the real scraped website (still no invented facts).
+  // 3b. Site failure: the basic check over the same crawl (rules only, still no invented facts).
   if (input.kind === "site" && result.error) {
     try {
-      const rules = await siteRulesVerdict(db, input);
+      const rules = await siteBasicFallback(db, input);
       const he = heldError as Extract<RunStreamEvent, { type: "error" }> | null;
       for (const s of rules.steps.filter((x) => x.kind !== "plan")) emitStep(s);
       push(runId, { type: "error", data: { code: he?.data.code ?? "upstream_down", message: he?.data.message ?? "AI check unavailable.", fallbackVerdict: rules.verdict } });

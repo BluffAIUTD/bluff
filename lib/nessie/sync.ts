@@ -8,7 +8,7 @@ import { nessie, resolveCustomer, type NessieAccount, type NessieCustomer, type 
 export type SyncResult = {
   customer: { id: string; name: string };
   accounts: { id: string; type: string; nickname: string; last4: string }[];
-  fetched: number; inserted: number;
+  fetched: number; inserted: number; removed: number;
 };
 
 /** "NETFLIX.COM · netflix.com" → descriptor "NETFLIX.COM". Falls back to the merchant name. */
@@ -32,9 +32,11 @@ export async function syncFromNessie(db: pg.Pool | pg.PoolClient, userId: string
   };
 
   const known = new Set((await many<{ external_id: string }>(db, "SELECT external_id FROM transactions WHERE user_id=$1 AND source='nessie'", [userId])).map((r) => r.external_id));
-  let fetched = 0, inserted = 0;
+  let fetched = 0, inserted = 0, complete = true;
+  const current = new Set<string>();
   for (const a of accounts) {
-    const purchases = await nessie.purchases(a._id).catch((e) => { console.warn(`[nessie] purchases for ${a._id} failed: ${(e as Error).message}`); return []; });
+    const purchases = await nessie.purchases(a._id).catch((e) => { complete = false; console.warn(`[nessie] purchases for ${a._id} failed: ${(e as Error).message}`); return []; });
+    for (const p of purchases) current.add(p._id);
     fetched += purchases.length;
     for (const p of purchases) {
       if (known.has(p._id) || p.status === "cancelled") continue;
@@ -54,10 +56,20 @@ export async function syncFromNessie(db: pg.Pool | pg.PoolClient, userId: string
       inserted++;
     }
   }
-  if (inserted) await refreshMerchantDaily(db).catch(() => {});
+  // Nessie is the source of truth for imported rows: purchases that no longer exist there (e.g. after a sandbox reset)
+  // are removed locally. Only after a complete fetch, so a partial outage never deletes anything.
+  let removed = 0;
+  if (complete) {
+    const r = await db.query("DELETE FROM transactions WHERE user_id=$1 AND source='nessie' AND NOT (external_id = ANY($2::text[]))", [userId, [...current]]);
+    removed = r.rowCount ?? 0;
+  }
+  if (inserted || removed) await refreshMerchantDaily(db).catch(() => {});
+  const card = accounts.find((a) => a.type === "Credit Card") ?? accounts[0];
+  if (card) await db.query("INSERT INTO bluff_meta (key, value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value",
+    [`nessie_account:${userId}`, JSON.stringify({ name: `${customer.first_name} ${customer.last_name}`, nickname: `${card.nickname} ••${(card.account_number ?? "").slice(-4)}`, type: card.type })]).catch(() => {});
   return {
     customer: { id: customer._id, name: `${customer.first_name} ${customer.last_name}` },
     accounts: accounts.map((a) => ({ id: a._id, type: a.type, nickname: a.nickname, last4: (a.account_number ?? "").slice(-4) })),
-    fetched, inserted,
+    fetched, inserted, removed,
   };
 }

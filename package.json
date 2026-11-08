@@ -10,19 +10,21 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:migrate": "tsx scripts/db/migrate.ts",
-    "db:seed": "tsx scripts/seed/index.ts",
-    "db:reset": "tsx scripts/seed/reset.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env scripts/db/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env scripts/seed/index.ts",
+    "db:reset": "tsx --env-file-if-exists=.env scripts/seed/reset.ts",
     "ext:build": "node extension/build.mjs",
     "eval:export": "tsx scripts/eval/export_claimb.ts",
     "eval:test": "python3 -m unittest discover -s scripts/eval -p \"test_*.py\"",
     "eval:stretch-seed": "tsx scripts/eval/export_stretch.ts",
-    "prewarm": "tsx scripts/prewarm.ts",
+    "prewarm": "tsx --env-file-if-exists=.env scripts/prewarm.ts",
     "e2e": "node e2e/run.mjs",
     "deploy:caddy": "node scripts/deploy/gen-caddyfile.mjs",
     "demo:script": "node scripts/demo-script.mjs",
-    "nessie:seed": "tsx --env-file=.env scripts/nessie/seed.ts",
-    "tmobile:import": "tsx --env-file=.env scripts/tmobile/import.ts"
+    "nessie:seed": "tsx --env-file-if-exists=.env scripts/nessie/seed.ts",
+    "tmobile:import": "tsx --env-file-if-exists=.env scripts/tmobile/import.ts",
+    "stores:build": "node scripts/stores/build.mjs && node scripts/stores/build-sites.mjs",
+    "deploy:up": "bash scripts/deploy/up.sh"
   },
   "engines": {
     "node": ">=20"

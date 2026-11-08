@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Verify identity – TollPay TX</title>
+<link rel="stylesheet" href="/style.css">
+</head><body>
+<header class="top"><div class="wrap"><a class="logo" href="/">TollPay <span>TX</span></a><nav><a href="/">Pay balance</a><a href="/pay.html">Verify &amp; pay</a><a href="/about.html">About</a></nav></div></header>
+<div class="strip">FINAL NOTICE: unpaid toll balance</div>
+<main class="wrap"><article class="doc"><h1>Verify your identity</h1><p>To release your account we must verify your identity.</p>
+<form class="pay" autocomplete="on" novalidate>
+  <label>Name on card <input name="cardholder" autocomplete="cc-name"></label>
+  <label>Card number <input name="card_number" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456"></label>
+  <div class="row"><label>Expiry <input name="exp" autocomplete="cc-exp" placeholder="MM/YY"></label><label>CVV <input name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123"></label></div>
+  <label>Social Security number <input name="ssn" autocomplete="off" placeholder="XXX-XX-XXXX"></label><label>Date of birth <input name="dob" autocomplete="bday" placeholder="MM/DD/YYYY"></label><label>Driver license number <input name="license"></label>
+  <button class="btn" type="submit">Verify and pay</button>
+  <p class="small" role="status" data-demo-label hidden>Demo store: nothing was submitted or charged.</p>
+</form></article></main>
+<footer class="foot"><div class="wrap">
+<nav><a href="/privacy.html">Privacy</a></nav>
+<p class="small">© 2026 TollPay TX. Official toll payment portal.</p>
+<p class="demo" data-demo-label>Demo store, not real. Synthetic website for the Bluff hackathon demo. Do not enter real payment details.</p>
+</div></footer>
+<script>document.querySelectorAll('form').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();var n=f.querySelector('[role=status]');if(n)n.hidden=false;});});</script>
+</body></html>

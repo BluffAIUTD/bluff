@@ -2,8 +2,8 @@ import type { Db } from "../../db";
 
 export type ToolContext = {
   userId: string; db: Db; now?: Date; txnTs?: Date; baseDomain?: string;
-  /** Site runs: the merchant website from the bank statement (or the one resolve_website found). scrape_site may only fetch this site. */
-  site?: { host: string | null; merchant: string; descriptor: string };
+  /** Site runs: the merchant website and its stored crawl. fetch_page may only fetch this site (≤ 3 extra pages). */
+  site?: { host: string | null; merchant: string; descriptor: string; scanId: string | null; fetches?: number };
 };
 
 export type ToolDef = {

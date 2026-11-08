@@ -6,18 +6,22 @@ import { chat, LlmError, type ChatMessage } from "./llm";
 import { basicVerdictFor } from "./mock";
 import { MODE_PROMPTS, SYSTEM_PROMPT } from "./prompts";
 import { getTool, openAiTools, runTool } from "./tools";
-import { submitVerdict } from "./tools/submitVerdict";
+import { siteSubmitParameters, submitVerdict } from "./tools/submitVerdict";
+import { basicVerdict } from "../scan/basic";
+import { loadSiteScan } from "../scan/store";
 import type { Emit, RunInput, RunOptions, RunResult, Runner } from "./types";
 
 export const MAX_ITERATIONS = 6;
+/** Deep site reviews read several pages, one or two per turn. */
+export const SITE_MAX_ITERATIONS = 12;
 export const LIVE_DEADLINE_MS = 15_000;
-/** A site run fetches a live website (<= 8 s) and RDAP on top of the model turns. */
-export const SITE_DEADLINE_MS = 40_000;
+/** A deep site review reads several crawled pages (and may fetch up to 3 more). */
+export const SITE_DEADLINE_MS = 100_000;
 
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
 function summarizeArgs(tool: string, a: Record<string, unknown>): string {
-  const v = a.host ?? a.merchant ?? a.descriptor ?? a.descriptor_norm ?? a.text ?? a.txn_id ?? (tool === "submit_verdict" ? `score ${a.score}` : JSON.stringify(a));
+  const v = (Array.isArray(a.paths) ? a.paths.join(", ") : undefined) ?? (Array.isArray(a.types) ? a.types.join(", ") : undefined) ?? a.path ?? a.type ?? a.host ?? a.merchant ?? a.descriptor ?? a.descriptor_norm ?? a.text ?? a.txn_id ?? (tool === "submit_verdict" ? `score ${a.score}` : JSON.stringify(a));
   return clip(String(v), 70);
 }
 
@@ -30,22 +34,26 @@ export function summarizeResult(tool: string, r: unknown): string {
     case "taxonomy_match": return Array.isArray(r) && r[0] ? `${r[0].category} ${r[0].score}` : "no match";
     case "exposure_lookup": return Array.isArray(r) ? (r.length ? `${r.length} match: ${r[0].host}, ${r[0].match_score}` : "no matching exposure") : "no result";
     case "txn_search": return `${o.count} prior charges, avg $${((Number(o.avg_cents) || 0) / 100).toFixed(2)}`;
-    case "resolve_website": return o.host ? `${o.host} (${o.how})` : "no website found";
-    case "scrape_site": return o.fetched ? clip(`${o.status} ${o.title || "(no title)"}${o.bot_blocked ? ", bot-blocked" : ""}${o.redirected_offsite ? `, redirects to ${o.final_host}` : ""}${o.source === "demo_store" ? " [demo store]" : ""}`, 100) : clip(`failed: ${o.error}`, 100);
+    case "site_overview": { const b = o.basic_check as { score: number; label: string; findings: unknown[] } | undefined; return `${(o.pages as unknown[] | undefined)?.length ?? 0} pages crawled · basic check ${b?.score} (${b?.label?.replace("_", " ")}), ${b?.findings.length ?? 0} findings`; }
+    case "read_page": return clip(Array.isArray(o.pages) ? (o.pages as { path: string }[]).map((p) => p.path).join(", ") : String(o.path ?? ""), 100);
+    case "fetch_page": return clip(`${o.status} ${o.path} · ${o.title || "(no title)"}`, 100);
     default: return clip(JSON.stringify(r), 100);
   }
 }
 
-async function subjectMessage(input: RunInput): Promise<{ text: string; candidates: LinkCandidate[]; txnTs?: Date; txn?: { descriptor: string } }> {
+async function subjectMessage(input: RunInput): Promise<{ text: string; candidates: LinkCandidate[]; txnTs?: Date; txn?: { descriptor: string }; basicKeys?: string[] }> {
   if (input.kind === "page") {
     return { text: JSON.stringify({ subject: "page", url: input.url, host: input.host, field_types: input.fieldTypes, signals: input.signals, source: input.source }), candidates: [] };
   }
   if (input.kind === "message") return { text: JSON.stringify({ subject: "message", text: input.text.slice(0, 2000) }), candidates: [] };
   if (input.kind === "site") {
-    const t = await one<{ ts: Date; amount_cents: number; mcc_category: string | null; source: string }>(getPool(), "SELECT ts, amount_cents, mcc_category, source FROM transactions WHERE id=$1 AND user_id=$2", [input.txnId, input.userId]);
+    const db = getPool();
+    const t = await one<{ ts: Date; amount_cents: number; mcc_category: string | null; source: string }>(db, "SELECT ts, amount_cents, mcc_category, source FROM transactions WHERE id=$1 AND user_id=$2", [input.txnId, input.userId]);
+    const charges = await db.query("SELECT ts, amount_cents FROM transactions WHERE user_id=$1 AND website IS NOT DISTINCT FROM $2 AND source='nessie' ORDER BY ts", [input.userId, input.host]).then((r) => r.rows.map((x) => ({ date: (x.ts as Date).toISOString().slice(0, 10), amount: x.amount_cents / 100 }))).catch(() => []);
+    const scan = input.scanId ? await loadSiteScan(db, input.scanId) : null;
     return {
-      text: JSON.stringify({ subject: "merchant_site", bank: t?.source === "nessie" ? "Capital One (Nessie)" : "card", merchant: input.merchant, descriptor: input.descriptor, website: input.host, amount: t ? t.amount_cents / 100 : null, posted_at: t?.ts.toISOString().slice(0, 10), merchant_category: t?.mcc_category }),
-      candidates: [], txnTs: t?.ts, txn: { descriptor: input.descriptor },
+      text: JSON.stringify({ subject: "merchant_site", bank: t?.source === "nessie" ? "Capital One (Nessie)" : "card", merchant: input.merchant, descriptor: input.descriptor, website: scan?.crawl.ownStore ? `${scan.crawl.ownStore} (Bluff demo storefront)` : input.host, charges_from_this_merchant: charges, merchant_category: t?.mcc_category, basic_check_score: scan?.basic.score ?? null }),
+      candidates: [], txnTs: t?.ts, txn: { descriptor: input.descriptor }, basicKeys: scan ? basicVerdict(scan.basic).evidence_keys : [],
     };
   }
   const db = getPool();
@@ -93,14 +101,17 @@ export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOpti
       { role: "system", content: `${SYSTEM_PROMPT}\n\n${MODE_PROMPTS[input.kind]}` },
       { role: "user", content: subj.text },
     ];
-    const ctx = { userId: input.userId, db: getPool(), txnTs: subj.txnTs, ...(input.kind === "site" ? { site: { host: input.host, merchant: input.merchant, descriptor: input.descriptor } } : {}) };
-    // A site run whose statement already names the website skips the lookup tool.
-    const tools = openAiTools(input.kind).filter((t) => !(input.kind === "site" && input.host && t.function.name === "resolve_website"));
+    const ctx = { userId: input.userId, db: getPool(), txnTs: subj.txnTs, ...(input.kind === "site" ? { site: { host: input.host, merchant: input.merchant, descriptor: input.descriptor, scanId: input.scanId } } : {}) };
+    const tools = openAiTools(input.kind).map((t) => (input.kind === "site" && t.function.name === "submit_verdict" ? { ...t, function: { ...t.function, parameters: siteSubmitParameters } } : t));
+    const basicKeys = input.kind === "site" ? subj.basicKeys ?? [] : [];
     let repaired = false;
     let nudged = false;
-    step({ kind: "plan", tool: null, inputSummary: clip(input.kind === "page" ? `Check ${input.host}` : input.kind === "txn" ? `Charge ${subj.txn?.descriptor}` : input.kind === "site" ? `${input.merchant} · ${input.host ?? "website unknown"}` : `Message, ${input.text.length} chars`, 70), outputSummary: input.kind === "site" ? `Plan: ${input.host ? "" : "find website → "}scrape site → domain age → payment history → verdict` : `Plan: ${MODE_PROMPTS[input.kind].split("Expected tools: ")[1]?.replace(/\.$/, "") ?? "investigate"}`, ms: Date.now() - t0 });
+    step({ kind: "plan", tool: null, inputSummary: clip(input.kind === "page" ? `Check ${input.host}` : input.kind === "txn" ? `Charge ${subj.txn?.descriptor}` : input.kind === "site" ? `Deep review · ${input.merchant}` : `Message, ${input.text.length} chars`, 70), outputSummary: input.kind === "site" ? "Plan: overview → read policy, contact & checkout pages → payment history → verdict" : `Plan: ${MODE_PROMPTS[input.kind].split("Expected tools: ")[1]?.replace(/\.$/, "") ?? "investigate"}`, ms: Date.now() - t0 });
 
-    for (let i = 0; i < MAX_ITERATIONS; i++) {
+    const maxIter = input.kind === "site" ? SITE_MAX_ITERATIONS : MAX_ITERATIONS;
+    for (let i = 0; i < maxIter; i++) {
+      // Deep reviews can keep reading; two turns before the cap, ask for the verdict.
+      if (input.kind === "site" && i === maxIter - 2) messages.push({ role: "user", content: "You have enough evidence. Call submit_verdict now." });
       const msg = await chat({ model: cfg.nvidia.model, messages, tools, signal });
       if (!msg.tool_calls.length) {
         if (nudged) return fallback("malformed", "Model did not call submit_verdict");
@@ -117,7 +128,7 @@ export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOpti
         const tt = Date.now();
 
         if (name === "submit_verdict") {
-          const res = parseErr ? { ok: false as const, errors: [parseErr] } : submitVerdict(args, "live");
+          const res = parseErr ? { ok: false as const, errors: [parseErr] } : submitVerdict(args, "live", basicKeys);
           if (res.ok) {
             const v = reconcileLink(res.verdict, subj.candidates, input.kind === "txn" ? input.txnId : undefined);
             step({ kind: "final", tool: "submit_verdict", inputSummary: `score ${v.score}`, outputSummary: `${v.verdict} (${Math.round(v.confidence * 100)}% sure)`, ms: Date.now() - tt });

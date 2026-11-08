@@ -31,6 +31,18 @@ tollpay-tx.{$BASE_DOMAIN} {
 	header X-Robots-Tag "noindex"
 }
 
+voltdeals-outlet.{$BASE_DOMAIN} {
+	root * /srv/stores/voltdeals-outlet
+	file_server
+	header X-Robots-Tag "noindex"
+}
+
+cinevault-trial.{$BASE_DOMAIN} {
+	root * /srv/stores/cinevault-trial
+	file_server
+	header X-Robots-Tag "noindex"
+}
+
 bayou-bakery.{$BASE_DOMAIN} {
 	root * /srv/stores/bayou-bakery
 	file_server

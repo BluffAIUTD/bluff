@@ -8,7 +8,7 @@ export type RunInput =
   | { kind: "message"; userId: string; text: string; source: "check" | "sms" | "eval" }
   | { kind: "txn"; userId: string; txnId: string }
   /** Bank scan: the merchant website behind a (Nessie) bank transaction. */
-  | { kind: "site"; userId: string; txnId: string; host: string | null; merchant: string; descriptor: string };
+  | { kind: "site"; userId: string; txnId: string; host: string | null; merchant: string; descriptor: string; /** site_scans row (crawl + basic check) the deep review reads */ scanId: string | null };
 
 export type Emit = (e: RunStreamEvent) => void;
 

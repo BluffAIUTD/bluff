@@ -1,38 +1,36 @@
 import dns from "node:dns/promises";
-import { STORES } from "../../data/stores";
+import { mapDemoHost } from "./stores";
 
-/** A hostname-ish token with an alphabetic TLD: "walmart.com", "fastkicks-shop.example". */
-const HOST_RE = /\b((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24})\b/gi;
+/** A hostname-ish token with an alphabetic TLD, optionally followed by a path: "walmart.com", "scrapeme.live/shop". */
+const SITE_RE = /\b((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24})(\/[a-z0-9._~\/-]*)?/gi;
 const NOT_TLD = new Set(["llc", "inc", "corp", "ltd", "co"]);
 
 export const normalizeHost = (h: string) => h.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/[/:?#].*$/, "").replace(/^www\./, "").replace(/\.$/, "");
 
-/** Pull the merchant's website out of a statement line or merchant name, if one is written there. */
+/**
+ * The merchant's website from a statement line or merchant name: host plus an optional start path. Bluff demo stores
+ * are written "<slug>.demo" in the bank data and mapped to wherever this deployment serves them.
+ */
 export function websiteFromText(text: string): string | null {
-  for (const m of text.matchAll(HOST_RE)) {
+  for (const m of text.matchAll(SITE_RE)) {
     const host = normalizeHost(m[1]);
     const tld = host.split(".").pop() ?? "";
-    if (!NOT_TLD.has(tld) && host.length <= 253) return host;
+    if (NOT_TLD.has(tld) || host.length > 253) continue;
+    const mapped = mapDemoHost(host);
+    const path = (m[2] ?? "").replace(/\/+$/, "");
+    return path && path !== "/" ? `${mapped}${path}/` : mapped;
   }
   return null;
-}
-
-/** Demo storefronts live on the reserved .example TLD and are served from /stores, never fetched from the internet. */
-export function demoStoreFor(host: string): string | null {
-  const h = normalizeHost(host);
-  if (!h.endsWith(".example")) return null;
-  const label = h.slice(0, -".example".length).split(".").pop() ?? "";
-  return STORES.some((s) => s.slug === label) ? label : null;
 }
 
 export type ResolvedSite = { host: string | null; how: "statement" | "merchant_name" | "guessed" | "none"; tried: string[] };
 
 /**
- * Find the merchant's website: the domain on the statement line, else one in the merchant name, else a guess from
- * the merchant name (`whataburger` → whataburger.com) that is kept only if it resolves in DNS.
+ * Find the merchant's website: the one on the statement line, else one in the merchant name, else a guess from the
+ * merchant name (`whataburger` → whataburger.com) kept only if it resolves in DNS.
  */
 export async function resolveWebsite(opts: { merchant?: string | null; descriptor?: string | null; website?: string | null }, lookup = (h: string) => dns.lookup(h)): Promise<ResolvedSite> {
-  if (opts.website) return { host: normalizeHost(opts.website), how: "statement", tried: [] };
+  if (opts.website) return { host: opts.website.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, ""), how: "statement", tried: [] };
   const fromDesc = websiteFromText(opts.descriptor ?? "");
   if (fromDesc) return { host: fromDesc, how: "statement", tried: [] };
   const fromName = websiteFromText(opts.merchant ?? "");

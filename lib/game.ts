@@ -9,30 +9,32 @@ const DAY_MS = 86_400_000;
 export type CardPublic = { id: string; kind: string; content: { from?: string; subject?: string; body: string }; source: string; origin: string | null };
 type CardRow = { id: string; kind: string; content: CardPublic["content"]; is_scam: boolean; red_flags: { span: string; why: string }[]; category: string; source: string; origin: string | null };
 
-/** Max T-Mobile Safe Signal cards in a 5-card day (the rest stay seeded/generated for variety). */
-export const TMOBILE_PER_DAY = 3;
+/** Max message-set cards (our synthetic dataset, or an imported one) in a 5-card day; the rest stay seeded for variety. */
+export const DATASET_PER_DAY = 3;
+const DATASET_SOURCES = new Set(["dataset", "tmobile"]);
 
 /**
- * Source preference on top of pickCards: today's bank-scan card first (1), then T-Mobile Safe Signal messages (up to 3),
+ * Source preference on top of pickCards: today's bank-scan card first (1), then message-set cards (up to 3),
  * each replacing a seeded card with the same answer so the scam/legit mix is unchanged. Deterministic per day.
  */
 export function preferSources(picks: CardRow[], pool: CardRow[], day: string): CardRow[] {
   const out = [...picks];
   const r = rng(fnv1a(`src:${day}`));
-  const swap = (c: CardRow) => {
+  // Same answer only, so the day's scam/legit mix never changes. Seeded cards go first, then anything but the bank card.
+  const swap = (c: CardRow, anySource = false) => {
     if (out.some((p) => p.id === c.id)) return true;
-    // Same answer only, so the day's scam/legit mix never changes.
-    const i = out.findIndex((p) => p.source === "seed" && p.is_scam === c.is_scam);
+    let i = out.findIndex((p) => p.source === "seed" && p.is_scam === c.is_scam);
+    if (i < 0 && anySource) i = out.findIndex((p) => p.source !== "bank" && p.is_scam === c.is_scam);
     if (i < 0) return false;
     out[i] = c;
     return true;
   };
   const bank = pool.filter((c) => c.source === "bank").sort((a, b) => a.id.localeCompare(b.id))[0];
-  if (bank) swap(bank);
-  const tm = shuffle(pool.filter((c) => c.source === "tmobile").sort((a, b) => a.id.localeCompare(b.id)), r);
-  let n = out.filter((c) => c.source === "tmobile").length;
+  if (bank) swap(bank, true);
+  const tm = shuffle(pool.filter((c) => DATASET_SOURCES.has(c.source)).sort((a, b) => a.id.localeCompare(b.id)), r);
+  let n = out.filter((c) => DATASET_SOURCES.has(c.source)).length;
   for (const want of [true, false, true, false, true]) {
-    if (n >= TMOBILE_PER_DAY) break;
+    if (n >= DATASET_PER_DAY) break;
     const c = tm.find((x) => x.is_scam === want && !out.some((p) => p.id === x.id));
     if (c && swap(c)) n++;
   }
@@ -75,9 +77,9 @@ export async function cardsForDay(db: Db, day: string): Promise<CardRow[]> {
     const ordered = ids.map((i) => byId.get(i)).filter((c): c is CardRow => !!c);
     // A set fixed before today's bank scan or a T-Mobile import is rebuilt, but only while nobody has played it.
     const fresh = await one<{ bank: boolean; tm: boolean; played: boolean }>(db,
-      `SELECT EXISTS (SELECT 1 FROM game_cards WHERE day=$1 AND source='bank') bank, EXISTS (SELECT 1 FROM game_cards WHERE source='tmobile' AND day IS NULL) tm,
+      `SELECT EXISTS (SELECT 1 FROM game_cards WHERE day=$1 AND source='bank') bank, EXISTS (SELECT 1 FROM game_cards WHERE source IN ('dataset','tmobile') AND day IS NULL) tm,
               EXISTS (SELECT 1 FROM game_plays WHERE day=$1) played`, [day]);
-    const stale = !!fresh && !fresh.played && ((fresh.bank && !ordered.some((c) => c.source === "bank")) || (fresh.tm && !ordered.some((c) => c.source === "tmobile")));
+    const stale = !!fresh && !fresh.played && ((fresh.bank && !ordered.some((c) => c.source === "bank")) || (fresh.tm && !ordered.some((c) => DATASET_SOURCES.has(c.source))));
     if (ordered.length === ids.length && !stale) return ordered;
     if (stale) await db.query("DELETE FROM bluff_meta WHERE key=$1", [`game_set:${day}`]);
   }

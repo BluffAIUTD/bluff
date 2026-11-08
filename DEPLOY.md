@@ -1,37 +1,47 @@
 # DEPLOY.md: Bluff on Vultr (runbook)
 
-What is automated: everything in this repo. What needs a person (credentials, accounts, DNS): the steps marked **[you]**.
-Nothing here was run against Vultr, Tiger Data, Photon or NVIDIA from the build environment; the container image was not built
-either (no Docker daemon there). What *was* verified: `docker compose config`, the generated Caddyfile, and the exact runtime
-layout the Dockerfile produces (standalone server + fixtures + stores + migrations) booted in production mode against Postgres.
+Everything runs on **one Vultr VPS** with Docker: `db` (self-hosted **TimescaleDB**, Tiger Data's open-source Postgres),
+`web` (Next.js), `caddy` (HTTPS for the app and the demo storefront websites) and an optional nightly `backup`.
+What needs a person (DNS, secrets, SSH): the steps marked **[you]**.
+
+Verified so far: all migrations (hypertable, continuous aggregate + refresh policy, pg_trgm) applied cleanly on real TimescaleDB 2.31
+(a Tiger Cloud trial instance, used only as a test target), and `merchant_daily` materialized. Live: Nemotron, Capital One Nessie,
+RDAP/Internet Archive lookups, crawling of real sites. **Not yet run on the VPS:** the container image has not been built here
+(no Docker on the dev machine), so `bash scripts/deploy/up.sh` on the server is the first real build.
 
 ## 0. Accounts and keys **[you]**
 | Need | Where | Goes in `.env` |
 |---|---|---|
 | Domain | GoDaddy Registry (MLH track) | `BASE_DOMAIN=<domain>` (app = `bluff.<domain>`, stores = `<store>.<domain>`) |
-| VM | Vultr, Ubuntu, 2 vCPU / 4 GB | n/a |
-| Database | Tiger Data service (TLS) | `DATABASE_URL=postgres://…?sslmode=require` |
-| Nemotron | build.nvidia.com (NIM, OpenAI-compatible) | `NVIDIA_API_KEY`, `NEMOTRON_MODEL`, `NEMOTRON_SMALL_MODEL`, `EMBED_MODEL` **[verify IDs/limits]** |
+| VM | Vultr VPS, Ubuntu 22.04/24.04, 2 vCPU / 4 GB, SSH access | n/a |
+| Database | self-hosted TimescaleDB in docker-compose (no account needed) | `POSTGRES_PASSWORD` (long random); compose builds `DATABASE_URL` |
+| Nemotron | build.nvidia.com | `NVIDIA_API_KEY`, `NEMOTRON_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b`, `NEMOTRON_THINKING=off`, `AGENT_MODE=live`, `RDAP_ENABLED=1` |
+| Capital One | Nessie API key | `NESSIE_API_KEY` (the demo customer/account/purchases already exist in the sandbox) |
 | Photon | app.photon.codes, promo `HACKWITHPHOTON` | `PHOTON_PROJECT_SECRET`, `PHOTON_WEBHOOK_SECRET`, `PHOTON_NUMBER`, `PHOTON_API_BASE`, `DEMO_USER_PHONE` **[verify send/webhook shape]** |
 | Secrets | generate | `SESSION_SECRET`, `DEMO_KEY`, `EVAL_KEY` (long random strings) |
 
 ## 1. DNS **[you]**
-A records to the Vultr IP for: `bluff`, `fastkicks-shop`, `deliveryfix-help`, `tollpay-tx`, `bayou-bakery`, `northloop-books`, `campus-tech`, `lonestar-tickets`, `greenleaf-grocer` (explicit names, so Caddy uses normal HTTP-01 certs; no wildcard certificate needed).
+A records to the VPS IP for: `bluff`, `fastkicks-shop`, `deliveryfix-help`, `tollpay-tx`, `voltdeals-outlet`, `cinevault-trial`, `bayou-bakery`, `northloop-books`, `campus-tech`, `lonestar-tickets`, `greenleaf-grocer` (explicit names, so Caddy uses normal HTTP-01 certs; no wildcard certificate needed).
+The bank scan crawls the scam storefronts at `https://<store>.<domain>` over the public internet, exactly like any other merchant site.
 
-## 2. Server
+## 2. Server (over SSH)
 ```bash
+# firewall: only SSH and web
+ufw allow OpenSSH && ufw allow 80,443/tcp && ufw allow 443/udp && ufw --force enable
 curl -fsSL https://get.docker.com | sh
 git clone https://github.com/Sithranjan-Suresh/bluff && cd bluff
-cp .env.example .env && $EDITOR .env      # set AGENT_MODE=live, PHOTON_MODE=live, DEMO_MODE=1 and the values above
-node scripts/deploy/gen-caddyfile.mjs     # only if the store list changed (a test fails when it is stale)
-docker compose --profile tools run --rm tools npm run db:migrate
-docker compose --profile tools run --rm tools npm run db:seed
-docker compose up -d --build
+cp .env.example .env && $EDITOR .env      # BASE_DOMAIN, POSTGRES_PASSWORD, SESSION_SECRET, DEMO_KEY, EVAL_KEY, ACME_EMAIL, keys above
+bash scripts/deploy/up.sh                 # build → TimescaleDB up → migrate → seed → web + caddy → nightly backups → checks
 ```
-**Tiger Data notes:** migration `002/003` use `timescaledb` (hypertable + continuous aggregate) when the extension is available and
-fall back to a materialized view otherwise; `bluff_meta.agg_mode` records which. The Timescale branch is **untested** (no
-timescaledb locally): after migrating, run `select value from bluff_meta where key='agg_mode'` (expect `timescale`) and
-`select count(*) from merchant_daily`. pgvector is not required: taxonomy embeddings are stored as `float8[]`.
+`up.sh` is safe to re-run (it is also the update command after `git pull`). It ends by printing `agg_mode=timescale`,
+`hypertables=1`, `continuous_aggregates=1` and the health JSON.
+
+**TimescaleDB notes:** the database container is `timescale/timescaledb:2.21.3-pg17` with a named volume (`pgdata`) and no
+published port: only `web`/`tools` reach it on the private compose network. `transactions` is a hypertable (7-day chunks) and
+`merchant_daily` a continuous aggregate refreshed every 5 minutes (and on demand after each Nessie sync). Backups:
+`./backups/bluff-YYYY-MM-DD.dump` (7 kept); restore with
+`docker compose exec -T db pg_restore -U bluff -d bluff --clean < backups/<file>.dump`.
+For a psql shell: `docker compose exec db psql -U bluff -d bluff`.
 
 ## 3. Wire up Photon **[you]**
 Register `https://bluff.<domain>/api/webhooks/photon` as the inbound webhook, copy the signing secret to `PHOTON_WEBHOOK_SECRET`.
@@ -51,7 +61,7 @@ what `lib/photon/webhook.ts` and `lib/photon/live.ts` assume, those two files ar
 ```bash
 docker compose --profile tools run --rm tools npm run prewarm
 ```
-Runs the 8 demo hosts and the signature charge once (caches verdicts, saves the replay trace), then resets the demo user.
+Runs the demo hosts and the signature charge once (caches verdicts, saves the replay trace), then resets the demo user.
 Every minute during judging, a cheap `GET /api/health` keeps the app warm; the first model call wakes the NIM endpoint.
 
 ## 6. Chrome extension (unpacked, demo laptop)
@@ -59,6 +69,12 @@ Every minute during judging, a cheap `GET /api/health` keeps the app warm; the f
 BLUFF_APP_URL=https://bluff.<domain> npm run ext:build   # → extension/dist
 ```
 `chrome://extensions` → Developer mode → *Load unpacked* → `extension/dist`. The content script runs everywhere but stays idle until a card/CVV/password/SSN/phone/DOB/address field appears; it never reads input values.
+
+## Bank scan before judging
+Open `https://bluff.<domain>/scan` → *Scan my transactions*. The first scan crawls every merchant site and runs the Nemotron deep
+reviews (about 2–3 minutes for 14 merchants at the default pacing; the basic check for every site appears within seconds).
+Later scans reuse crawls younger than 6 hours and deep verdicts younger than 24 hours; *Re-crawl everything* forces fresh ones.
+`NVIDIA_MIN_GAP_MS` (default 1600) paces Nemotron calls to stay under the trial key's rate limit.
 
 ## Operations
 - Reset between demos: `docker compose --profile tools run --rm tools npm run db:reset` (or the *Reset demo* button with `?demo=1`).

@@ -37,7 +37,7 @@ async function main() {
   for (const m of NESSIE_SEED) {
     const merchant = known.get(m.name) ?? await nessie.createMerchant({
       name: m.name, category: m.category,
-      address: { street_number: m.street[0], street_name: m.street[1], city: m.demo ? "Demo" : "Dallas", state: "TX", zip: m.zip },
+      address: { street_number: m.street[0], street_name: m.street[1], city: m.kind === "real" ? "Dallas" : "Demo", state: "TX", zip: m.zip },
       geocode: { lat: 32.9857, lng: -96.7502 },
     });
     for (const p of m.purchases) {
