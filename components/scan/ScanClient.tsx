@@ -6,6 +6,9 @@ import type { StepEvent, Verdict } from "@/lib/schemas";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { ErrorState } from "../ui/ErrorState";
+import { ChipStack } from "../table/ChipStack";
+import { Suit } from "../table/Suit";
+import { toneFor } from "../verdict/tone";
 import { LivePush, type PushResponse } from "./LivePush";
 import { ScanDetail } from "./ScanDetail";
 import { ago, headline, LABEL, toneOf, type BasicPayload, type MerchantView, type PageLite, type Phase } from "./types";
@@ -20,14 +23,11 @@ type MerchantsEvent = { sync: SyncInfo; syncError?: string; merchants: MerchantV
 
 const PHASE_TEXT: Record<Phase, string> = { idle: "", queued: "Queued", resolving: "Finding website", crawling: "Crawling site", deep: "Nemotron reviewing", done: "", error: "Failed" };
 
-function Dot({ tone }: { tone: string }) {
-  const c = tone === "scam" ? "bg-scam" : tone === "unsure" ? "bg-unsure" : tone === "safe" ? "bg-safe" : "bg-gray-500";
-  return <span aria-hidden className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${c}`} />;
-}
+/** One tier's score as a small chip number on the ivory merchant card. */
 function MiniScore({ who, v, pending }: { who: string; v?: { score: number; verdict: string } | null; pending?: boolean }) {
   const tone = toneOf(v?.verdict);
-  const cls = tone === "scam" ? "text-scam border-scam/40 bg-scam/10" : tone === "unsure" ? "text-unsure border-unsure/40 bg-unsure/10" : tone === "safe" ? "text-safe border-safe/40 bg-safe/10" : "text-dim border-line";
-  return <span className={`num inline-flex min-w-[54px] shrink-0 items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${cls}`}>{who}{" "}{v ? v.score : pending ? <span className="skeleton inline-block h-2 w-3" /> : "–"}</span>;
+  const cls = tone === "scam" ? "text-[#8e1d16] border-[#b3281f]/50 bg-[#b3281f]/10" : tone === "unsure" ? "text-[#7a4a05] border-[#9a5d06]/50 bg-[#9a5d06]/10" : tone === "safe" ? "text-[#0f5a3a] border-[#17734c]/50 bg-[#17734c]/10" : "text-[#5a4a2a] border-[#6a5a36]/40";
+  return <span className={`num inline-flex min-w-[54px] shrink-0 items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold ${cls}`}>{who}{" "}{v ? v.score : pending ? <span className="skeleton inline-block h-2 w-3" /> : "–"}</span>;
 }
 
 const fromState = (s: StateResponse): MerchantView[] =>
@@ -174,20 +174,20 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-dim">
+            <p className="inline-flex items-center gap-2 rounded-full border brass-hairline bg-black/25 px-3 py-1 text-xs text-dim">
               <span className="h-1.5 w-1.5 rounded-full bg-safe" /> Capital One {account ? `· ${account}` : "· Nessie API"}
             </p>
             {nessieOn && (
               <button type="button" onClick={() => setWatching((w) => !w)} aria-pressed={watching}
                 title={watching ? "Bluff checks Capital One for new charges every 20 s while this page is open. Click to pause." : "Click to resume watching for new charges."}
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition duration-ui ${watching ? "border-safe/40 bg-safe/10 text-fg" : "border-line bg-surface text-dim hover:text-fg"}`}>
+                className={`inline-flex min-h-[32px] items-center gap-2 rounded-full border px-3 py-1 text-xs transition duration-ui ${watching ? "border-safe/50 bg-safe/10 text-fg" : "brass-hairline bg-black/25 text-dim hover:text-fg"}`}>
                 <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${watching ? "animate-pulse bg-safe" : "bg-gray-500"}`} />
                 {watching ? "Watching your card" : "Watching paused"}
                 <span className="text-dim">{watching ? (scanning ? "· paused during scan" : watch.checkedAt ? `· last checked ${ago(watch.checkedAt, now)}` : "· checking…") : "· resume"}</span>
               </button>
             )}
           </div>
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight sm:text-4xl">Who did you really pay?</h1>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Who did you really pay?</h1>
           <p className="mt-1 text-dim">Bluff checks the website behind every charge on your card. Rules give an instant read; an NVIDIA Nemotron agent reads the pages for what rules miss.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -199,37 +199,38 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
       <LivePush initialPreset={push} defaultOpen={demo} disabled={!configured} tracked={tracked} onPushed={onPushed} />
 
       {err && <ErrorState title="Scan problem" message={err} />}
-      {notice && <p role="status" className="rounded-control border border-unsure/40 bg-unsure/10 px-3 py-2 text-sm">{notice}</p>}
-      {watching && watch.error && <p role="status" className="rounded-control border border-line bg-surface px-3 py-2 text-sm text-dim">{watch.error}</p>}
-      {!configured && <p role="status" className="rounded-control border border-line bg-surface px-3 py-2 text-sm text-dim">Capital One isn&apos;t connected on this server (NESSIE_API_KEY). Showing transactions already imported.</p>}
-      {!deepAvailable && <p role="status" className="rounded-control border border-line bg-surface px-3 py-2 text-sm text-dim">Deep analysis is off (no Nemotron key). You&apos;ll get the basic check only.</p>}
+      {notice && <p role="status" className="rounded-control border border-unsure/50 bg-unsure/10 px-4 py-2.5 text-sm">{notice}</p>}
+      {watching && watch.error && <p role="status" className="rounded-control border border-dashed brass-hairline bg-black/25 px-4 py-2.5 text-sm text-dim">{watch.error}</p>}
+      {!configured && <p role="status" className="rounded-control border border-dashed brass-hairline bg-black/25 px-4 py-2.5 text-sm text-dim">Capital One isn&apos;t connected on this server (NESSIE_API_KEY). Showing transactions already imported.</p>}
+      {!deepAvailable && <p role="status" className="rounded-control border border-dashed brass-hairline bg-black/25 px-4 py-2.5 text-sm text-dim">Deep analysis is off (no Nemotron key). You&apos;ll get the basic check only.</p>}
 
       <section aria-label="Summary" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[["Transactions", String(stats.txns), `${items.length} merchants · last 45 days`, ""], ["Likely scams", String(stats.scam), `${stats.unsure} more unsure`, stats.scam ? "text-scam" : ""],
-          ["Money at risk", money(stats.risk), "on flagged or unsure sites", stats.risk ? "text-scam" : ""], ["Sites analyzed", `${stats.crawled}/${items.length}`, `${stats.aiLive} reviewed by Nemotron${stats.deepDone > stats.aiLive ? ` · ${stats.deepDone - stats.aiLive} basic only` : ""}`, ""]].map(([l, v, h, c]) => (
-          <div key={l} className="rounded-card border border-line bg-surface p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-dim">{l}</div>
-            <div className={`num mt-1 font-grotesk text-2xl font-bold ${c}`}>{v}</div>
-            <div className="mt-0.5 truncate text-xs text-dim">{h}</div>
-          </div>
+        {[["Transactions", String(stats.txns), `${items.length} merchants · last 45 days`, ""], ["Likely scams", String(stats.scam), `${stats.unsure} more unsure`, stats.scam ? "text-[#ff9b90]" : ""],
+          ["Money at risk", money(stats.risk), "on flagged or unsure sites", stats.risk ? "text-[#ff9b90]" : ""], ["Sites analyzed", `${stats.crawled}/${items.length}`, `${stats.aiLive} reviewed by Nemotron${stats.deepDone > stats.aiLive ? ` · ${stats.deepDone - stats.aiLive} basic only` : ""}`, ""]].map(([l, v, h, c]) => (
+          <div key={l} className="stitch rounded-card border brass-hairline bg-surface p-4"><div className="relative z-10">
+            <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-dim">{l}</div>
+            <div className={`num serif mt-1 text-3xl font-bold ${c}`}>{v}</div>
+            <div className="mt-0.5 text-xs leading-snug text-dim">{h}</div>
+          </div></div>
         ))}
       </section>
 
       {scanning && (
-        <section aria-label="Progress" className="grid gap-2 rounded-card border border-line bg-surface p-4 sm:grid-cols-2">
-          {[["Basic check (crawl + rules)", stats.crawled, "bg-accent"], ["Deep analysis (Nemotron)", stats.deepDone, "bg-safe"]].map(([l, n, c]) => (
+        <section aria-label="Progress" className="stitch grid gap-2 rounded-card border brass-hairline bg-surface p-4 sm:grid-cols-2 [&>*]:relative [&>*]:z-10">
+          {[["Basic check (crawl + rules)", stats.crawled, "bg-brass"], ["Deep analysis (Nemotron)", stats.deepDone, "bg-safe"]].map(([l, n, c]) => (
             <div key={l as string}>
               <div className="mb-1 flex justify-between text-xs text-dim"><span>{l}</span><span className="num">{n}/{items.length}</span></div>
-              <div className="h-2 overflow-hidden rounded-full bg-surface2"><div className={`h-full rounded-full transition-all duration-500 ${c}`} style={{ width: `${pct(n as number)}%` }} /></div>
+              <div className="h-2 overflow-hidden rounded-full bg-black/40"><div className={`h-full rounded-full transition-all duration-500 ${c}`} style={{ width: `${pct(n as number)}%` }} /></div>
             </div>
           ))}
         </section>
       )}
 
-      {loading && <div className="flex flex-col gap-2">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-14 w-full" />)}</div>}
+      {loading && <div aria-busy aria-label="Loading transactions" className="flex flex-col gap-2">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-24 w-full rounded-[14px]" />)}</div>}
       {!loading && !items.length && (
-        <div className="rounded-card border border-line bg-surface p-8 text-center">
-          <p className="font-grotesk text-xl font-semibold">No transactions yet</p>
+        <div className="rounded-card border border-dashed brass-hairline bg-surface p-10 text-center">
+          <span aria-hidden className="mb-3 flex justify-center -space-x-3">{[0, 1, 2].map((i) => <span key={i} className="card-face h-14 w-10 rounded-[5px]" style={{ transform: `rotate(${(i - 1) * 10}deg)` }} />)}</span>
+          <p className="serif text-2xl font-semibold">No transactions yet</p>
           <p className="mt-1 text-dim">Press <strong className="text-fg">Scan my transactions</strong> to import them from Capital One and check every merchant.</p>
         </div>
       )}
@@ -246,19 +247,22 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
               return (
                 <li key={m.key}>
                   <button type="button" onClick={() => setSelected(m.key)} aria-current={on ? "true" : undefined}
-                    className={`flex w-full flex-col gap-1.5 rounded-card border px-3 py-2.5 text-left transition duration-ui ${on ? "border-accent bg-accent/10" : tone === "scam" ? "border-scam/40 bg-surface hover:bg-surface2" : "border-line bg-surface hover:bg-surface2"}`}>
-                    <div className="flex items-center gap-2">
-                      <Dot tone={tone} />
-                      <span className="min-w-0 flex-1 truncate font-medium">{m.merchant}</span>
-                      {m.isNew && <Badge tone="accent" title="New charge on your card">NEW</Badge>}
-                      <span className="num text-sm">{money(m.totalCents)}</span>
+                    className={`card-face shimmer relative flex w-full items-stretch gap-3 rounded-[14px] py-3 pl-4 pr-3 text-left transition duration-ui ${on ? "-translate-y-0.5 !border-[#d9b46b] shadow-[0_0_0_3px_rgba(241,216,148,0.55),0_14px_28px_-10px_rgba(0,0,0,0.8)]" : "hover:-translate-y-px"}`}>
+                    <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        {v ? <Suit kind={tone === "neutral" ? "unsure" : tone} className="h-4 w-4 shrink-0" /> : <span aria-hidden className="h-4 w-4 shrink-0 rounded-full border border-dashed border-[#6a5a36]/60" />}
+                        <span className="serif min-w-0 flex-1 truncate text-[17px] font-bold">{m.merchant}</span>
+                        {m.isNew && <span title="New charge on your card" className="rounded-full border border-[#7a4a05]/60 bg-[#d9b46b]/40 px-2 py-0.5 text-xs font-bold text-[#4d2f02]">NEW</span>}
+                        <span className="num text-sm font-bold">{money(m.totalCents)}</span>
+                      </div>
+                      <span className="min-w-0 truncate pl-6 font-mono text-xs text-[#5a4a2a]">{busy ? `${PHASE_TEXT[m.phase]}${m.phase === "crawling" && m.pagesSeen.length ? ` · ${m.pagesSeen.length} pages` : ""}…` : m.host ?? "no website"}</span>
+                      <div className="flex flex-wrap items-center gap-1.5 pl-6">
+                        <MiniScore who="Rules" v={m.basic ? { score: m.basic.report.score, verdict: m.basic.report.label } : null} pending={busy && !m.basic} />
+                        <MiniScore who="AI" v={deepV} pending={busy || (scanning && !m.deep)} />
+                      </div>
+                      {v && !busy && <span className={`pl-6 text-xs font-bold ${tone === "scam" ? "text-[#8e1d16]" : tone === "unsure" ? "text-[#7a4a05]" : "text-[#0f5a3a]"}`}>{LABEL[v.verdict]} · {m.txns.length} charge{m.txns.length === 1 ? "" : "s"}</span>}
                     </div>
-                    <div className="flex w-full min-w-0 items-center gap-2 pl-[18px]">
-                      <span className="min-w-0 flex-1 truncate font-mono text-xs text-dim">{busy ? `${PHASE_TEXT[m.phase]}${m.phase === "crawling" && m.pagesSeen.length ? ` · ${m.pagesSeen.length} pages` : ""}…` : m.host ?? "no website"}</span>
-                      <MiniScore who="Rules" v={m.basic ? { score: m.basic.report.score, verdict: m.basic.report.label } : null} pending={busy && !m.basic} />
-                      <MiniScore who="AI" v={deepV} pending={busy || (scanning && !m.deep)} />
-                    </div>
-                    {v && !busy && <span className={`pl-[18px] text-xs font-medium ${tone === "scam" ? "text-scam" : tone === "unsure" ? "text-unsure" : "text-safe"}`}>{LABEL[v.verdict]} · {m.txns.length} charge{m.txns.length === 1 ? "" : "s"}</span>}
+                    {v && !busy && <div className="relative z-10 flex shrink-0 items-end" aria-hidden><ChipStack score={v.score} topTone={toneFor(v.score).chip} scale={0.4} ghosts={false} animate={false} /></div>}
                   </button>
                   {on && <div className="mt-3 lg:hidden"><ScanDetail m={m} /></div>}
                 </li>
@@ -266,7 +270,7 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
             })}
           </ul>
           <div className="hidden min-w-0 lg:block">
-            {current ? <ScanDetail m={current} /> : <div className="rounded-card border border-dashed border-line p-10 text-center text-dim">Pick a merchant to see what Bluff found.</div>}
+            {current ? <ScanDetail m={current} /> : <div className="rounded-card border border-dashed brass-hairline p-10 text-center text-dim">Pick a merchant card to see what Bluff found.</div>}
           </div>
         </div>
       )}
