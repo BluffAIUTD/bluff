@@ -9,7 +9,9 @@ describe("demo script generator", () => {
     const { lines, warnings } = build(r);
     expect(lines.join(" ")).toContain(`F1 ${r.claimA.bluff.f1.toFixed(2)}`);
     expect(warnings.join(" ")).toMatch(/STAND-IN/);
-    expect(warnings.join(" ")).toMatch(/rules-only/);
+    // The committed Claim A headline is the live agent now; a rules-only headline must still be called out.
+    const basic = structuredClone(r); basic.claimA.mode = "basic (rules-only)";
+    expect(build(basic).warnings.join(" ")).toMatch(/rules-only/);
   });
   it("warns when Bluff does not beat a baseline, and when results are missing", () => {
     const losing = structuredClone(r); losing.claimA.bluff.f1 = 0.5; losing.claimB.bluff.f1 = 0.4;

@@ -1,0 +1,1654 @@
+{
+ "generated_at": "2026-11-08T07:07:31.115Z",
+ "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+ "per_category": null,
+ "budget_min": 20,
+ "order": [
+  "bm-0003",
+  "bm-0013",
+  "bm-0021",
+  "bm-0034",
+  "bm-0047",
+  "bm-0051",
+  "bm-0065",
+  "bm-0071",
+  "bm-0081",
+  "bm-0093",
+  "bm-0108",
+  "bm-0125",
+  "bm-0151",
+  "bm-0160",
+  "bm-0176",
+  "bm-0195",
+  "bm-0214",
+  "bm-0227",
+  "bm-0241",
+  "bm-0251",
+  "bm-0257",
+  "bm-0269",
+  "bm-0281",
+  "bm-0288",
+  "bm-0303",
+  "bm-0004",
+  "bm-0014",
+  "bm-0026",
+  "bm-0038",
+  "bm-0048",
+  "bm-0054",
+  "bm-0066",
+  "bm-0074",
+  "bm-0085",
+  "bm-0098",
+  "bm-0109",
+  "bm-0130",
+  "bm-0153",
+  "bm-0163",
+  "bm-0179",
+  "bm-0196",
+  "bm-0215",
+  "bm-0228",
+  "bm-0244",
+  "bm-0252",
+  "bm-0261",
+  "bm-0270",
+  "bm-0282",
+  "bm-0294",
+  "bm-0305",
+  "bm-0008",
+  "bm-0016",
+  "bm-0028",
+  "bm-0039",
+  "bm-0050",
+  "bm-0059",
+  "bm-0068",
+  "bm-0080",
+  "bm-0087",
+  "bm-0099",
+  "bm-0113",
+  "bm-0132",
+  "bm-0155",
+  "bm-0166",
+  "bm-0180",
+  "bm-0202",
+  "bm-0218",
+  "bm-0234",
+  "bm-0246",
+  "bm-0256",
+  "bm-0262",
+  "bm-0275",
+  "bm-0286",
+  "bm-0296",
+  "bm-0306",
+  "bm-0103",
+  "bm-0115",
+  "bm-0133",
+  "bm-0157",
+  "bm-0170",
+  "bm-0182",
+  "bm-0205",
+  "bm-0219",
+  "bm-0107",
+  "bm-0124",
+  "bm-0136",
+  "bm-0158",
+  "bm-0174",
+  "bm-0186",
+  "bm-0206",
+  "bm-0225"
+ ],
+ "results": {
+  "bm-0003": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "account_suspension",
+   "mode": "live",
+   "evidence": [
+    "Account locked message demands immediate billing update",
+    "Link leads to non‑allowlisted domain lumen-billing.help",
+    "Domain age unknown and TLD carries risk",
+    "Threat of deleting order history creates urgency"
+   ],
+   "ms": 4835,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0013": {
+   "verdict": "likely_scam",
+   "confidence": 0.78,
+   "score": 20,
+   "category": "refund_overpayment",
+   "mode": "live",
+   "evidence": [
+    "Call demands immediate action on an unauthorized $98.50 transfer",
+    "Impersonates PocketSend to pressure a callback",
+    "Phone number (214) 555-0199 is used to extract information"
+   ],
+   "ms": 3540,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0026": {
+   "verdict": "likely_scam",
+   "confidence": 0.9,
+   "score": 15,
+   "category": "delivery_fee",
+   "mode": "live",
+   "evidence": [
+    "Small $2.49 fee requested to resume delivery",
+    "Link uses lookalike domain parcelo-verify.top",
+    "Message pressures with urgency about missing address",
+    "No legitimate carrier asks for payment via text link"
+   ],
+   "ms": 4793,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0038": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "fake_store",
+   "mode": "live",
+   "evidence": [
+    "70% discount on premium headphones is unrealistic",
+    "Only 3 left creates false urgency",
+    "Crypto payment requested - no buyer protection",
+    "Domain is new/unknown with .help TLD",
+    "Brand not verified or allowlisted"
+   ],
+   "ms": 5214,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0047": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "family_emergency",
+   "mode": "live",
+   "evidence": [
+    "Family emergency story to extract money",
+    "Request for $180 via unspecified payment method",
+    "Pressure to keep the request secret",
+    "Urgency created by phone dying and borrowed phone"
+   ],
+   "ms": 3241,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0054": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 10,
+   "category": "gift_card_request",
+   "mode": "live",
+   "evidence": [
+    "Stranger asks for gift card codes urgently",
+    "Claims to be a friend in a bind",
+    "Offers to pay double as incentive",
+    "Requests codes be texted back"
+   ],
+   "ms": 3568,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0065": {
+   "verdict": "likely_scam",
+   "confidence": 0.93,
+   "score": 20,
+   "category": "government_impersonation",
+   "mode": "live",
+   "evidence": [
+    "Tax office won't demand immediate payment by text",
+    "Final notice with threat of penalties is a classic scam tactic",
+    "Payment link leads to unregistered domain lakecourt-notice.info"
+   ],
+   "ms": 5051,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0074": {
+   "verdict": "likely_scam",
+   "confidence": 0.89,
+   "score": 20,
+   "category": "investment_crypto",
+   "mode": "live",
+   "evidence": [
+    "Unsolicited investment offer from a stranger",
+    "AI bot claims guaranteed market returns",
+    "Request to join a 5-person investment circle",
+    "Too-good-to-be-true returns promised"
+   ],
+   "ms": 5022,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0081": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "job_offer",
+   "mode": "live",
+   "evidence": [
+    "Recruiter promises easy money for simple social media tasks",
+    "No experience needed but pays $28/hr remote data entry",
+    "Asks victim to reply YES to start the process",
+    "Classic job scam using easy_money and small_fee_request tactics"
+   ],
+   "ms": 3300,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0103": {
+   "verdict": "looks_ok",
+   "confidence": 0.91,
+   "score": 70,
+   "category": "legit_account_notice",
+   "mode": "live",
+   "evidence": [
+    "Password change notification with clear instruction to use official app",
+    "No links or requests for codes or payments",
+    "Message directs user to official app Settings > Security"
+   ],
+   "ms": 3190,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0109": {
+   "verdict": "unsure",
+   "confidence": 0.47,
+   "score": 69,
+   "category": "legit_appointment",
+   "mode": "live",
+   "evidence": [
+    "Pharmacy reminder about flu shot pickup with deadline",
+    "Reply C to confirm is a simple opt-in, not a request for money or codes",
+    "Phone number (469) 555-0132 appears to be a local callback, no red flags from domain look…"
+   ],
+   "ms": 6317,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel",
+    "domain_intel"
+   ]
+  },
+  "bm-0132": {
+   "verdict": "looks_ok",
+   "confidence": 0.9,
+   "score": 75,
+   "category": "legit_bank_alert",
+   "mode": "live",
+   "evidence": [
+    "Deposit confirmation for $89.50 received on 06/16",
+    "Message directs user to official app settings or card number",
+    "No request for codes, fees, or clicks included"
+   ],
+   "ms": 3981,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0155": {
+   "verdict": "looks_ok",
+   "confidence": 0.94,
+   "score": 70,
+   "category": "legit_delivery",
+   "mode": "live",
+   "evidence": [
+    "Delivery notification with tracking link",
+    "No obvious red flags in message text",
+    "Domain age unknown but no immediate scam markers"
+   ],
+   "ms": 4589,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0166": {
+   "verdict": "likely_scam",
+   "confidence": 0.91,
+   "score": 35,
+   "category": "prize_giveaway",
+   "mode": "live",
+   "evidence": [
+    "Time-limited reward claim pushes you to act quickly without thinking",
+    "Link points to shoplane.example, a non‑allowlisted, recently‑registered domain",
+    "Message asks you to log in or click a link to claim the reward",
+    "Small‑fee or credential request typical of prize‑giveaway scams"
+   ],
+   "ms": 5230,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0179": {
+   "verdict": "looks_ok",
+   "confidence": 0.93,
+   "score": 70,
+   "category": "legit_otp",
+   "mode": "live",
+   "evidence": [
+    "One-time code with short expiry",
+    "Clear instruction to ignore if not requested",
+    "No request to share or forward the code"
+   ],
+   "ms": 2748,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0195": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 70,
+   "category": "family_emergency",
+   "mode": "live",
+   "evidence": [
+    "Family member asking about board games and a niece visiting",
+    "Casual tone referencing plans already made",
+    "No request for money, codes, or personal info",
+    "No urgency or pressure tactics detected"
+   ],
+   "ms": 3079,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0215": {
+   "verdict": "looks_ok",
+   "confidence": 0.6,
+   "score": 85,
+   "category": "legit_transactional",
+   "mode": "live",
+   "evidence": [
+    "Confirmed bakery order with pickup link via SMS",
+    "Order number and bakery name provided",
+    "No urgent payment or personal info requested"
+   ],
+   "ms": 4103,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0228": {
+   "verdict": "likely_scam",
+   "confidence": 0.92,
+   "score": 15,
+   "category": "prize_giveaway",
+   "mode": "live",
+   "evidence": [
+    "Prize claim requires account verification via a link",
+    "Domain taco-junction.help is untrusted with risky TLD",
+    "Message uses urgency language to prompt quick action"
+   ],
+   "ms": 5188,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0241": {
+   "verdict": "likely_scam",
+   "confidence": 0.86,
+   "score": 30,
+   "category": "refund_overpayment",
+   "mode": "live",
+   "evidence": [
+    "Message asks for bank routing number under false overpayment claim",
+    "Requests login to a portal to process refund",
+    "No prior transaction history shown for ShopLane",
+    "Domain age unknown, not allowlisted"
+   ],
+   "ms": 6478,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0251": {
+   "verdict": "likely_scam",
+   "confidence": 0.9,
+   "score": 20,
+   "category": "rental_deposit",
+   "mode": "live",
+   "evidence": [
+    "Domain keyway-verify.xyz is brand new with unknown age and high TLD risk",
+    "Message demands a $350 deposit before viewing the property",
+    "Urgency tactic: 'first come, first served' pressure to act quickly",
+    "Link host keyway-verify.xyz is not allowlisted and shows brand-clone risk",
+    "No verified contact page or refund policy mentioned in the message"
+   ],
+   "ms": 6136,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0257": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 25,
+   "category": "romance",
+   "mode": "live",
+   "evidence": [
+    "Stranger asks for money under the guise of a family emergency",
+    "Urgency created by sister's wedding in two weeks",
+    "Request for $300 spot with promise to repay next Friday",
+    "Romantic context used to lower defenses"
+   ],
+   "ms": 3245,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0269": {
+   "verdict": "likely_scam",
+   "confidence": 0.91,
+   "score": 35,
+   "category": "subscription_trap",
+   "mode": "live",
+   "evidence": [
+    "Message pressures you to call a number to stop a renewal you may not have authorized",
+    "Phone callback requested to prevent cancellation of a subscription",
+    "Urgency language used to force quick action without verification"
+   ],
+   "ms": 3495,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0282": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "tech_support",
+   "mode": "live",
+   "evidence": [
+    "Message claims a critical virus was found on your workstation to create panic",
+    "Urgent demand to install remote repair tool immediately",
+    "Uses lookalike domain corelink-fix.click to mimic legitimate tech support",
+    "No HTTPS on the link, typical of phishing sites",
+    "Requests cooperation and immediate action without verification"
+   ],
+   "ms": 4815,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0288": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 30,
+   "category": "toll_scam",
+   "mode": "live",
+   "evidence": [
+    "Unpaid tolls message demands immediate action",
+    "Link uses a suspicious help TLD likely designed to look official",
+    "Message pressures recipient with account lock threat",
+    "Small fee amount ($9.50) typical of toll-scam pattern"
+   ],
+   "ms": 5449,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0303": {
+   "verdict": "likely_scam",
+   "confidence": 0.93,
+   "score": 30,
+   "category": "verification_code_theft",
+   "mode": "live",
+   "evidence": [
+    "Message asks you to text back a verification code sent by a buyer",
+    "Code share request is a classic verification code theft tactic",
+    "Stranger contact claims buyer wants to verify you're real"
+   ],
+   "ms": 3072,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0008": {
+   "verdict": "likely_scam",
+   "confidence": 0.93,
+   "score": 25,
+   "category": "account_suspension",
+   "mode": "live",
+   "evidence": [
+    "Message claims payment failed and demands immediate action",
+    "Uses threat language to suspend service if not complied",
+    "Links to a non-allowlisted, suspicious domain (signalwave-bill.help)",
+    "Domain is brand-new or age unknown with high TLD risk",
+    "Urges updating payment method through a link rather than official channel"
+   ],
+   "ms": 5529,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0014": {
+   "verdict": "unsure",
+   "confidence": 0.46,
+   "score": 69,
+   "category": "legit_bank_alert",
+   "mode": "live",
+   "evidence": [
+    "Bank alert warns of pending charge with confirm/dispute option",
+    "Message gives 2-hour response window before card lock",
+    "No link included, only a text reply request"
+   ],
+   "ms": 4632,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0028": {
+   "verdict": "likely_scam",
+   "confidence": 0.9,
+   "score": 20,
+   "category": "delivery_fee",
+   "mode": "live",
+   "evidence": [
+    "Text demands $2 payment to release a package",
+    "Link goes to a new top-level domain with no reputation",
+    "Message pressures you to act quickly",
+    "No official carrier would ask for a small fee by text"
+   ],
+   "ms": 7247,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0039": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "fake_store",
+   "mode": "live",
+   "evidence": [
+    "85% off everything is a massive discount lure",
+    "Only crypto or wire payment methods are requested",
+    "Domain age unknown, typical of short-lived scam sites",
+    "Site mimics a known brand or uses a suspicious TLD"
+   ],
+   "ms": 4727,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0048": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 15,
+   "category": "family_emergency",
+   "mode": "live",
+   "evidence": [
+    "Emergency story about detention to trigger panic",
+    "Payment request for $250 release fee",
+    "Secrecy request to keep it quiet",
+    "Urgency language pressuring quick action"
+   ],
+   "ms": 3408,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0059": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 10,
+   "category": "gift_card_request",
+   "mode": "live",
+   "evidence": [
+    "Ben asks Elena to buy 3 $25 Lumen Electronics gift cards and share the back codes",
+    "Message claims office needs cards for unexpected client gift situation",
+    "Ben promises immediate reimbursement but requests gift card codes as payment",
+    "Urgency and secrecy tactics typical of gift card scams"
+   ],
+   "ms": 6246,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0066": {
+   "verdict": "likely_scam",
+   "confidence": 0.91,
+   "score": 15,
+   "category": "government_impersonation",
+   "mode": "live",
+   "evidence": [
+    "Agency won't contact you by text about unpaid taxes",
+    "Message demands immediate callback to a phone number",
+    "Threat of enforcement action creates urgency"
+   ],
+   "ms": 3269,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0080": {
+   "verdict": "likely_scam",
+   "confidence": 0.89,
+   "score": 20,
+   "category": "investment_crypto",
+   "mode": "live",
+   "evidence": [
+    "Stranger initiates contact about investment opportunity",
+    "Promises life-changing gains from AI trading bot",
+    "Requests direct message for setup guide without sharing details publicly",
+    "Classic crypto investment scam pattern with unsolicited offer"
+   ],
+   "ms": 3222,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0085": {
+   "verdict": "likely_scam",
+   "confidence": 0.93,
+   "score": 20,
+   "category": "job_offer",
+   "mode": "live",
+   "evidence": [
+    "Job offer promises $45/hour for simple social media liking with no experience required",
+    "Message asks recipient to text YES to start the opportunity",
+    "Link directs to oakmart-verify.top which has unknown age and high TLD risk",
+    "Domain is not allowlisted and shows brand clone indicators"
+   ],
+   "ms": 5249,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0107": {
+   "verdict": "looks_ok",
+   "confidence": 0.92,
+   "score": 75,
+   "category": "legit_account_notice",
+   "mode": "live",
+   "evidence": [
+    "Official app directs user to manage trusted devices",
+    "No request for codes, payment, or personal info",
+    "Message warns user to verify within the app"
+   ],
+   "ms": 3055,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0124": {
+   "verdict": "unsure",
+   "confidence": 0.44,
+   "score": 69,
+   "category": "legit_appointment",
+   "mode": "live",
+   "evidence": [
+    "Appointment reminder with a specific time and clinic name",
+    "Reply C to confirm or call to reschedule are normal options",
+    "Phone number format is standard local format"
+   ],
+   "ms": 4527,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0136": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 85,
+   "category": "legit_bank_alert",
+   "mode": "live",
+   "evidence": [
+    "Standard balance update with deposit amount and timestamp",
+    "No request for action, code, or personal data",
+    "Message matches known bank alert format"
+   ],
+   "ms": 3363,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0158": {
+   "verdict": "looks_ok",
+   "confidence": 0.86,
+   "score": 70,
+   "category": "legit_delivery",
+   "mode": "live",
+   "evidence": [
+    "Delivery notice with tracking link and order number",
+    "No request for fee, code, or payment",
+    "Standard carrier format with estimated arrival time"
+   ],
+   "ms": 4623,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0170": {
+   "verdict": "unsure",
+   "confidence": 0.65,
+   "score": 60,
+   "category": "legit_marketing",
+   "mode": "live",
+   "evidence": [
+    "$15 off $50 purchase is a common retail promotion",
+    "Message includes a STOP reply option which is typical for opt-in marketing",
+    "No direct request for money, codes, or clicks"
+   ],
+   "ms": 4895,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0182": {
+   "verdict": "looks_ok",
+   "confidence": 0.93,
+   "score": 85,
+   "category": "legit_otp",
+   "mode": "live",
+   "evidence": [
+    "One-time code with short expiry",
+    "Message warns never to share the code",
+    "Code was requested within last 5 minutes"
+   ],
+   "ms": 4503,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0205": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 85,
+   "category": "legit_personal",
+   "mode": "live",
+   "evidence": [
+    "Personal check-in about dinner plans",
+    "No requests for money, codes, or clicks",
+    "No urgency or pressure tactics"
+   ],
+   "ms": 2991,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0225": {
+   "verdict": "looks_ok",
+   "confidence": 0.95,
+   "score": 75,
+   "category": "legit_transactional",
+   "mode": "live",
+   "evidence": [
+    "Order confirmation with pickup details from a known restaurant chain",
+    "No urgent payment or personal info requested",
+    "Domain registered over 5 years ago, indicating established site"
+   ],
+   "ms": 4631,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0234": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "prize_giveaway",
+   "mode": "live",
+   "evidence": [
+    "VIP member claim requires entering payment info",
+    "Domain oakmart-verify.info is unregistered/unknown age",
+    "Link leads to a lookalike domain not associated with official brand",
+    "Message pressures user with urgency to claim reward",
+    "Asking for payment info is a credential theft tactic"
+   ],
+   "ms": 5274,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0244": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 15,
+   "category": "refund_overpayment",
+   "mode": "live",
+   "evidence": [
+    "They claim an overpayment and ask for bank account details",
+    "Message pressures you to send sensitive info",
+    "Requests for bank details to 'verify identity' is a classic phishing tactic"
+   ],
+   "ms": 2837,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0252": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "rental_deposit",
+   "mode": "live",
+   "evidence": [
+    "Renters are pressured to send $200 via MeadowPay before Saturday to guarantee the cottage",
+    "Listing uses urgency language 'many people are interested so I can't hold it long'",
+    "No contact page or verified listing; the message is unsolicited from a stranger",
+    "Rent amount $950/mo is used to make the fee seem small relative to the rent",
+    "Payment requested via app before viewing the property or signing a lease"
+   ],
+   "ms": 7949,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel",
+    "domain_intel"
+   ]
+  },
+  "bm-0261": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 15,
+   "category": "gift_card_request",
+   "mode": "live",
+   "evidence": [
+    "Message asks for $200 gift card payment",
+    "Claims to be from game chat friend Luis",
+    "Promises to pay back double",
+    "Requests gift card codes as payment method",
+    "No prior relationship or in-person meeting"
+   ],
+   "ms": 2931,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0270": {
+   "verdict": "unsure",
+   "confidence": 0.4,
+   "score": 40,
+   "category": "subscription_trap",
+   "mode": "live",
+   "evidence": [
+    "Message pressures you to act immediately before membership renews",
+    "Asks you to reply STOP to cancel a charge you may not have authorized",
+    "Uses urgency language to prevent careful consideration"
+   ],
+   "ms": 3270,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0286": {
+   "verdict": "likely_scam",
+   "confidence": 0.91,
+   "score": 20,
+   "category": "subscription_trap",
+   "mode": "live",
+   "evidence": [
+    "Message creates urgency by claiming auto-renewal failed",
+    "Phone number requested to avoid service suspension",
+    "Threat of data loss and service suspension used to pressure victim"
+   ],
+   "ms": 4133,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0296": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "toll_scam",
+   "mode": "live",
+   "evidence": [
+    "Unpaid balance message demands immediate payment under threat of fees",
+    "Link points to a new, untrusted domain (metrotollway.help)",
+    "Domain is brand-new with no age or reputation data",
+    "Message uses urgency and threat language to pressure quick action"
+   ],
+   "ms": 4518,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0306": {
+   "verdict": "likely_scam",
+   "confidence": 0.91,
+   "score": 20,
+   "category": "verification_code_theft",
+   "mode": "live",
+   "evidence": [
+    "Message claims account is locked to pressure you into acting quickly",
+    "Requests you to enter a verification code sent to your phone",
+    "Code expires in 10 minutes creating artificial urgency",
+    "Asks you to provide a code that was texted to you - a classic OTP theft tactic"
+   ],
+   "ms": 3370,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0021": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 15,
+   "category": "delivery_fee",
+   "mode": "live",
+   "evidence": [
+    "Small $1.99 fee requested to release a held parcel",
+    "Link goes to a recently registered or unknown domain (parcelo-redelivery.top)",
+    "Message pressures you to act immediately"
+   ],
+   "ms": 4674,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0034": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "fake_store",
+   "mode": "live",
+   "evidence": [
+    "75% off all electronics is a classic too-good-to-be-true discount",
+    "Crypto-only payment with no buyer protection",
+    "Domain gadgetvault.click is brand-new and unregistered in our database",
+    "Site mimics a known brand name (GadgetVault Deals)"
+   ],
+   "ms": 4623,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0051": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "gift_card_request",
+   "mode": "live",
+   "evidence": [
+    "Manager impersonation requesting gift cards for client gift exchange",
+    "Asks victim to purchase and text back gift card codes",
+    "Urgency language pressuring quick action",
+    "Secrecy request typical of gift card scams"
+   ],
+   "ms": 4071,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0071": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "investment_crypto",
+   "mode": "live",
+   "evidence": [
+    "Unsolicited crypto investment offer from a stranger",
+    "Guaranteed 12% monthly returns are unrealistic",
+    "Pressure to join a VIP group with urgency tactics",
+    "Request to move money or join a platform outside official channels"
+   ],
+   "ms": 3573,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0093": {
+   "verdict": "looks_ok",
+   "confidence": 0.67,
+   "score": 70,
+   "category": "legit_account_notice",
+   "mode": "live",
+   "evidence": [
+    "Message directs user to official app rather than a link",
+    "No request for codes, payments, or personal data",
+    "Standard account update notification format"
+   ],
+   "ms": 2964,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0108": {
+   "verdict": "looks_ok",
+   "confidence": 0.86,
+   "score": 75,
+   "category": "legit_appointment",
+   "mode": "live",
+   "evidence": [
+    "Appointment confirmation with reply option",
+    "Phone number provided for verification",
+    "No requests for codes, fees, or payments"
+   ],
+   "ms": 3766,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0125": {
+   "verdict": "looks_ok",
+   "confidence": 0.94,
+   "score": 75,
+   "category": "legit_bank_alert",
+   "mode": "live",
+   "evidence": [
+    "Balance notification with recent purchase posted",
+    "No request for action, code, or payment",
+    "Message appears to be a standard transactional alert"
+   ],
+   "ms": 2704,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0151": {
+   "verdict": "looks_ok",
+   "confidence": 0.91,
+   "score": 75,
+   "category": "legit_delivery",
+   "mode": "live",
+   "evidence": [
+    "Domain oakmart.com registered 5410 days ago, indicating an established merchant",
+    "No brand-clone flag or risky TLD detected",
+    "Message follows standard delivery-notice format without fee requests or urgent demands"
+   ],
+   "ms": 5576,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0160": {
+   "verdict": "looks_ok",
+   "confidence": 0.94,
+   "score": 70,
+   "category": "legit_marketing",
+   "mode": "live",
+   "evidence": [
+    "25% discount advertised with a deadline",
+    "Standard promotional code WEEKLY25",
+    "Domain flixy.com is 9719 days old"
+   ],
+   "ms": 4789,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0176": {
+   "verdict": "looks_ok",
+   "confidence": 0.86,
+   "score": 70,
+   "category": "legit_otp",
+   "mode": "live",
+   "evidence": [
+    "Message warns never to share the code",
+    "Code expires in 15 minutes",
+    "Code is sent unsolicited but with protective warning"
+   ],
+   "ms": 2824,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0214": {
+   "verdict": "looks_ok",
+   "confidence": 0.74,
+   "score": 85,
+   "category": "legit_transactional",
+   "mode": "live",
+   "evidence": [
+    "Message confirms a jacket order ready for in-store pickup",
+    "Asks only to bring ID, no payment or link requested",
+    "No urgency language, countdown timers, or gift card demands"
+   ],
+   "ms": 3088,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0227": {
+   "verdict": "likely_scam",
+   "confidence": 0.84,
+   "score": 20,
+   "category": "prize_giveaway",
+   "mode": "live",
+   "evidence": [
+    "Prize claim requires urgency and a 24-hour expiry",
+    "Domain basil-bowl.top is unregistered/unknown with TLD risk",
+    "Gift card offered but domain is not allowlisted",
+    "Countdown timer pressure tactic used"
+   ],
+   "ms": 5090,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0281": {
+   "verdict": "likely_scam",
+   "confidence": 0.81,
+   "score": 20,
+   "category": "bank_impersonation",
+   "mode": "live",
+   "evidence": [
+    "Caller claims to be from CloudVault Support and warns of account lockout",
+    "Message pressures you to call a phone number immediately",
+    "Uses urgency language to create fear of data being locked"
+   ],
+   "ms": 3090,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0004": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "account_suspension",
+   "mode": "live",
+   "evidence": [
+    "Text threatens account suspension to pressure you into acting quickly",
+    "Asks you to confirm card details through a provided link",
+    "Link domain is a lookalike (flixy-support.help) not the official site",
+    "Domain age unknown, registrar not verified, TLD carries risk"
+   ],
+   "ms": 4820,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0098": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 73,
+   "category": "legit_personal",
+   "mode": "basic",
+   "evidence": [
+    "Doesn't ask for money, codes or personal details",
+    "Limited check: the page content was not analyzed",
+    "Based on rules only, without the AI agent"
+   ],
+   "ms": 6574,
+   "tools": [
+    "taxonomy_match",
+    "submit_verdict"
+   ],
+   "error": "malformed: Model verdict failed validation twice"
+  },
+  "bm-0130": {
+   "verdict": "looks_ok",
+   "confidence": 0.9,
+   "score": 91,
+   "category": "legit_bank_alert",
+   "mode": "basic",
+   "evidence": [
+    "Doesn't ask for money, codes or personal details",
+    "Points you to your card or the official app",
+    "Limited check: the page content was not analyzed"
+   ],
+   "ms": 7763,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel",
+    "domain_intel",
+    "submit_verdict"
+   ],
+   "error": "malformed: Model verdict failed validation twice"
+  },
+  "bm-0153": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 75,
+   "category": "legit_delivery",
+   "mode": "live",
+   "evidence": [
+    "No fee requested or link clicked",
+    "Message appears to be a standard delivery confirmation",
+    "No urgency language or pressure tactics detected"
+   ],
+   "ms": 3272,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0163": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 70,
+   "category": "legit_marketing",
+   "mode": "live",
+   "evidence": [
+    "Limited-time seasonal menu item offered as a marketing promotion",
+    "20% discount presented as a standard offer",
+    "No request for payment, codes, or personal information",
+    "No urgent or threatening language detected"
+   ],
+   "ms": 3060,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0196": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 80,
+   "category": "legit_appointment",
+   "mode": "live",
+   "evidence": [
+    "Friendly check-in about a scheduled gym session",
+    "No urgent demands or requests for money or personal info",
+    "Message appears to be from a known contact"
+   ],
+   "ms": 3593,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0294": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 15,
+   "category": "toll_scam",
+   "mode": "live",
+   "evidence": [
+    "Toll amount $5.10 used to create urgency",
+    "Link domain bayline-express.help is only 1 day old",
+    "Domain uses risky TLD .help and is not allowlisted",
+    "Message threatens transponder deactivation to pressure quick payment"
+   ],
+   "ms": 4948,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0305": {
+   "verdict": "likely_scam",
+   "confidence": 0.79,
+   "score": 30,
+   "category": "verification_code_theft",
+   "mode": "live",
+   "evidence": [
+    "Code was sent to verify you're not a bot",
+    "You're asked to text the code back",
+    "Message from stranger claiming to be from PocketSend"
+   ],
+   "ms": 3709,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0016": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 75,
+   "category": "legit_bank_alert",
+   "mode": "live",
+   "evidence": [
+    "Message claims to be from Ferro Wallet about a pending transfer",
+    "Asks recipient to reply YES to authorize",
+    "No request for codes, fees, gift cards, or personal info"
+   ],
+   "ms": 2702,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0050": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 15,
+   "category": "family_emergency",
+   "mode": "live",
+   "evidence": [
+    "Grandparent targeted with urgent story about broken phone",
+    "Request to send $120 via Ferro Wallet app or wire",
+    "Pressure to send money quickly so relative can work"
+   ],
+   "ms": 3197,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0068": {
+   "verdict": "likely_scam",
+   "confidence": 0.83,
+   "score": 20,
+   "category": "government_impersonation",
+   "mode": "live",
+   "evidence": [
+    "Tax agency won't demand payment by text message",
+    "Urgent threat of legal action within 24 hours",
+    "Suspicious lookalike domain westland-tax-settle.help",
+    "Domain age unknown, new or unregistered site",
+    "No legitimate agency sends balance demands via text"
+   ],
+   "ms": 5496,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0087": {
+   "verdict": "likely_scam",
+   "confidence": 0.95,
+   "score": 20,
+   "category": "job_offer",
+   "mode": "live",
+   "evidence": [
+    "Job offer promises $22/hour typing work from home",
+    "Message asks victim to deposit first paycheck via a link",
+    "Domain talentry-verify.help is unregistered (age null) and high-risk TLD",
+    "Taxonomy match flags easy_money and small_fee_request red flags"
+   ],
+   "ms": 5366,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0099": {
+   "verdict": "looks_ok",
+   "confidence": 0.92,
+   "score": 75,
+   "category": "legit_account_notice",
+   "mode": "live",
+   "evidence": [
+    "Message warns about unrecognized sign-in and directs to official app",
+    "No request for codes, fees, or personal information",
+    "Points user to official app Settings > Security rather than a link"
+   ],
+   "ms": 3240,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0113": {
+   "verdict": "looks_ok",
+   "confidence": 0.74,
+   "score": 70,
+   "category": "legit_appointment",
+   "mode": "live",
+   "evidence": [
+    "Standard appointment reminder with a scheduled time and clinic name",
+    "No request for payment, gift cards, or personal data",
+    "Phone number provided is a callback option, not a demand"
+   ],
+   "ms": 3052,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0180": {
+   "verdict": "looks_ok",
+   "confidence": 0.92,
+   "score": 70,
+   "category": "legit_otp",
+   "mode": "live",
+   "evidence": [
+    "Message warns not to share the code",
+    "Code expires in 10 minutes",
+    "Advises changing password in the app"
+   ],
+   "ms": 3143,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0202": {
+   "verdict": "likely_scam",
+   "confidence": 0.87,
+   "score": 30,
+   "category": "gift_card_request",
+   "mode": "live",
+   "evidence": [
+    "The message asks you to call about Grandma's birthday dinner, which is a setup to request…",
+    "The sender references a family event (Grandma's birthday) to create emotional leverage",
+    "The message uses a family story to pressure you into acting quickly",
+    "No legitimate reason exists for a relative to ask for gift cards via text about dinner pl…",
+    "The request follows a pattern of family-emergency scams that start with seemingly harmles…"
+   ],
+   "ms": 3380,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0218": {
+   "verdict": "unsure",
+   "confidence": 0.39,
+   "score": 69,
+   "category": "legit_transactional",
+   "mode": "live",
+   "evidence": [
+    "Order confirmation with tracking number and business-day processing window",
+    "No request for payment, gift cards, codes, or personal data",
+    "Message follows standard e-commerce confirmation format"
+   ],
+   "ms": 4414,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0246": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 10,
+   "category": "refund_overpayment",
+   "mode": "live",
+   "evidence": [
+    "They claim an overpayment of $180 to create urgency",
+    "Request for online banking login is a credential request",
+    "Legitimate overpayments never ask for login details"
+   ],
+   "ms": 3549,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0256": {
+   "verdict": "likely_scam",
+   "confidence": 0.94,
+   "score": 20,
+   "category": "rental_deposit",
+   "mode": "live",
+   "evidence": [
+    "Out-of-state owner asks for deposit before showing the property",
+    "Request to pay via PocketSend app to a phone number",
+    "Urgency to send money before seeing the house",
+    "No verified contact page or lease agreement yet"
+   ],
+   "ms": 4838,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0262": {
+   "verdict": "likely_scam",
+   "confidence": 0.92,
+   "score": 20,
+   "category": "family_emergency",
+   "mode": "live",
+   "evidence": [
+    "Maya claims grandma just left hospital and needs rent help",
+    "Message pressures for quick money",
+    "Asks for financial help from a stranger met at a coffee shop"
+   ],
+   "ms": 4576,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0275": {
+   "verdict": "likely_scam",
+   "confidence": 0.91,
+   "score": 30,
+   "category": "subscription_trap",
+   "mode": "live",
+   "evidence": [
+    "Phone number requested for callback to change or cancel plan",
+    "Urgency created with renewal due tomorrow",
+    "Limited time offer pressure tactic"
+   ],
+   "ms": 2677,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0115": {
+   "verdict": "looks_ok",
+   "confidence": 0.65,
+   "score": 75,
+   "category": "legit_appointment",
+   "mode": "live",
+   "evidence": [
+    "Dental office appointment reminder with confirm code",
+    "Phone number provided for verification",
+    "No urgent payment or fee request"
+   ],
+   "ms": 6510,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0133": {
+   "verdict": "looks_ok",
+   "confidence": 0.81,
+   "score": 75,
+   "category": "legit_bank_alert",
+   "mode": "live",
+   "evidence": [
+    "Bank alert references a real purchase amount and date",
+    "Balance shown matches typical checking balance range",
+    "Message directs to official app rather than a link",
+    "No urgent demand for codes or payments"
+   ],
+   "ms": 8333,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel",
+    "domain_intel",
+    "domain_intel"
+   ]
+  },
+  "bm-0157": {
+   "verdict": "looks_ok",
+   "confidence": 0.88,
+   "score": 75,
+   "category": "legit_delivery",
+   "mode": "live",
+   "evidence": [
+    "Delivery notification with order number and merchant name",
+    "No request for payment, codes, or personal info",
+    "Standard e-commerce order confirmation tone"
+   ],
+   "ms": 3600,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0219": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 73,
+   "category": "legit_transactional",
+   "mode": "basic",
+   "evidence": [
+    "Doesn't ask for money, codes or personal details",
+    "Limited check: the page content was not analyzed",
+    "Based on rules only, without the AI agent"
+   ],
+   "ms": 15005,
+   "tools": [
+    "taxonomy_match"
+   ],
+   "error": "timeout: model request timed out"
+  },
+  "bm-0174": {
+   "verdict": "unsure",
+   "confidence": 0.4,
+   "score": 55,
+   "category": "legit_marketing",
+   "mode": "live",
+   "evidence": [
+    "40% discount advertised with countdown urgency",
+    "Reply STOP option to unsubscribe",
+    "Link to shoplane.example with unknown domain age"
+   ],
+   "ms": 5783,
+   "tools": [
+    "taxonomy_match",
+    "domain_intel"
+   ]
+  },
+  "bm-0186": {
+   "verdict": "looks_ok",
+   "confidence": 0.86,
+   "score": 70,
+   "category": "legit_otp",
+   "mode": "live",
+   "evidence": [
+    "One-time code with expiration warning",
+    "Standard verification code format",
+    "Includes instruction not to share"
+   ],
+   "ms": 3129,
+   "tools": [
+    "taxonomy_match"
+   ]
+  },
+  "bm-0206": {
+   "verdict": "looks_ok",
+   "confidence": 0.8,
+   "score": 85,
+   "category": "legit_personal",
+   "mode": "live",
+   "evidence": [
+    "Personal message about a routine errand",
+    "No urgent demands or requests for money",
+    "No links or codes requested",
+    "No pressure tactics"
+   ],
+   "ms": 2977,
+   "tools": [
+    "taxonomy_match"
+   ]
+  }
+ }
+}

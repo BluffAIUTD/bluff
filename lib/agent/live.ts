@@ -3,7 +3,9 @@ import { getPool, one } from "../db";
 import { findCandidates, type LinkCandidate } from "../linker";
 import type { StepEvent, Verdict } from "../schemas";
 import { chat, LlmError, type ChatMessage } from "./llm";
-import { basicVerdictFor } from "./mock";
+import { basicVerdictFor, linkHost } from "./mock";
+import { messageKeys } from "../rules/signals";
+import { withCategorySteps } from "../rules/message";
 import { MODE_PROMPTS, PAGE_SITE_PROMPT, SYSTEM_PROMPT } from "./prompts";
 import { getTool, openAiTools, runTool } from "./tools";
 import { siteSubmitParameters, submitVerdict } from "./tools/submitVerdict";
@@ -25,8 +27,15 @@ export const PAGE_SITE_DEADLINE_MS = 32_000;
 
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
-function summarizeArgs(tool: string, a: Record<string, unknown>): string {
-  const v = (Array.isArray(a.paths) ? a.paths.join(", ") : undefined) ?? (Array.isArray(a.types) ? a.types.join(", ") : undefined) ?? a.path ?? a.type ?? a.host ?? a.merchant ?? a.descriptor ?? a.descriptor_norm ?? a.text ?? a.txn_id ?? (tool === "submit_verdict" ? `score ${a.score}` : JSON.stringify(a));
+/**
+ * One-line, stored summary of a tool call's arguments. Privacy: free text (a forwarded message) is never stored, only its
+ * length; message runs store only a link's host, a verdict's score, or nothing.
+ */
+export function summarizeArgs(tool: string, a: Record<string, unknown>, privateText = false): string {
+  if (tool === "submit_verdict") return `score ${a.score}`;
+  if (typeof a.text === "string") return `text (${a.text.length} chars, not stored)`;
+  if (privateText) return tool === "domain_intel" && typeof a.host === "string" ? clip(linkHost(a.host), 70) : "(arguments not stored)";
+  const v = (Array.isArray(a.paths) ? a.paths.join(", ") : undefined) ?? (Array.isArray(a.types) ? a.types.join(", ") : undefined) ?? a.path ?? a.type ?? a.host ?? a.merchant ?? a.descriptor ?? a.descriptor_norm ?? a.txn_id ?? JSON.stringify(a);
   return clip(String(v), 70);
 }
 
@@ -142,7 +151,9 @@ export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOpti
       : pageScan ? { host: pageScan.host, merchant: pageScan.merchant ?? pageScan.host, descriptor: "", scanId: pageScan.id } : null;
     const ctx = { userId: input.userId, db: getPool(), txnTs: subj.txnTs, ...(site ? { site } : {}) };
     const tools = openAiTools(pageScan ? "page_site" : input.kind).map((t) => (siteReview && t.function.name === "submit_verdict" ? { ...t, function: { ...t.function, parameters: siteSubmitParameters } } : t));
-    const basicKeys = siteReview ? subj.basicKeys ?? [] : [];
+    // Evidence the server already holds counts toward confidence: the crawl's basic check, or a message's rule signals.
+    const offered = new Set(tools.map((t) => t.function.name));
+    const basicKeys = siteReview ? subj.basicKeys ?? [] : input.kind === "message" ? messageKeys(input.text) : [];
     let repaired = false;
     let nudged = false;
     if (!crawlsPage) step({ kind: "plan", tool: null, inputSummary: clip(input.kind === "page" ? `Check ${input.host}` : input.kind === "txn" ? `Charge ${subj.txn?.descriptor}` : input.kind === "site" ? `Deep review · ${input.merchant}` : `Message, ${input.text.length} chars`, 70), outputSummary: input.kind === "site" ? "Plan: read the crawled pages → payment history → verdict" : `Plan: ${MODE_PROMPTS[input.kind].split("Expected tools: ")[1]?.replace(/\.$/, "") ?? "investigate"}`, ms: Date.now() - t0 });
@@ -169,7 +180,8 @@ export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOpti
         if (name === "submit_verdict") {
           const res = parseErr ? { ok: false as const, errors: [parseErr] } : submitVerdict(args, "live", basicKeys);
           if (res.ok) {
-            const v = reconcileLink(res.verdict, subj.candidates, input.kind === "txn" ? input.txnId : undefined);
+            const linked = reconcileLink(res.verdict, subj.candidates, input.kind === "txn" ? input.txnId : undefined);
+            const v = input.kind === "message" ? withCategorySteps(linked) : linked;
             step({ kind: "final", tool: "submit_verdict", inputSummary: `score ${v.score}`, outputSummary: `${v.verdict} (${Math.round(v.confidence * 100)}% sure)`, ms: Date.now() - tt });
             emit({ type: "verdict", data: v });
             return { verdict: v, mode: "live" };
@@ -181,9 +193,10 @@ export const liveRun: Runner = async (input: RunInput, emit: Emit, opts: RunOpti
           continue;
         }
 
-        const result = parseErr || !getTool(name) ? { error: parseErr ?? `unknown tool: ${name}` } : await runTool(name, args, ctx);
+        // Only the tools offered for this mode run (a message run must never draft a dispute or send a notification).
+        const result = parseErr || !getTool(name) || !offered.has(name) ? { error: parseErr ?? (getTool(name) ? `tool not available in this mode: ${name}` : `unknown tool: ${name}`) } : await runTool(name, args, ctx);
         messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result) });
-        step({ kind: "tool", tool: name, inputSummary: summarizeArgs(name, args), outputSummary: summarizeResult(name, result), ms: Date.now() - tt });
+        step({ kind: "tool", tool: name, inputSummary: summarizeArgs(name, args, input.kind === "message"), outputSummary: summarizeResult(name, result), ms: Date.now() - tt });
       }
     }
     return fallback("malformed", "Model did not finish within the iteration limit");

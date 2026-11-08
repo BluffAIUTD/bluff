@@ -122,3 +122,19 @@ describe("replay ladder when the AI check fails on a charge", () => {
     expect(rp?.verdict.mode).toBe("replayed");
   });
 });
+
+describe("message runs store no message text (privacy by design)", () => {
+  it("agent_steps keep tool names, the link host, category and counts, never a fragment (>= 12 chars) of the message", async () => {
+    const text = "Hi it's Sam from the fraud team. Your card is locked. Verify your card number and PIN at acct-secure-verify.top/login?u=maya within 2 hours";
+    const r = await runToCompletion({ kind: "message", userId: MAYA_ID, text, source: "check" });
+    expect(r.verdict.verdict).toBe("likely_scam");
+    expect(r.verdict.category).not.toBe("fake_store");
+    const rows = (await t.pool.query("SELECT tool, input_summary, output_summary FROM agent_steps WHERE run_id=$1 ORDER BY seq", [r.runId])).rows;
+    expect(rows.map((x) => x.tool)).toEqual(expect.arrayContaining(["taxonomy_match", "submit_verdict"]));
+    const stored = rows.map((x) => `${x.input_summary}\n${x.output_summary}`).join("\n").replaceAll("acct-secure-verify.top", "<host>");
+    const leaks: string[] = [];
+    for (let i = 0; i + 12 <= text.length; i++) if (stored.includes(text.slice(i, i + 12))) leaks.push(text.slice(i, i + 12));
+    expect(leaks).toEqual([]);
+    expect(stored).not.toContain("maya");
+  });
+});

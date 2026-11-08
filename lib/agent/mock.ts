@@ -3,7 +3,8 @@ import path from "node:path";
 import { StepEventSchema, VerdictSchema, type StepEvent, type Verdict } from "../schemas";
 import { getConfig } from "../config";
 import { basicCheck } from "../rules/basicCheck";
-import { messageKeys, pageKeys, extractUrls } from "../rules/signals";
+import { pageKeys, extractUrls } from "../rules/signals";
+import { messageBasicCheck } from "../rules/message";
 import { getPool } from "../db";
 import { txnRulesVerdict } from "./txn";
 import { siteBasicFallback } from "../scan/fallback";
@@ -37,14 +38,19 @@ export function paceFor(i: number, speed = getConfig().mockSpeed): number {
   return base * speed;
 }
 
+/** Host of a link found in a message (never its path or query, which can carry personal data). */
+export const linkHost = (url: string) => url.replace(/^https?:\/\//i, "").split(/[/?#]/)[0].toLowerCase().slice(0, 60);
+
 function stepsFromBasic(input: RunInput, v: Verdict): Omit<StepEvent, "seq">[] {
   if (input.kind === "message") {
+    // Privacy: steps are stored (agent_steps), so they name tools, hosts, categories and counts, never message text.
     const urls = extractUrls(input.text);
+    const keys = v.evidence_keys.length;
     return [
-      { kind: "plan", tool: null, inputSummary: `Message, ${input.text.length} chars`, outputSummary: "Plan: taxonomy → link check → verdict", ms: 280 },
-      { kind: "tool", tool: "taxonomy_match", inputSummary: input.text.slice(0, 40), outputSummary: `${v.category}`, ms: 340 },
-      ...(urls.length ? [{ kind: "tool" as const, tool: "domain_intel", inputSummary: urls[0].slice(0, 50), outputSummary: "age unknown (limited check)", ms: 290 }] : []),
-      { kind: "final", tool: "submit_verdict", inputSummary: `score ${v.score}`, outputSummary: `${v.verdict} (${Math.round(v.confidence * 100)}% sure)`, ms: 100 },
+      { kind: "plan", tool: null, inputSummary: `Message, ${input.text.length} chars`, outputSummary: "Plan: rules check → taxonomy → link check → verdict", ms: 280 },
+      { kind: "tool", tool: "taxonomy_match", inputSummary: `message text (${input.text.length} chars, not stored)`, outputSummary: `${v.category} (keyword rules)`, ms: 340 },
+      ...(urls.length ? [{ kind: "tool" as const, tool: "domain_intel", inputSummary: linkHost(urls[0]), outputSummary: "age unknown (limited check)", ms: 290 }] : []),
+      { kind: "final", tool: "submit_verdict", inputSummary: `score ${v.score} · ${keys} signal${keys === 1 ? "" : "s"}`, outputSummary: `${v.verdict} (${Math.round(v.confidence * 100)}% sure)`, ms: 100 },
     ];
   }
   const host = input.kind === "page" ? input.host : "charge";
@@ -58,7 +64,7 @@ function stepsFromBasic(input: RunInput, v: Verdict): Omit<StepEvent, "seq">[] {
 
 /** Fallback verdict for any input without calling a model. Always mode="basic". */
 export function basicVerdictFor(input: RunInput): Verdict {
-  if (input.kind === "message") return basicCheck({ keys: messageKeys(input.text) });
+  if (input.kind === "message") return messageBasicCheck(input.text);
   if (input.kind === "page") {
     const s = input.signals as Record<string, boolean | number>;
     const tld = input.host.split(".").pop();
