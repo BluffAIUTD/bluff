@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiError, handle } from "@/lib/errors";
-import { getContext, json, parseBody } from "@/lib/api/helpers";
+import { getUserContext, json, parseBody } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { getExposure, toExposureDto, type ExposureRow } from "@/lib/exposures";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const Patch = z.object({ watch: z.boolean().optional() });
 
 export const PATCH = handle(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const { id } = await params;
   const body = await parseBody(req, Patch);
   const existing = await getExposure(getPool(), ctx.userId, id);
@@ -20,7 +20,7 @@ export const PATCH = handle(async (req: Request, { params }: { params: Promise<{
 });
 
 export const DELETE = handle(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const { id } = await params;
   const existing = await getExposure(getPool(), ctx.userId, id);
   if (!existing) throw new ApiError("not_found", "Exposure not found");

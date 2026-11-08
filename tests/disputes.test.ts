@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
-import { createTestDb } from "./testdb";
+import { createTestDb, sessionCookie } from "./testdb";
 import { closePool } from "../lib/db";
 import { MAYA_ID } from "../lib/config";
 import { POST as createDisputeRoute } from "../app/api/disputes/route";
@@ -20,7 +20,7 @@ beforeEach(async () => {
   await t.pool.query("DELETE FROM transactions WHERE user_id=$1 AND script_id IS NOT NULL", [MAYA_ID]);
 });
 
-const req = (body?: unknown, method = "POST") => new Request("http://x/api/disputes", { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+const req = (body?: unknown, method = "POST") => new Request("http://x/api/disputes", { method, headers: { "content-type": "application/json", ...sessionCookie() }, body: body ? JSON.stringify(body) : undefined });
 const idp = (id: string) => ({ params: Promise.resolve({ id }) });
 
 async function linkedCharge(slug = "fastkicks-shop", score = 18) {
@@ -62,7 +62,7 @@ describe("dispute packet", () => {
     expect((await again.json()).dispute.id).toBe(a.id);
     const regen = await createDisputeRoute(req({ txnId, regenerate: true }));
     expect(regen.status).toBe(201);
-    const d = await (await getTxn(new Request("http://x"), idp(txnId))).json();
+    const d = await (await getTxn(new Request("http://x", { headers: sessionCookie() }), idp(txnId))).json();
     expect(d.dispute).not.toBeNull();
   });
 

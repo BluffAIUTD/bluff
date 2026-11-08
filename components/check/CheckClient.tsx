@@ -18,15 +18,18 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [starting, setStarting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  /** The page verdict was reused from a recent check of the site (by this visitor or anyone); offer a re-scan. */
+  const [reused, setReused] = useState(false);
   const started = useRef(false);
 
-  const startPage = useCallback(async (raw: string, slug: string | null) => {
+  /** `fresh` re-scans: crawls the site again and runs a new review instead of reusing a recent result. */
+  const startPage = useCallback(async (raw: string, slug: string | null, fresh = false) => {
     const value = raw.trim();
     if (!value) { setErr("Paste a link or pick a store"); return; }
-    setStarting(true); setErr(null); setRunId(null);
+    setStarting(true); setErr(null); setRunId(null); setReused(false);
     try {
       const host = slug ?? value.replace(/^[a-z]+:\/\//i, "").split(/[/?#]/)[0].replace(/^www\./, "").toLowerCase();
-      const r = await api<{ runId: string; siteReview?: boolean }>("/api/investigate/page", { method: "POST", json: { url: value, host, fieldTypes: ["card_number", "cvv"], source: "check" } });
+      const r = await api<{ runId: string; siteReview?: boolean }>(`/api/investigate/page${fresh ? "?fresh=1" : ""}`, { method: "POST", json: { url: value, host, fieldTypes: ["card_number", "cvv"], source: "check" } });
       setSubject({ kind: "page", url: value.startsWith("http") ? value : `https://${value}`, host, demo: !!slug || STORES.some((s) => s.slug === host.split(".")[0]), siteReview: !!r.siteReview });
       setRunId(r.runId);
     } catch (e) { setErr(e instanceof ApiFailure ? e.message : "Couldn't start the check. Try again."); }
@@ -36,7 +39,7 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
   const startText = useCallback(async () => {
     const value = text.trim();
     if (!value) { setErr("Paste a text message or link to check"); return; }
-    setStarting(true); setErr(null); setRunId(null); setStore(null);
+    setStarting(true); setErr(null); setRunId(null); setStore(null); setReused(false);
     try {
       const r = await api<{ runId: string }>("/api/investigate/message", { method: "POST", json: { text: value, source: "check" } });
       setSubject({ kind: "message" });
@@ -85,11 +88,18 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
 
       {runId && subject && (
         <section aria-live="polite" className="flex flex-col gap-3">
-          {subject.kind === "page" && subject.siteReview && <p className="text-sm text-dim">Bluff is reading this site&apos;s public pages and sending them to Nemotron for review.</p>}
-          {subject.kind === "page" && !subject.siteReview && !subject.demo && <p className="text-sm text-dim">Limited check: page not analyzed. Only the domain and link were looked at.</p>}
+          {subject.kind === "page" && subject.siteReview && !reused && <p className="text-sm text-dim">Bluff is reading this site&apos;s public pages and sending them to Nemotron for review.</p>}
+          {subject.kind === "page" && !subject.siteReview && !subject.demo && !reused && <p className="text-sm text-dim">Limited check: page not analyzed. Only the domain and link were looked at.</p>}
+          {subject.kind === "page" && reused && (
+            <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-surface px-3 py-2">
+              <p className="text-sm text-dim">This result is from a recent check of this site, so it loaded instantly. Re-scan to crawl the site again and get a new review.</p>
+              <Button type="button" variant="secondary" disabled={starting} onClick={() => void startPage(subject.url, store, true)}>Re-scan site</Button>
+            </div>
+          )}
           <RunView
             runId={runId}
             subtitle={subject.kind === "page" ? subject.host : "Message check"}
+            onDone={(_, meta) => setReused(subject.kind === "page" && meta.checkedEarlier)}
             onRetry={() => (subject.kind === "page" ? void startPage(subject.url, store) : void startText())}
             actions={(_, meta) => subject.kind === "page" && meta.verdictId
               ? <ExposureActions verdictId={meta.verdictId} url={subject.url} host={subject.host} onLeave={() => { setRunId(null); setSubject(null); setStore(null); }} />

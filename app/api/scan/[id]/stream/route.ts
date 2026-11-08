@@ -1,5 +1,5 @@
 import { ApiError, handle } from "@/lib/errors";
-import { getContext } from "@/lib/api/helpers";
+import { getUserContext } from "@/lib/api/helpers";
 import { withSession } from "@/lib/session";
 import { subscribeScan, type ScanEvent } from "@/lib/scan";
 
@@ -10,7 +10,7 @@ const HEARTBEAT_MS = 10_000;
 
 /** One SSE stream for a whole bank scan: merchants, crawl progress, basic checks and deep-review steps for every site. */
 export const GET = handle(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw new ApiError("not_found", "Scan not found");
   const enc = new TextEncoder();

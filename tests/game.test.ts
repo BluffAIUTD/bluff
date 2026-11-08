@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { createTestDb } from "./testdb";
+import { createTestDb, sessionCookie } from "./testdb";
 import { closePool } from "../lib/db";
 import { MAYA_ID } from "../lib/config";
 import { GET as today } from "../app/api/game/today/route";
@@ -12,8 +12,8 @@ beforeAll(async () => { t = await createTestDb("bluff_game_test", { seed: true }
 afterAll(async () => { await closePool(); await t.drop(); });
 beforeEach(async () => { await t.pool.query("DELETE FROM game_plays"); await t.pool.query("DELETE FROM bluff_meta WHERE key LIKE 'game_set:%'"); });
 
-const post = (url: string, body: unknown) => new Request(`http://x${url}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-const get = (qs = "") => today(new Request(`http://x/api/game/today${qs}`));
+const post = (url: string, body: unknown) => new Request(`http://x${url}`, { method: "POST", headers: { "content-type": "application/json", ...sessionCookie() }, body: JSON.stringify(body) });
+const get = (qs = "") => today(new Request(`http://x/api/game/today${qs}`, { headers: sessionCookie() }));
 const truth = async (id: string) => (await t.pool.query("SELECT is_scam FROM game_cards WHERE id=$1", [id])).rows[0].is_scam as boolean;
 
 describe("daily set", () => {

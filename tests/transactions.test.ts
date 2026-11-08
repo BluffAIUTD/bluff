@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { createTestDb } from "./testdb";
+import { createTestDb, sessionCookie } from "./testdb";
 import { closePool } from "../lib/db";
 import { MAYA_ID } from "../lib/config";
 import { GET as listTxns } from "../app/api/transactions/route";
@@ -21,7 +21,7 @@ beforeEach(async () => {
 });
 
 const req = (url: string, method = "GET", body?: unknown, headers: Record<string, string> = {}) =>
-  new Request(`http://x${url}`, { method, headers: { "content-type": "application/json", ...headers }, body: body ? JSON.stringify(body) : undefined });
+  new Request(`http://x${url}`, { method, headers: { "content-type": "application/json", ...sessionCookie(), ...headers }, body: body ? JSON.stringify(body) : undefined });
 const idp = (id: string) => ({ params: Promise.resolve({ id }) });
 const events = async (runId: string) => (await (await streamRun(req("/s"), { params: Promise.resolve({ runId }) })).text()).split("\n\n").filter((b) => b.startsWith("event:")).map((b) => { const [e, d] = b.split("\n"); return { event: e.slice(7), data: JSON.parse(d.slice(6)) }; });
 const waitFor = async (fn: () => Promise<boolean>, ms = 3000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return true; await new Promise((r) => setTimeout(r, 25)); } return false; };

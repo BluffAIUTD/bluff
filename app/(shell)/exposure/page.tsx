@@ -1,5 +1,5 @@
 import { getPool } from "@/lib/db";
-import { MAYA_ID } from "@/lib/config";
+import { currentUserId } from "@/lib/server/currentUser";
 import { listExposures } from "@/lib/exposures";
 import { ExposureTimeline } from "@/components/exposure/ExposureTimeline";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ExposurePage() {
   let rows;
-  try { rows = await listExposures(getPool(), MAYA_ID); }
+  try { rows = await listExposures(getPool(), await currentUserId()); }
   catch { return <ErrorState title="Couldn't load your Exposure Log" message="The database isn't reachable. Try again in a moment." />; }
   return (
     <div className="flex flex-col gap-6">

@@ -57,7 +57,7 @@ For a psql shell: `docker compose exec db psql -U bluff -d bluff`.
 ```bash
 docker compose --profile tools run --rm tools npm run prewarm
 ```
-Runs the demo hosts and the signature charge once (caches verdicts, saves the replay trace), then resets the demo user.
+Runs the demo hosts and the signature charge once (caches verdicts, saves the replay trace), then resets the template demo user. Live site reviews from it are shared with every visitor's account.
 Every minute during judging, a cheap `GET /api/health` keeps the app warm; the first model call wakes the NIM endpoint.
 
 ## 5. Chrome extension (unpacked, demo laptop)

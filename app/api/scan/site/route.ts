@@ -1,5 +1,5 @@
 import { ApiError, handle } from "@/lib/errors";
-import { getContext, json } from "@/lib/api/helpers";
+import { getUserContext, json } from "@/lib/api/helpers";
 import { getPool } from "@/lib/db";
 import { getRunSnapshot } from "@/lib/agent/runs";
 import { latestSiteScan } from "@/lib/scan/store";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /** Full detail for one merchant site: crawled pages with what was found on each, registry facts, both tiers and the trace. */
 export const GET = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const host = new URL(req.url).searchParams.get("host") ?? "";
   if (!host || host.length > 300) throw new ApiError("bad_input", "host is required");
   const db = getPool();

@@ -6,55 +6,14 @@ import { CARD_SEEDS } from "../../data/cards";
 import { TAXONOMY } from "../../data/taxonomy";
 import { EVAL_CHARGES, EVAL_EXPOSURES } from "../../data/evalLink";
 import { normalizeDescriptor } from "../../lib/linker/normalize";
+import { mayaOptions, resetAccount, seedDemoHistory } from "../../lib/accounts";
 import { EVAL_USER_ID, MAYA_ID } from "../../lib/config";
 import { detId } from "../../lib/db/ids";
 import { refreshMerchantDaily } from "../../lib/db/aggregate";
 
 const DAY = 86_400_000;
 
-function prng(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export type SeedTxn = { ts: Date; descriptor: string; amountCents: number; mcc: string; recurring?: boolean };
-
-/** Exactly 60 deterministic transactions over the 90 days before `now` (product: ~60 seeded over 90 days). */
-export function buildMayaHistory(now: Date): SeedTxn[] {
-  const r = prng(42);
-  const at = (daysAgo: number, hour = 10 + Math.floor(r() * 8), minute = Math.floor(r() * 60)) => {
-    const d = new Date(now.getTime() - daysAgo * DAY);
-    d.setUTCHours(hour, minute, 0, 0);
-    if (d > now) d.setTime(now.getTime() - 3_600_000);
-    return d;
-  };
-  const between = (lo: number, hi: number) => lo + Math.floor(r() * (hi - lo));
-  const out: SeedTxn[] = [];
-  for (let i = 0; i < 12; i++) out.push({ ts: at(3 + 7 * i), descriptor: "GREENLEAF GROCER 221", amountCents: between(3500, 9500), mcc: "grocery" });
-  for (const d of [85, 55, 25]) out.push({ ts: at(d, 8, 5), descriptor: "STREAMBOX.COM", amountCents: 1599, mcc: "streaming", recurring: true });
-  for (const d of [80, 50, 20]) out.push({ ts: at(d, 6, 0), descriptor: "CITY POWER & WATER", amountCents: 8900, mcc: "utilities", recurring: true });
-  for (let i = 0; i < 8; i++) out.push({ ts: at(between(2, 88)), descriptor: "RIDELO *TRIP", amountCents: between(800, 2500), mcc: "rideshare" });
-  const dup = at(20, 17, 14);
-  out.push({ ts: dup, descriptor: "RIDELO *TRIP", amountCents: 1450, mcc: "rideshare" });
-  out.push({ ts: new Date(dup.getTime() + 3 * 60_000), descriptor: "RIDELO *TRIP", amountCents: 1450, mcc: "rideshare" });
-  for (let i = 0; i < 9; i++) out.push({ ts: at(between(1, 89)), descriptor: "SQ *BAYOU BAKERY", amountCents: between(600, 1400), mcc: "food" });
-  for (const d of [70, 41, 12]) out.push({ ts: at(d), descriptor: "NORTHLOOP BOOKS", amountCents: between(1500, 3500), mcc: "books" });
-  out.push({ ts: at(33), descriptor: "PAYPAL *CAMPUSTECH", amountCents: 1299, mcc: "electronics" });
-  out.push({ ts: at(61), descriptor: "PAYPAL *CAMPUSTECH", amountCents: 4999, mcc: "electronics" });
-  out.push({ ts: at(47), descriptor: "LONESTAR TICKETS", amountCents: 9800, mcc: "entertainment" });
-  out.push({ ts: at(15), descriptor: "LONESTAR TICKETS", amountCents: 6500, mcc: "entertainment" });
-  for (let i = 0; i < 8; i++) out.push({ ts: at(between(1, 89)), descriptor: "SQ *BLUEDOOR COFFEE", amountCents: between(450, 700), mcc: "food" });
-  for (const d of [66, 38, 9]) out.push({ ts: at(d), descriptor: "GREENCROSS PHARMACY", amountCents: between(1200, 3400), mcc: "pharmacy" });
-  for (const d of [76, 52, 29, 7]) out.push({ ts: at(d), descriptor: "FUEL STOP 118", amountCents: between(3200, 5200), mcc: "fuel" });
-  out.push({ ts: at(6, 23, 41), descriptor: "TST* QWKPAY", amountCents: 100, mcc: "other" }); // card test
-  return out.sort((a, b) => a.ts.getTime() - b.ts.getTime());
-}
+export { buildMayaHistory, type SeedTxn } from "../../lib/accounts";
 
 export async function seedGlobal(db: pg.Pool | pg.PoolClient, now = new Date()) {
   for (const s of STORES) {
@@ -105,17 +64,11 @@ export async function seedMessageDataset(db: pg.Pool | pg.PoolClient, file = pat
   return n;
 }
 
+/** The template persona: Maya plus her 60 seeded transactions (each visitor's account gets a copy of the same history). */
 export async function seedMaya(db: pg.Pool | pg.PoolClient, now = new Date()) {
-  const phone = process.env.DEMO_USER_PHONE || null;
-  await db.query("INSERT INTO users (id, name, phone, is_demo) VALUES ($1,'Maya',$2,true) ON CONFLICT (id) DO NOTHING", [MAYA_ID, phone]);
-  await db.query("DELETE FROM transactions WHERE user_id = $1", [MAYA_ID]);
-  for (const t of buildMayaHistory(now)) {
-    await db.query(
-      `INSERT INTO transactions (ts, user_id, descriptor, descriptor_norm, amount_cents, mcc_category, is_recurring)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [t.ts, MAYA_ID, t.descriptor, normalizeDescriptor(t.descriptor), t.amountCents, t.mcc, !!t.recurring],
-    );
-  }
+  const o = mayaOptions(now);
+  await db.query("INSERT INTO users (id, name, phone, is_demo) VALUES ($1,$2,$3,true) ON CONFLICT (id) DO NOTHING", [MAYA_ID, o.name, o.phone]);
+  await seedDemoHistory(db, MAYA_ID, now);
 }
 
 export type EvalSeedResult = { exposures: number; charges: number };
@@ -152,20 +105,7 @@ export async function seedAll(db: pg.Pool, now = new Date()) {
   await refreshMerchantDaily(db);
 }
 
-/** Delete everything belonging to the demo user (cascade) and re-seed it. The eval user and global data are untouched. */
+/** Delete everything belonging to the template persona (cascade) and re-seed it. Visitors' accounts, the eval user and global data are untouched. */
 export async function resetDemo(db: pg.Pool, now = new Date()) {
-  const client = await db.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("DELETE FROM users WHERE id = $1", [MAYA_ID]);
-    await client.query("DELETE FROM allowlist WHERE user_id = $1", [MAYA_ID]);
-    await seedMaya(client, now);
-    await client.query("COMMIT");
-  } catch (e) {
-    await client.query("ROLLBACK");
-    throw e;
-  } finally {
-    client.release();
-  }
-  await refreshMerchantDaily(db);
+  await resetAccount(db, MAYA_ID, mayaOptions(now));
 }

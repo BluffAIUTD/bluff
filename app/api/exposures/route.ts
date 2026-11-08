@@ -1,6 +1,6 @@
 import { ExposureCreateSchema, verdictLabel, type Verdict } from "@/lib/schemas";
 import { ApiError, handle } from "@/lib/errors";
-import { getContext, json, parseBody } from "@/lib/api/helpers";
+import { getUserContext, json, parseBody } from "@/lib/api/helpers";
 import { getPool, one } from "@/lib/db";
 import { getConfig } from "@/lib/config";
 import { labelFromHost } from "@/lib/linker/normalize";
@@ -13,13 +13,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const GET = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   return json(ctx, { exposures: await listExposures(getPool(), ctx.userId) });
 });
 
 /** Logs the exposure moment. Always creates a new row (even for a host checked earlier); alerts when score < 40. */
 export const POST = handle(async (req: Request) => {
-  const ctx = getContext(req);
+  const ctx = await getUserContext(req);
   const body = await parseBody(req, ExposureCreateSchema);
   const db = getPool();
   const v = await one<{ id: string; payload: Verdict }>(db, "SELECT id, payload FROM verdicts WHERE id::text=$1 AND user_id=$2 AND subject_type='page'", [body.verdictId, ctx.userId]);
