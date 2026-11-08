@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ApiFailure } from "@/lib/client/api";
 import { Button } from "../ui/Button";
@@ -24,7 +23,8 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
     try {
       const r = await api<{ exposure: ExposureDto; alert?: string }>("/api/exposures", { method: "POST", json: { verdictId, url, host, fieldTypes: ["card_number", "cvv"], action } });
       setLogged(r.exposure); setAlert(r.alert);
-      toast("Logged in your Exposure Log");
+      toast("Added to Sites you used your card on");
+      router.refresh(); // the list under the checker picks up the new site
     } catch (e) { setErr(e instanceof ApiFailure ? e.message : "Couldn't log this. Try again."); }
     finally { setBusy(null); }
   }
@@ -42,11 +42,11 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
     return (
       <div className="flex w-full flex-col gap-3">
         <p className="text-sm" role="status">
-          Logged: <span className="font-medium">{logged.host}</span> is now in your <Link className="text-accent underline" href="/exposure">Exposure Log</Link>{logged.watch ? ", and I\u2019ll watch your charges." : "."}
+          Logged: <span className="font-medium">{logged.host}</span> is now in <a className="text-accent underline" href="#exposures">Sites you used your card on</a>{logged.watch ? ", and I\u2019ll watch your charges." : "."}
           {alert === "delivered" && <span className="text-dim">{" I\u2019ve sent an alert to your phone."}</span>}
         </p>
         {slug ? <Button onClick={simulate} disabled={busy === "sim"}>{busy === "sim" ? "Posting charge…" : "Simulate a charge from this store"}</Button>
-          : <p className="text-xs text-dim">Charge simulation is available for the 8 demo stores.</p>}
+          : <p className="text-xs text-dim">Charge simulation is available for the {STORES.length} demo stores.</p>}
         {err && <ErrorState message={err} />}
       </div>
     );

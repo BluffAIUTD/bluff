@@ -54,7 +54,7 @@ async function pageErrors(page) {
 }
 
 // ---- 2. every route, phone + desktop: renders, no errors, no horizontal scroll -------------
-const ROUTES = ["/", "/check", "/charges", "/charges?demo=1", "/exposure", "/play", "/eval", "/privacy"];
+const ROUTES = ["/", "/scan", "/check", "/charges", "/charges?demo=1", "/exposure", "/extension", "/play", "/eval", "/privacy"];
 for (const [label, vp] of [["phone", { width: 390, height: 844 }], ["desktop", { width: 1280, height: 800 }]]) {
   const ctx = await browser.newContext({ viewport: vp });
   const p = await ctx.newPage();
@@ -63,9 +63,13 @@ for (const [label, vp] of [["phone", { width: 390, height: 844 }], ["desktop", {
     const res = await p.goto(BASE + r, { waitUntil: "networkidle" });
     const overflow = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     const nav = await p.locator("nav[aria-label=Primary]").count();
+    const tabs = await p.locator("nav[aria-label=Primary]").last().locator("a").count();
+    const current = await p.locator("nav[aria-label=Primary] a[aria-current=page]").count();
     ok(`${label} ${r}: 200`, res.status() === 200);
     ok(`${label} ${r}: no horizontal scroll`, overflow <= 1, `overflow ${overflow}px`);
     ok(`${label} ${r}: primary navigation present`, nav === 2);
+    ok(`${label} ${r}: 5 sections in the tab bar`, tabs === 5, `${tabs} links`);
+    ok(`${label} ${r}: its section is highlighted (rail + tab bar)`, current === 2, `${current} current`);
     await p.screenshot({ path: `${OUT}/${label}-${r.replace(/[^a-z]/gi, "_") || "home"}.png` });
   }
   ok(`${label}: no console errors across routes`, errs.length === 0, errs.slice(0, 3).join(" | "));

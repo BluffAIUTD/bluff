@@ -58,8 +58,8 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="font-grotesk text-3xl font-bold tracking-tight">Check a store or a text</h1>
-        <p className="mt-1 text-dim">Pick a demo store, paste a link, or paste a message. Bluff checks it before you hand over your info.</p>
+        <h1 className="font-grotesk text-3xl font-bold tracking-tight sm:text-4xl">Check a site before you pay</h1>
+        <p className="mt-1 text-dim">Paste a store link or a text you got. Bluff crawls the site and Nemotron rates it.</p>
       </header>
 
       <section aria-labelledby="stores-h" className="flex flex-col gap-3">
