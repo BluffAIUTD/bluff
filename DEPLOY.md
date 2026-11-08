@@ -32,7 +32,9 @@ git clone https://github.com/Sithranjan-Suresh/bluff && cd bluff
 cp .env.example .env && $EDITOR .env      # BASE_DOMAIN, POSTGRES_PASSWORD, SESSION_SECRET, DEMO_KEY, EVAL_KEY, ACME_EMAIL, keys above
 bash scripts/deploy/up.sh                 # build → TimescaleDB up → migrate → seed → web + caddy → nightly backups → checks
 ```
-`up.sh` is safe to re-run (it is also the update command after `git pull`). It ends by printing `agg_mode=timescale`,
+`up.sh` is safe to re-run (it is also the update command after `git pull`). It also embeds the taxonomy when `EMBED_MODEL` and `NVIDIA_API_KEY` are set.
+
+**Running npm scripts on the server:** Node tools such as `tsx` live only inside the containers, so prefix every `npm run …` with the tools container, e.g. `docker compose --profile tools run --rm tools npm run embed-taxonomy` (running `npm run …` directly on the host fails with `tsx: not found`). It ends by printing `agg_mode=timescale`,
 `hypertables=1`, `continuous_aggregates=1` and the health JSON.
 
 **TimescaleDB notes:** the database container is `timescale/timescaledb:2.21.3-pg17` with a named volume (`pgdata`) and no

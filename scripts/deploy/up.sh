@@ -7,11 +7,15 @@ cd "$(dirname "$0")/../.."
 grep -q '^POSTGRES_PASSWORD=..*' .env || { echo "set POSTGRES_PASSWORD in .env"; exit 1; }
 grep -q '^BASE_DOMAIN=localhost' .env && { echo "set BASE_DOMAIN to your domain in .env"; exit 1; }
 
-docker compose build
+docker compose --profile tools build                                         # web + tools images (tools sits behind a profile, so a plain build skips it)
 docker compose up -d db                                                     # self-hosted TimescaleDB
 docker compose --profile tools run --rm tools npm run db:migrate            # hypertable + continuous aggregate
 docker compose --profile tools run --rm tools npm run db:seed               # demo user, registry, game cards (idempotent)
 docker compose --profile tools run --rm tools npm run nessie:seed           # no-op if the Nessie account already has purchases
+if grep -q '^EMBED_MODEL=..*' .env && grep -q '^NVIDIA_API_KEY=..*' .env; then
+  # Nemotron embeddings for taxonomy_match; a failure here only means keyword matching is used.
+  docker compose --profile tools run --rm tools npm run embed-taxonomy || echo "embed-taxonomy failed; taxonomy_match falls back to keywords"
+fi
 docker compose up -d web caddy
 docker compose --profile ops up -d backup                                   # nightly pg_dump → ./backups
 
