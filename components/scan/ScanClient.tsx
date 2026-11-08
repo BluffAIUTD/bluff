@@ -261,7 +261,7 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
       )}
 
       <p className="text-xs text-dim">
-        Bank data: Capital One Nessie sandbox (synthetic customer and test card). Test purchases you make here are real Nessie sandbox records, visible only to your session in Bluff. Real merchants and public demo shops are crawled live (robots.txt obeyed, public addresses only). Scam-pattern stores are Bluff&apos;s own labeled demo websites. Bluff reads public pages and drafts disputes; it never contacts merchants or moves money.
+        Bank data: Capital One Nessie sandbox (synthetic customer and test card). Test purchases you make here are real Nessie sandbox records, visible only to your session in Bluff. Real merchants and public demo shops are crawled live on your request (public addresses only; pages robots.txt hides are read too and noted; JavaScript pages are rendered in a sandboxed headless browser). Scam-pattern stores are Bluff&apos;s own labeled demo websites. Bluff reads public pages and drafts disputes; it never contacts merchants or moves money.
       </p>
     </div>
   );

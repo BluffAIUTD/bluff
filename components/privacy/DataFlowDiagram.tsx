@@ -53,7 +53,7 @@ export function DataFlowDiagram() {
           </Box>
           <Arrow label="crawl" />
           <Box title="Merchant's public site">
-            <p>Public pages only, robots.txt obeyed, no forms submitted.</p>
+            <p>Public pages only, read on your request, no forms submitted.</p>
           </Box>
           <Arrow label="page text" />
           <Box title="NVIDIA Nemotron" tone="accent">

@@ -13,7 +13,7 @@ const PRIVACY_GROUPS: { title: string; rows: Row[] }[] = [
     title: "Card watch (bank scan)",
     rows: [
       { what: "Your Capital One transactions (Nessie sandbox)", where: "Read by Bluff's server", tone: "sent", note: "Bluff's server pulls the sandbox account's charges from Capital One's Nessie API and keeps them in your demo account." },
-      { what: "The merchant's public website", where: "Crawled by Bluff's server", tone: "sent", note: "Up to 10 public pages per merchant (refunds, terms, contact, checkout). robots.txt is obeyed and no form is ever submitted. The page text goes to NVIDIA Nemotron with registry facts." },
+      { what: "The merchant's public website", where: "Crawled by Bluff's server", tone: "sent", note: "Up to 10 public pages per merchant (refunds, terms, contact, checkout). You asked for the check, so pages robots.txt hides from bots are read too (and noted); pages built with JavaScript are loaded in a sandboxed headless browser. No form is ever submitted. The page text goes to NVIDIA Nemotron with registry facts." },
       { what: "A merchant's own charge history (dates and amounts)", where: "Sent to Nemotron", tone: "sent", note: "Only that merchant's charges, and only for that merchant's review. Your other charges are not sent." },
       { what: "Real card data", where: "Never", tone: "never", note: "Synthetic only: the Nessie sandbox account and every demo charge are made up. No real customer data." },
     ],
