@@ -7,7 +7,7 @@ const fmt = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms}
 export function AgentTrace({ steps, running, totalMs, slow, label }: { steps: StepEvent[]; running: boolean; totalMs?: number | null; slow?: boolean; label?: string }) {
   return (
     <section aria-label="Agent trace" className="rounded-card border border-line bg-surface p-4">
-      <h3 className="mb-3 font-grotesk text-sm font-medium uppercase tracking-wide text-dim">{label ?? "Agent trace"}</h3>
+      <h3 className="mb-3 font-grotesk uppercase text-dim">{label ?? "Agent trace"}</h3>
       <ol role="log" aria-live="polite" className="flex flex-col gap-2 font-mono text-[13px]">
         {steps.map((s) => (
           <li key={s.seq} className="grid grid-cols-[auto_1fr_auto] items-baseline gap-x-3 gap-y-0 rounded-control bg-surface2 px-3 py-2">

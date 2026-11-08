@@ -2,7 +2,7 @@ import { appOrigin, storeOrigin } from "@/lib/config";
 import { extensionZip } from "@/components/extension/download";
 import { ExtensionGuide } from "@/components/extension/ExtensionGuide";
 
-export const metadata = { title: "Checkout Guard — Bluff" };
+export const metadata = { title: "Checkout Guard" };
 export const dynamic = "force-dynamic";
 
 export default function ExtensionPage() {

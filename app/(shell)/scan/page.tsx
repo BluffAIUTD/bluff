@@ -1,6 +1,6 @@
 import { ScanClient } from "@/components/scan/ScanClient";
 
-export const metadata = { title: "Bank scan — Bluff" };
+export const metadata = { title: "Bank scan" };
 export const dynamic = "force-dynamic";
 
 /** /scan?push=<store> preselects a test-purchase preset (the Chrome extension links here); ?demo=1 opens that panel. */

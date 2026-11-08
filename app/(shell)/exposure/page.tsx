@@ -4,7 +4,7 @@ import { listExposures } from "@/lib/exposures";
 import { ExposureTimeline } from "@/components/exposure/ExposureTimeline";
 import { ErrorState } from "@/components/ui/ErrorState";
 
-export const metadata = { title: "Exposure Log — Bluff" };
+export const metadata = { title: "Exposure Log" };
 export const dynamic = "force-dynamic";
 
 export default async function ExposurePage() {

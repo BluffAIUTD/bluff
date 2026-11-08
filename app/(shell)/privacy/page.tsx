@@ -2,7 +2,7 @@ import Link from "next/link";
 import { DataFlowDiagram } from "@/components/privacy/DataFlowDiagram";
 import { DeleteEverything } from "@/components/privacy/DeleteEverything";
 
-export const metadata = { title: "Privacy — Bluff" };
+export const metadata = { title: "Privacy" };
 
 type Tone = "never" | "sent" | "discarded";
 type Row = { what: string; where: string; tone: Tone; note: string };

@@ -73,6 +73,8 @@ export function PhonePreview() {
   const [peek, setPeek] = useState<PhoneMsg | null>(null);
   const [loaded, setLoaded] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const input = useRef<HTMLInputElement>(null);
   const lastOut = useRef<string | null | undefined>(undefined);
   const scrolledFor = useRef<string | null>(null);
 
@@ -131,6 +133,15 @@ export function PhonePreview() {
       .catch(() => setInboxErr(true));
   }, [open, tab, inbox]);
 
+  // Escape closes the phone and hands focus back to the button that opened it; opening moves focus into the thread.
+  useEffect(() => {
+    if (!open) return;
+    if (tab === "bluff") input.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); trigger.current?.focus(); } };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, tab, mounted]);
+
   /** Sends a text to Bluff; resolves true when the server accepted it. */
   async function sendText(body: string): Promise<boolean> {
     if (!body || busy) return false;
@@ -168,19 +179,22 @@ export function PhonePreview() {
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen((o) => !o); setPeek(null); }} aria-expanded={open} aria-controls="phone-preview"
+      <button ref={trigger} type="button" onClick={() => { setOpen((o) => !o); setPeek(null); }} aria-expanded={open} aria-controls="phone-preview"
         aria-label={`Phone preview: T-Mobile alerts${!open && unread > 0 ? `, ${unread} unread` : ""}`}
-        className="relative inline-flex min-h-[44px] items-center gap-2 rounded-control border border-line px-3 text-sm font-medium text-dim hover:text-fg">
-        <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: MAGENTA }} />
-        T-Mobile alerts
-        {!open && unread > 0 && <span aria-hidden className="absolute -right-1 -top-1 min-w-[18px] rounded-full px-1.5 text-center text-[10px] font-bold leading-[18px] text-white" style={{ background: MAGENTA }}>{unread > 99 ? "99+" : unread}</span>}
+        className="btn-rail relative inline-flex min-h-[44px] items-center gap-2.5 rounded-[14px] py-1 pl-2 pr-3.5 text-sm font-semibold">
+        <span aria-hidden className="relative grid h-8 w-[18px] place-items-center rounded-[5px] border border-[#e9cf8f]/70 bg-[#0b0b0d]">
+          <span className="absolute inset-x-[3px] top-[4px] h-[2px] rounded bg-white/30" />
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: MAGENTA }} />
+        </span>
+        <span className="hidden sm:inline">T-Mobile alerts</span><span className="sm:hidden">Phone</span>
+        {!open && unread > 0 && <span aria-hidden className="absolute -right-1.5 -top-1.5 min-w-[18px] rounded-full px-1.5 text-center text-[10px] font-bold leading-[18px] text-white ring-2 ring-[#1d1610]" style={{ background: MAGENTA }}>{unread > 99 ? "99+" : unread}</span>}
       </button>
 
       {peek && !open && mounted && createPortal(
         <div role="status" className="fixed inset-x-3 bottom-20 z-40 sm:left-auto sm:right-4 sm:w-[340px] lg:bottom-4">
           <button type="button" onClick={() => { setOpen(true); setTab("bluff"); setPeek(null); }}
-            className="flex w-full items-start gap-3 rounded-2xl border border-white/10 bg-[#1b1b1f] p-3 text-left text-white shadow-2xl">
-            <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-full font-grotesk text-sm font-bold" style={{ background: MAGENTA }}>B</span>
+            className="flex w-full items-start gap-3 rounded-2xl border border-[#d9b46b]/50 bg-[#1b1b1f] p-3 text-left text-white shadow-2xl shadow-black/70">
+            <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-full serif text-base font-bold" style={{ background: MAGENTA }}>B</span>
             <span className="min-w-0 flex-1">
               <span className="block text-[11px] font-semibold uppercase tracking-wide text-white/60">New T-Mobile alert from Bluff</span>
               <span className="line-clamp-2 break-words text-sm">{peek.body}</span>
@@ -193,7 +207,7 @@ export function PhonePreview() {
       {open && mounted && createPortal(
         // Portaled to <body>: the sticky top bar uses backdrop-blur, which would otherwise trap this fixed panel inside it.
         <aside id="phone-preview" aria-label="Phone preview (T-Mobile)"
-          className="fixed inset-x-3 bottom-20 z-40 flex max-h-[75vh] flex-col overflow-hidden rounded-[28px] border-[6px] border-[#1b1b1f] bg-[#0b0b0d] text-white shadow-2xl sm:left-auto sm:right-4 sm:w-[360px] lg:bottom-4">
+          className="fixed inset-x-3 bottom-20 z-40 flex max-h-[75vh] flex-col overflow-hidden rounded-[28px] border-[6px] border-[#2b2016] bg-[#0b0b0d] text-white shadow-2xl shadow-black/70 ring-1 ring-[#d9b46b]/60 sm:left-auto sm:right-4 sm:w-[360px] lg:bottom-4">
           <div className="flex items-center justify-between px-5 pb-1 pt-2 text-[12px] font-semibold">
             <span className="num">{now}</span>
             <span className="flex items-center gap-1.5"><span style={{ color: MAGENTA }}>T-Mobile</span> 5G
@@ -213,13 +227,13 @@ export function PhonePreview() {
             {tab === "messages" && openText ? (
               <button type="button" onClick={() => setReading(null)} className="min-h-[32px] pr-1 text-sm font-semibold" style={{ color: MAGENTA }} aria-label="Back to Messages">‹</button>
             ) : (
-              <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full font-grotesk text-sm font-bold" style={{ background: tab === "bluff" ? MAGENTA : "#3a3a40" }}>{tab === "bluff" ? "B" : "✉"}</span>
+              <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full serif text-base font-bold" style={{ background: tab === "bluff" ? MAGENTA : "#3a3a40" }}>{tab === "bluff" ? "B" : "✉"}</span>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate font-grotesk text-sm font-semibold leading-tight">{tab === "bluff" ? "Bluff" : openText ? openText.sender : "Messages"}</p>
+              <p className="serif truncate text-base font-semibold leading-tight">{tab === "bluff" ? "Bluff" : openText ? openText.sender : "Messages"}</p>
               <p className="text-[11px] text-white/60">{tab === "bluff" ? "Scam alerts · replies" : openText ? `Received ${openText.received}` : "Inbox · synthetic sample texts"}</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close phone preview" className="min-h-[32px] min-w-[32px] text-white/60 hover:text-white">✕</button>
+            <button type="button" onClick={() => { setOpen(false); trigger.current?.focus(); }} aria-label="Close phone preview" className="min-h-[32px] min-w-[32px] text-white/60 hover:text-white">✕</button>
           </header>
 
           <div role="tablist" aria-label="Phone apps" className="grid grid-cols-2 border-b border-white/10 text-[13px] font-semibold">
@@ -263,7 +277,7 @@ export function PhonePreview() {
               </div>
               <form onSubmit={(e) => { e.preventDefault(); void send(); }} className="flex gap-2 border-t border-white/10 p-3">
                 <label className="sr-only" htmlFor="pp-input">Text Bluff</label>
-                <input id="pp-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Forward a text or type HELP" maxLength={2000}
+                <input ref={input} id="pp-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Forward a text or type HELP" maxLength={2000}
                   className="min-h-[40px] min-w-0 flex-1 rounded-full border border-white/15 bg-[#17171b] px-4 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/40" />
                 <button type="submit" disabled={busy || !text.trim()} aria-label="Send"
                   className="grid h-10 w-10 shrink-0 place-items-center rounded-full font-bold text-white disabled:opacity-40" style={{ background: MAGENTA }}>{busy ? "…" : "↑"}</button>
