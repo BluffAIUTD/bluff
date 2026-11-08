@@ -17,6 +17,7 @@ if grep -q '^EMBED_MODEL=..*' .env && grep -q '^NVIDIA_API_KEY=..*' .env; then
   docker compose --profile tools run --rm tools npm run embed-taxonomy || echo "embed-taxonomy failed; taxonomy_match falls back to keywords"
 fi
 docker compose up -d web caddy
+docker compose restart caddy                                                # load a changed deploy/Caddyfile (a single-file bind mount keeps the old file until restart; certs persist)
 docker compose --profile ops up -d backup                                   # nightly pg_dump → ./backups
 
 echo "--- TimescaleDB check"
@@ -26,3 +27,5 @@ docker compose exec -T db psql -U bluff -d bluff -tAc "select 'continuous_aggreg
 echo "--- health"
 sleep 5
 docker compose exec -T web node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>r.text()).then(console.log)"
+echo "--- Chrome extension zip (expects 200; 404 means the image was built without BLUFF_APP_URL)"
+docker compose exec -T web node -e "fetch('http://127.0.0.1:3000/downloads/bluff-checkout-guard.zip').then(r=>console.log('status='+r.status, r.headers.get('content-length')+' bytes'))"

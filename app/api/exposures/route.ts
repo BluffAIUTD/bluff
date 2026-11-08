@@ -1,6 +1,8 @@
+import { z } from "zod";
 import { ExposureCreateSchema, verdictLabel, type Verdict } from "@/lib/schemas";
 import { ApiError, handle } from "@/lib/errors";
 import { getUserContext, json, parseBody } from "@/lib/api/helpers";
+import { parseUrl } from "@/lib/api/hosts";
 import { getPool, one } from "@/lib/db";
 import { getConfig } from "@/lib/config";
 import { labelFromHost } from "@/lib/linker/normalize";
@@ -17,10 +19,14 @@ export const GET = handle(async (req: Request) => {
   return json(ctx, { exposures: await listExposures(getPool(), ctx.userId) });
 });
 
+/** `source: "extension"` marks an exposure logged by Checkout Guard; only the site's origin is kept for it. */
+const CreateSchema = ExposureCreateSchema.extend({ source: z.enum(["extension", "check"]).default("check") });
+
 /** Logs the exposure moment. Always creates a new row (even for a host checked earlier); alerts when score < 40. */
 export const POST = handle(async (req: Request) => {
   const ctx = await getUserContext(req);
-  const body = await parseBody(req, ExposureCreateSchema);
+  const body = await parseBody(req, CreateSchema);
+  if (body.source === "extension") body.url = `${new URL(parseUrl(body.url).url).origin}/`; // never a path, query or hash
   const db = getPool();
   const v = await one<{ id: string; payload: Verdict }>(db, "SELECT id, payload FROM verdicts WHERE id::text=$1 AND user_id=$2 AND subject_type='page'", [body.verdictId, ctx.userId]);
   if (!v) throw new ApiError("bad_input", "Unknown verdict. Run a check first.");

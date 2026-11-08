@@ -20,7 +20,11 @@ services:
       retries: 20
 
   web:
-    build: { context: ., target: runtime }
+    build:
+      context: .
+      target: runtime
+      # The app's canonical address, baked into the Chrome extension zip served at /downloads/bluff-checkout-guard.zip.
+      args: { BLUFF_APP_URL: "https://${BASE_DOMAIN:?set BASE_DOMAIN in .env}" }
     restart: unless-stopped
     env_file: .env
     environment:
