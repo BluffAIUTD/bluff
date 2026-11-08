@@ -8,7 +8,10 @@ import { COOKIE_UID, signValue } from "../lib/session";
 export const sessionCookie = (userId: string = MAYA_ID) => ({ cookie: `${COOKIE_UID}=${encodeURIComponent(signValue(userId))}` });
 
 /** Creates an isolated, migrated (and optionally seeded) database for one test file. */
-export async function createTestDb(name: string, opts: { seed?: boolean; now?: Date } = {}) {
+export async function createTestDb(baseName: string, opts: { seed?: boolean; now?: Date } = {}) {
+  // TEST_DB_SUFFIX lets several checkouts (e.g. parallel worktrees) run the suite against one Postgres without colliding.
+  const suffix = (process.env.TEST_DB_SUFFIX ?? "").replace(/[^a-z0-9_]/gi, "").toLowerCase();
+  const name = suffix ? `${baseName}_${suffix}` : baseName;
   const admin = new pg.Pool({ connectionString: "postgres://postgres:postgres@localhost:5432/postgres" });
   await admin.query(`DROP DATABASE IF EXISTS ${name}`);
   await admin.query(`CREATE DATABASE ${name}`);

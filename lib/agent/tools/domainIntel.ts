@@ -40,12 +40,15 @@ export async function domainIntel(host: string, ctx: Parameters<ToolDef["run"]>[
   const al = await one(ctx.db, "SELECT 1 FROM allowlist WHERE (host = $1 OR $1 LIKE '%.' || host) AND (user_id IS NULL OR user_id = $2) LIMIT 1", [h, ctx.userId]);
   base.allowlisted = !!al;
 
-  const reg = await one<{ created_on: Date; registrar: string; brand_clone_of: string | null }>(
-    ctx.db, "SELECT created_on, registrar, brand_clone_of FROM mock_registry WHERE host = $1", [label],
+  // created_on is a DATE: read it as text so node-postgres doesn't shift it to local midnight (age read a day short west of UTC).
+  const reg = await one<{ created_on: string; registrar: string; brand_clone_of: string | null }>(
+    ctx.db, "SELECT created_on::text AS created_on, registrar, brand_clone_of FROM mock_registry WHERE host = $1", [label],
   );
   if (reg) {
     const now = ctx.now ?? new Date();
-    return { ...base, age_days: Math.max(0, Math.floor((now.getTime() - new Date(reg.created_on).getTime()) / DAY)), registrar: reg.registrar, brand_clone_of: reg.brand_clone_of, source: "mock_registry" };
+    const today = Date.parse(now.toISOString().slice(0, 10) + "T00:00:00Z");
+    const created = Date.parse(reg.created_on + "T00:00:00Z");
+    return { ...base, age_days: Math.max(0, Math.round((today - created) / DAY)), registrar: reg.registrar, brand_clone_of: reg.brand_clone_of, source: "mock_registry" };
   }
   if (c.rdapEnabled && h.includes(".")) {
     const r = await rdapAgeDays(h, fetchImpl);

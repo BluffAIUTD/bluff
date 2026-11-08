@@ -50,3 +50,27 @@ export function assertProductionConfig(c: Config = getConfig()) {
 export function liveAgentAvailable(c: Config = getConfig()) {
   return c.agentMode === "live" && !!c.nvidia.apiKey && !!c.nvidia.model;
 }
+
+/**
+ * Canonical public address of the app. The app is served at the apex BASE_DOMAIN (https://bluffai.us; bluff.<domain>
+ * redirects there) and the demo storefronts at <slug>.<BASE_DOMAIN>. Locally: http://localhost:3000.
+ * APP_URL overrides it (no trailing slash).
+ */
+export function appOrigin(c: Config = getConfig()): string {
+  const override = process.env.APP_URL?.trim();
+  if (override) return override.replace(/\/+$/, "");
+  const host = c.baseDomain.toLowerCase();
+  const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) || /\.localhost(:\d+)?$/.test(host) || /\.test(:\d+)?$/.test(host);
+  return `${local ? "http" : "https"}://${host}`;
+}
+
+/** Host part of appOrigin() ("bluffai.us", "localhost:3000"), used in share texts and SMS bodies. */
+export function appHost(c: Config = getConfig()): string {
+  return appOrigin(c).replace(/^https?:\/\//, "");
+}
+
+/** Public URL of one of Bluff's own demo storefronts: https://fastkicks-shop.bluffai.us (http://fastkicks-shop.localhost:3000 locally). */
+export function storeOrigin(slug: string, c: Config = getConfig()): string {
+  const o = new URL(appOrigin(c));
+  return `${o.protocol}//${slug}.${o.host}`;
+}

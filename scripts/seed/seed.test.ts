@@ -8,7 +8,7 @@ import { CARD_SEEDS } from "../../data/cards";
 import { linkScore, LINK_THRESHOLD } from "../../lib/linker/score";
 import { normalizeDescriptor } from "../../lib/linker/normalize";
 
-const DB = "bluff_seed_test";
+const DB = "bluff_seed_test" + (process.env.TEST_DB_SUFFIX ? "_" + process.env.TEST_DB_SUFFIX.replace(/[^a-z0-9_]/gi, "").toLowerCase() : "");
 let pool: pg.Pool;
 const NOW = new Date("2026-11-07T18:00:00Z");
 

@@ -3,7 +3,7 @@ import pg from "pg";
 import { migrate } from "./migrate";
 
 const ADMIN = "postgres://postgres:postgres@localhost:5432/postgres";
-const DB = "bluff_migrate_test";
+const DB = "bluff_migrate_test" + (process.env.TEST_DB_SUFFIX ? "_" + process.env.TEST_DB_SUFFIX.replace(/[^a-z0-9_]/gi, "").toLowerCase() : "");
 let pool: pg.Pool;
 
 beforeAll(async () => {

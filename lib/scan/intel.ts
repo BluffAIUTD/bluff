@@ -77,8 +77,9 @@ export async function siteIntel(db: Db, userId: string, host: string): Promise<S
 
   if (slug) {
     // Our demo storefronts aren't registered domains; their "registry" facts come from the seeded demo registry.
-    const reg = await one<{ created_on: Date; registrar: string; brand_clone_of: string | null }>(db, "SELECT created_on, registrar, brand_clone_of FROM mock_registry WHERE host=$1", [slug]).catch(() => null);
-    const createdAt = reg ? new Date(reg.created_on).toISOString() : null;
+    const reg = await one<{ created_on: string; registrar: string; brand_clone_of: string | null }>(db, "SELECT created_on::text AS created_on, registrar, brand_clone_of FROM mock_registry WHERE host=$1", [slug]).catch(() => null);
+    const createdAt = reg ? `${reg.created_on}T00:00:00.000Z` : null; // DATE read as text: no local-timezone shift
+
     return {
       domain, allowlisted: false,
       registration: { createdAt, ageDays: days(createdAt), expiresAt: null, registrar: reg?.registrar ?? null, source: "demo_registry", brandCloneOf: reg?.brand_clone_of ?? null },
