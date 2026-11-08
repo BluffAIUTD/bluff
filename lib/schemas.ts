@@ -108,8 +108,21 @@ export const ExposureCreateSchema = z.object({
 });
 export type ExposureCreateInput = z.infer<typeof ExposureCreateSchema>;
 
-export const GameAnswerSchema = z.object({ cardId: z.string().min(1), guess: z.enum(["legit", "scam"]) });
+/** The word a player tapped as "what gave it away" after calling Bluff!: a character range of the card body. */
+export const GameTapSchema = z.object({ start: z.number().int().min(0).max(2000), end: z.number().int().min(1).max(2000) })
+  .refine((t) => t.end > t.start && t.end - t.start <= 64, { message: "Tap one word" });
+export type GameTap = z.infer<typeof GameTapSchema>;
+const GameDaySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const GameAnswerSchema = z.object({
+  cardId: z.string().min(1),
+  guess: z.enum(["legit", "scam"]),
+  /** The puzzle the card belongs to (defaults to today). Past days are unscored practice. */
+  day: GameDaySchema.optional(),
+  tap: GameTapSchema.nullable().optional(),
+});
+export type GameAnswerInput = z.infer<typeof GameAnswerSchema>;
 export const GameFinishSchema = z.object({
-  day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  answers: z.array(z.object({ cardId: z.string(), guess: z.enum(["legit", "scam"]) })).max(5),
+  day: GameDaySchema,
+  /** Practice days only: today's answers are already locked on the server. */
+  answers: z.array(z.object({ cardId: z.string(), guess: z.enum(["legit", "scam"]), tap: GameTapSchema.nullable().optional() })).max(5).optional(),
 });

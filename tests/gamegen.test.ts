@@ -30,6 +30,8 @@ describe("validateCard", () => {
     expect(validateCard(good)?.red_flags).toEqual([{ span: "within 6 hrs", why: "fake deadline" }]);
     expect(validateCard({ ...good, red_flags: [{ span: "missing", why: "x" }] })).toBeNull();
     expect(validateCard({ ...legit, red_flags: [{ span: "Maple", why: "x" }] })?.red_flags).toEqual([]);
+    // Spans must be in the body (the text players tap); a span only in the sender line doesn't count.
+    expect(validateCard({ ...good, red_flags: [{ span: "+1 555", why: "odd sender" }] })).toBeNull();
   });
   it("rejects real brands, >300 chars, bad kinds, junk", () => {
     expect(validateCard({ ...good, content: { body: "PayPal: pay a fee within 6 hrs" }, red_flags: [{ span: "within 6 hrs", why: "x" }] })).toBeNull();
@@ -53,7 +55,10 @@ describe("generateCards", () => {
     expect(Number((await t.pool.query("SELECT count(*) n FROM game_cards WHERE day='2026-12-01'")).rows[0].n)).toBe(2);
     const set = await cardsForDay(t.pool, "2026-12-01");
     expect(set).toHaveLength(5);
-    expect(set.some((c) => c.source !== "seed")).toBe(true);
+    // A generated card takes one of the medium slots (index 1 or 2) of the day's ladder.
+    const gi = set.findIndex((c) => c.source === "generated");
+    expect([1, 2]).toContain(gi);
+    expect(set[gi].difficulty).toBe("medium");
   });
 
   it("falls back silently to the pool on model errors, garbage, or all-invalid cards", async () => {
@@ -84,7 +89,10 @@ describe("generateCards", () => {
     expect(await lookalikeCategory(t.pool)).toBe("toll_scam");
     reply = { status: 200, content: JSON.stringify({ cards: [{ ...good, category: "toll_scam", content: { body: "Zorbly Tolls: final notice, pay within 6 hrs at zorbly-toll.top" } }] }) };
     expect((await generateCards(t.pool, "2026-12-05")).lookalike).toBe("toll_scam");
-    expect((await t.pool.query("SELECT source FROM game_cards WHERE day='2026-12-05'")).rows[0].source).toBe("lookalike");
+    expect((await t.pool.query("SELECT source, difficulty FROM game_cards WHERE day='2026-12-05'")).rows[0]).toEqual({ source: "lookalike", difficulty: "hard" });
+    // ...and it takes a hard scam slot in that day's set.
+    const set = await cardsForDay(t.pool, "2026-12-05");
+    expect([3, 4]).toContain(set.findIndex((c) => c.source === "lookalike"));
   });
 });
 

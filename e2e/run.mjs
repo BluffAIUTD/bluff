@@ -72,19 +72,39 @@ for (const [label, vp] of [["phone", { width: 390, height: 844 }], ["desktop", {
   await ctx.close();
 }
 
-// ---- 3. game, 5 cards, share -----------------------------------------------------------------
+// ---- 3. daily game: 5 cards, giveaway tap, locked answers, share, resume -----------------------
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } }); // a fresh visitor = a fresh account
   const p = await ctx.newPage();
   await p.goto(`${BASE}/play`);
   await p.getByText("Card 1 of 5").waitFor();
   for (let i = 0; i < 5; i++) {
     await p.getByRole("button", { name: "Bluff!" }).click();
-    await p.getByText(/Correct|Not quite/).waitFor();
+    await p.getByText("What gave it away? Tap the word or phrase").waitFor();
+    if (i === 0) await p.locator("[data-tap-word]").first().click(); // tap a word as the giveaway
+    else await p.getByRole("button", { name: "Just lock it in" }).click();
+    await p.getByText(/^(Correct|Not quite)$/).waitFor();
+    if (i === 1) { // a reload resumes on the next card; the answered one stays locked
+      await p.reload();
+      await p.getByText("Card 3 of 5").waitFor();
+      ok("play: reload resumes where you left off", true);
+      break;
+    }
+    await p.getByRole("button", { name: i === 4 ? "See my score" : "Next card" }).click();
+  }
+  for (let i = 2; i < 5; i++) {
+    await p.getByRole("button", { name: "Legit" }).click();
+    await p.getByText(/^(Correct|Not quite)$/).waitFor();
     await p.getByRole("button", { name: i === 4 ? "See my score" : "Next card" }).click();
   }
   await p.getByLabel("Share preview").waitFor();
-  ok("play: share text has the grid and no answers", /Call the Bluff #\d+ [🟩🟥]{5} \d\/5/u.test(await p.getByLabel("Share preview").innerText()));
+  const share = await p.getByLabel("Share preview").innerText();
+  ok("play: share text has the grid and no answers", /Call the Bluff #\d+ · \d\/5 · 🔥\d+\n[🟩🟥]{5}\n/u.test(share) && !/scam|legit/i.test(share), JSON.stringify(share));
+  ok("play: stats and countdown shown", (await p.getByRole("region", { name: "Statistics" }).count()) === 1 && (await p.getByText(/Next Bluff in \d\d:\d\d:\d\d/).count()) === 1);
+  await p.reload();
+  await p.getByLabel("Share preview").waitFor();
+  ok("play: finished board persists; today can't be replayed", (await p.getByRole("region", { name: "Result" }).count()) === 1 && (await p.getByText(/^Card \d of 5$/).count()) === 0);
+  await p.screenshot({ path: `${OUT}/play-finished.png`, fullPage: true });
   await ctx.close();
 }
 

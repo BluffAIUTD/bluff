@@ -17,7 +17,7 @@ import { allocate, siteData, SITE_DATA_TEXT_CHARS } from "@/lib/scan/dossier";
 import { pageCrawlTarget } from "@/lib/scan/site";
 import type { SiteScan } from "@/lib/scan/store";
 import { detectColumns, keepVerbatim, parseCsv, parseDataset, parseItems, ruleFlags, toMessages } from "@/lib/tmobile";
-import { preferSources } from "@/lib/game";
+import { pickDaily } from "@/lib/game";
 import { NESSIE_SEED, purchaseDescription } from "@/data/nessieSeed";
 import { STORES, SITE_SLUGS } from "@/data/stores";
 
@@ -221,13 +221,14 @@ describe("message dataset import", () => {
 });
 
 describe("daily set source preference", () => {
-  const card = (id: string, source: string, is_scam: boolean) => ({ id, source, is_scam, kind: "text", content: { body: id }, red_flags: [], category: "c", origin: null });
-  it("bank card + dataset cards replace seeded ones with the same answer", () => {
-    const picks = [card("s1", "seed", true), card("s2", "seed", true), card("s3", "seed", false), card("s4", "seed", false), card("s5", "seed", false)];
-    const pool = [...picks, card("b1", "bank", true), ...Array.from({ length: 6 }, (_, i) => card(`t${i}`, "dataset", i % 2 === 0))];
-    const out = preferSources(picks as never, pool as never, "2026-11-07");
-    expect(out.filter((c) => c.source === "bank")).toHaveLength(1);
-    expect(out.filter((c) => c.source === "dataset")).toHaveLength(3);
-    expect(out.filter((c) => c.is_scam)).toHaveLength(2);
+  const card = (id: string, source: string, is_scam: boolean, extra: Record<string, unknown> = {}) => ({ id, source, is_scam, kind: "text", content: { body: id }, red_flags: [], category: id, origin: null, difficulty: "medium", ...extra });
+  it("bank-scan cards (per user) never enter the shared daily set; dataset cards fill it", () => {
+    const pool = [card("b1", "bank", true, { user_id: "u1" }), card("b2", "bank", false), ...Array.from({ length: 12 }, (_, i) => card(`t${i}`, "dataset", i % 2 === 0))];
+    for (const day of ["2026-11-07", "2026-11-08", "2026-11-09"]) {
+      const out = pickDaily(pool as never, day);
+      expect(out).toHaveLength(5);
+      expect(out.filter((c) => c.source === "bank")).toHaveLength(0);
+      expect(out.filter((c) => c.is_scam).length).toBeGreaterThanOrEqual(2);
+    }
   });
 });
