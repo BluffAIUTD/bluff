@@ -59,7 +59,7 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
     <div className="flex flex-col gap-8">
       <header>
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brass">Checkout Guard</p>
-        <h1 className="text-4xl font-semibold tracking-tight">Check a site before you pay</h1>
+        <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">Check a site before you pay</h1>
         <p className="mt-2 max-w-xl text-dim">Paste a store link or a text you got. Bluff crawls the site and Nemotron rates it.</p>
       </header>
 

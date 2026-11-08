@@ -20,7 +20,7 @@ export function SiteVerdictCard({ site }: { site: SiteCheck }) {
   return (
     <section aria-label="Merchant website check" className={`stitch flex flex-col gap-3 rounded-card border bg-surface p-4 sm:p-6 [&>*]:relative [&>*]:z-10 ${s.ring}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="serif text-xl font-semibold">{s.title}</h2>
+        <h2 className="font-sans text-lg font-bold tracking-tight">{s.title}</h2>
         {s.badge}
         <ModeBadge mode={MODES.includes(site.mode as RunMode) ? (site.mode as RunMode) : "basic"} />
       </div>

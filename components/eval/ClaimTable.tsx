@@ -11,7 +11,7 @@ export function ClaimTable({ title, subtitle, rows, verdict }: { title: string; 
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="serif text-2xl font-semibold">{title}</h2>
+        <h2 className="font-sans text-lg font-bold tracking-tight">{title}</h2>
         {verdict && <Badge tone={verdict.tone}>{verdict.text}</Badge>}
       </div>
       <p className="text-sm text-dim">{subtitle}</p>

@@ -12,7 +12,7 @@ export default function ShellLayout({ children }: { children: ReactNode }) {
       <NavLinks />
       <div className="lg:pl-60">
         <TopBar />
-        <main id="main" className="mx-auto w-full max-w-5xl px-4 pb-32 pt-8 sm:px-6 lg:pb-14">{children}</main>
+        <main id="main" className="mx-auto w-full max-w-5xl px-4 pb-32 pt-10 sm:px-8 lg:pb-16">{children}</main>
       </div>
     </ToastProvider>
   );

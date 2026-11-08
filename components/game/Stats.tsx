@@ -25,7 +25,7 @@ export function Stats({ stats, highlight }: { stats: GameStats; highlight: numbe
                 <span aria-hidden className="num w-3 text-right text-dim">{score}</span>
                 <span aria-hidden className="flex-1">
                   <span style={{ width: `${Math.max(8, Math.round((n / max) * 100))}%` }}
-                    className={`num flex justify-end rounded-sm px-1.5 py-0.5 font-bold ${on ? "btn-brass" : "bg-white/10 text-fg"}`}>{n}</span>
+                    className={`num flex justify-end rounded-sm px-1.5 py-0.5 font-bold ${on ? "seg-on" : "bg-white/10 text-fg"}`}>{n}</span>
                 </span>
                 <span className="sr-only">{score} right: {n} {n === 1 ? "game" : "games"}{on ? " (this game)" : ""}</span>
               </li>

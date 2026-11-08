@@ -97,7 +97,7 @@ export function LivePush({ initialPreset, defaultOpen, disabled, tracked, onPush
               <input type="checkbox" checked={fresh} onChange={(e) => setFresh(e.target.checked)} className="h-4 w-4 accent-[var(--brass-2)]" />
               <span>Fresh Nemotron review <span className="text-xs text-dim">(off: reuse one from the last 24 h)</span></span>
             </label>
-            <Button onClick={charge} disabled={busy || disabled || !valid} className="ml-auto">{busy ? "Charging…" : `Charge the card $${valid ? dollars : "–"}`}</Button>
+            <Button variant="secondary" onClick={charge} disabled={busy || disabled || !valid} className="ml-auto">{busy ? "Charging…" : `Charge the card $${valid ? dollars : "–"}`}</Button>
           </div>
           {!valid && <p className="text-xs text-unsure">Nessie stores whole dollars: enter 1 to 999.</p>}
           {disabled && <p className="text-xs text-dim">Capital One Nessie isn&apos;t connected on this server.</p>}

@@ -56,7 +56,7 @@ export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
             {list.map((r) => (
               <li key={r.id} className="shimmer flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border brass-hairline bg-surface p-4">
                 <div className="min-w-0 flex-1">
-                  <p className="serif truncate text-lg font-semibold">{r.host}</p>
+                  <p className="truncate text-base font-bold">{r.host}</p>
                   {r.userAction === "received_link"
                     ? <p className="text-sm text-dim">{longDateTime(r.createdAt)} · Link in a scam text you reported <span className="text-xs">(text discarded)</span></p>
                     : <p className="text-sm text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>}

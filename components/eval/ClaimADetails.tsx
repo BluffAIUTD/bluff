@@ -17,7 +17,7 @@ export function CalibrationTable({ methods, model }: { methods: EvalMethod[]; mo
   const ranges = ms[0].calibration!.buckets.map((b) => b.range);
   return (
     <section aria-label="Honest confidence" className="flex flex-col gap-3">
-      <h3 className="serif text-xl font-semibold">Honest confidence: stated vs. observed</h3>
+      <h3 className="font-sans text-lg font-bold tracking-tight">Honest confidence: stated vs. observed</h3>
       <p className="text-sm text-dim">
         For each confidence range: what Bluff said (stated) and how often it was right (observed). Lower ECE (expected calibration error) is better.
         Unsure verdicts claim nothing and are left out. Confidence comes from how many signals agree, never from the model&apos;s own say-so.
@@ -56,7 +56,7 @@ export function PerCategoryTable({ rows, methods }: { rows: NonNullable<ClaimA["
   const name = (id: string) => { const m = methods.find((x) => x.id === id); return m ? shortName(m) : SHORT[id] ?? id; };
   return (
     <details className="stitch rounded-card border brass-hairline bg-surface">
-      <summary className="cursor-pointer px-4 py-3 serif text-xl font-semibold">Per category ({rows.length} categories)</summary>
+      <summary className="cursor-pointer px-4 py-3 font-sans text-lg font-bold tracking-tight">Per category ({rows.length} categories)</summary>
       <p className="px-4 pb-2 text-sm text-dim">Correct scam/legit calls out of n. With 3–5 messages per category these are anecdotes, not rates.</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-left text-sm">
@@ -82,7 +82,7 @@ export function PerCategoryTable({ rows, methods }: { rows: NonNullable<ClaimA["
 export function LiveStatsNote({ live }: { live: NonNullable<ClaimA["live"]> }) {
   return (
     <section aria-label="Live agent run" className="stitch rounded-card border brass-hairline bg-surface p-4 text-sm">
-      <h3 className="mb-2 serif text-xl font-semibold">Live agent run</h3>
+      <h3 className="mb-2 font-sans text-lg font-bold tracking-tight">Live agent run</h3>
       <ul className="list-disc space-y-1 pl-5 text-dim">
         <li>Model <span className="font-mono text-fg">{live.model}</span> with tools taxonomy_match, domain_intel and submit_verdict, rules fallback as deployed.</li>
         <li>{live.full_test_split ? `All ${live.n} test messages.` : `${live.n} test messages: ${live.sample}. Not the whole test split.`}</li>

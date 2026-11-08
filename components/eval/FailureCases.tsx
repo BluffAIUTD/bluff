@@ -3,7 +3,7 @@ type Failure = { id: string; text: string; expected: string; predicted: string; 
 export function FailureCases({ title, items }: { title: string; items: Failure[] }) {
   return (
     <section aria-label={title} className="flex flex-col gap-3">
-      <h3 className="serif text-xl font-semibold">{title}</h3>
+      <h3 className="font-sans text-lg font-bold tracking-tight">{title}</h3>
       {items.length === 0 ? <p className="text-sm text-dim">No failures in this run.</p> : (
         <ul className="flex flex-col gap-3">
           {items.map((f) => (

@@ -40,14 +40,14 @@ const TONE: Record<Tone, string> = { never: "text-[#8fe3b8]", sent: "text-[#f5c4
 
 export default function PrivacyPage() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <header>
-        <h1 className="text-4xl font-semibold tracking-tight">Private by design</h1>
+        <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">Private by design</h1>
         <p className="mt-1 max-w-2xl text-dim">Bluff reads the shape of a page, never what you typed into it. To check your card, its server reads your sandbox charges and the merchants&apos; public websites. Forwarding a message is your choice, and the message is dropped as soon as the verdict is made.</p>
       </header>
       <DataFlowDiagram />
       <section aria-labelledby="sent-h" className="flex flex-col gap-3">
-        <h2 id="sent-h" className="serif text-2xl font-semibold">What goes where</h2>
+        <h2 id="sent-h" className="font-sans text-lg font-bold tracking-tight">What goes where</h2>
         <div className="stitch overflow-x-auto rounded-card border brass-hairline bg-surface">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-dim"><tr><th className="px-4 py-3">Data</th><th className="px-4 py-3">Where it goes</th><th className="px-4 py-3">Notes</th></tr></thead>
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
         </div>
       </section>
       <section aria-labelledby="promises-h" className="stitch rounded-card border brass-hairline bg-surface p-5 text-sm [&>*]:relative [&>*]:z-10">
-        <h2 id="promises-h" className="serif mb-2 text-2xl font-semibold">Other promises</h2>
+        <h2 id="promises-h" className="font-sans mb-2 text-lg font-bold tracking-tight">Other promises</h2>
         <ul className="list-disc space-y-1 pl-5 text-dim">
           <li>Bluff never files, sends or pays anything for you. Disputes are drafts you review.</li>
           <li>When the AI check is on, Bluff&apos;s server fetches the checked site&apos;s public pages itself (never your session on the page or anything you typed) and sends their text, with registry facts and the rules findings, to NVIDIA Nemotron for the verdict: up to 8 pages for a store check, up to 10 per merchant website in the bank scan.</li>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
         <p className="mt-3"><Link href="/eval" className="font-semibold text-brass underline">Proof: how well Bluff works</Link> <span className="text-dim">(measured claims, with the failures shown)</span></p>
       </section>
       <section aria-labelledby="delete-h" className="flex flex-col gap-3">
-        <h2 id="delete-h" className="serif text-2xl font-semibold">Delete everything</h2>
+        <h2 id="delete-h" className="font-sans text-lg font-bold tracking-tight">Delete everything</h2>
         <p className="text-sm text-dim">Clears your exposures, verdicts, texts, disputes, crawls and game data, then starts your account over from the demo card history. Only your account is affected.</p>
         <DeleteEverything />
       </section>

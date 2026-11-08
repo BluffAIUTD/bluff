@@ -169,7 +169,7 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
   const nessieOn = configured && watch.configured;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
           <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -186,7 +186,7 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
               </button>
             )}
           </div>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Who did you really pay?</h1>
+          <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">Who did you really pay?</h1>
           <p className="mt-1 text-dim">Bluff checks the website behind every charge on your card. Rules give an instant read; an NVIDIA Nemotron agent reads the pages for what rules miss.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -229,14 +229,14 @@ export function ScanClient({ push, demo }: { push?: string | null; demo?: boolea
       {!loading && !items.length && (
         <div className="rounded-card border border-dashed brass-hairline bg-surface p-10 text-center">
           <span aria-hidden className="mb-3 flex justify-center -space-x-3">{[0, 1, 2].map((i) => <span key={i} className="card-face h-14 w-10 rounded-[5px]" style={{ transform: `rotate(${(i - 1) * 10}deg)` }} />)}</span>
-          <p className="serif text-2xl font-semibold">No transactions yet</p>
+          <p className="text-xl font-bold tracking-tight">No transactions yet</p>
           <p className="mt-1 text-dim">Press <strong className="text-fg">Scan my transactions</strong> to import them from Capital One and check every merchant.</p>
         </div>
       )}
 
       {items.length > 0 && (
         <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
-          <ul aria-label="Merchants" className="flex min-w-0 flex-col gap-2 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1">
+          <ul aria-label="Merchants" className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1">
             {ranked.map((m) => {
               const v = headline(m);
               const tone = toneOf(v?.verdict);

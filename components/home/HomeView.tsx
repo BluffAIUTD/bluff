@@ -93,7 +93,7 @@ function AttentionRow({ item }: { item: AttentionItem }) {
     <Link href={`/charges/${item.latestTxnId}`} className={row}>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex flex-wrap items-center gap-2">
-          <span className="serif truncate text-lg font-semibold">{item.merchant}</span>
+          <span className="truncate text-base font-bold">{item.merchant}</span>
           <Badge tone={item.label === "likely_scam" ? "scam" : "unsure"}>{VERDICT_TEXT[item.label]}</Badge>
           <ModeBadge mode={item.mode} />
           {item.flags.map((f) => <FlagBadge key={f} kind={f} />)}
@@ -114,19 +114,19 @@ export function HomeView({ o, now = new Date() }: { o: Overview; now?: Date }) {
   const scanned = !!s.lastScanAt;
   const items = o.needsAttention.slice(0, 6);
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       {o.hold.held && (
         <p role="status" className="rounded-control border border-unsure/50 bg-unsure/10 px-4 py-2.5 text-sm">
           Safe Signal hold is on (simulated): new online charges are declined. Reply UNHOLD on your phone to release.
         </p>
       )}
 
-      <header className="stitch flex items-center gap-6 rounded-card border brass-hairline bg-surface p-6 sm:p-8" style={{ background: "radial-gradient(ellipse 70% 120% at 20% 0%, rgba(40,120,86,.35), rgba(3,17,10,.5))" }}>
+      <header className="stitch flex items-center gap-6 rounded-card border brass-hairline bg-surface p-6 sm:p-8" style={{ backgroundImage: "radial-gradient(ellipse 60% 120% at 18% 0%, rgba(255,246,220,.10), rgba(255,246,220,0) 70%), linear-gradient(135deg, #24694f, #174f3d)" }}>
         <div className="relative z-10 flex flex-1 flex-col gap-3">
           <p className="inline-flex items-center gap-2 self-start rounded-full border brass-hairline bg-black/25 px-3 py-1 text-xs text-dim" title="Capital One Nessie sandbox account with synthetic charges">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-safe" /> {s.account ? `Capital One · ${s.account}` : "Capital One (Nessie sandbox)"}
           </p>
-          <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">{homeTitle(s.riskyCharges)}</h1>
+          <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">{homeTitle(s.riskyCharges)}</h1>
           <p className="max-w-2xl text-dim">{HOME_SUBHEAD}</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-3">
             <Link href="/scan" className={PRIMARY}>Scan my transactions</Link>

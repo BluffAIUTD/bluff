@@ -12,9 +12,9 @@ export default async function ExposurePage() {
   try { rows = await listExposures(getPool(), await currentUserId()); }
   catch { return <ErrorState title="Couldn't load your Exposure Log" message="The database isn't reachable. Try again in a moment." />; }
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <header>
-        <h1 className="text-4xl font-semibold tracking-tight">Exposure Log</h1>
+        <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">Exposure Log</h1>
         <p className="text-dim">Every site where you told Bluff you entered personal info. Bluff only stores the domain and which kinds of fields, never what you typed.</p>
       </header>
       <ExposureTimeline initial={JSON.parse(JSON.stringify(rows))} />
