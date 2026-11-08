@@ -60,7 +60,7 @@ export default async function Overview() {
         </section>
 
         <section aria-label="Alert feed" className="flex flex-col gap-3">
-          <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Bluff Text alerts</h2>
+          <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Alerts sent to your phone</h2>
           {o.alerts.length === 0 ? <p className="rounded-card border border-dashed border-line p-4 text-sm text-dim">No texts sent yet.</p> : (
             <ul className="flex flex-col gap-2">
               {o.alerts.map((a) => (

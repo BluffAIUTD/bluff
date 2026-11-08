@@ -13,7 +13,6 @@ export function getConfig() {
   return {
     isProd,
     agentMode: (env.AGENT_MODE === "live" ? "live" : "mock") as "live" | "mock",
-    photonMode: (env.PHOTON_MODE === "live" ? "live" : "mock") as "live" | "mock",
     demoMode: env.DEMO_MODE !== "0",
     baseDomain: env.BASE_DOMAIN || "localhost:3000",
     sessionSecret,
@@ -29,13 +28,6 @@ export function getConfig() {
       embedModel: env.EMBED_MODEL || "",
       /** "off" sends chat_template_kwargs.enable_thinking=false (Nemotron 3.x); unset leaves the model default. */
       thinking: env.NEMOTRON_THINKING === "off" ? "off" : "default",
-    },
-    photon: {
-      apiBase: env.PHOTON_API_BASE || "",
-      projectSecret: env.PHOTON_PROJECT_SECRET || "",
-      webhookSecret: env.PHOTON_WEBHOOK_SECRET || "",
-      number: env.PHOTON_NUMBER || "",
-      demoUserPhone: env.DEMO_USER_PHONE || "",
     },
     rdapEnabled: env.RDAP_ENABLED === "1",
     nessie: {

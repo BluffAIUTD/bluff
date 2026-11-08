@@ -7,7 +7,7 @@
  * Charge linker + explanation: SQL link instant + "explanation loading…" → components/charges; agent disagrees → "possible"
  *   → lib/agent/live.test.ts; replay → this file and tests/modes.test.ts.
  * Refund Builder: unlinked disabled → components/charges/refund.test.tsx; slow skeleton → same; template fallback → tests/disputes.test.ts.
- * Bluff Text inbound/outbound: tests/photon.test.ts, tests/exposures.test.ts.
+ * Phone-preview messages (inbound/outbound): tests/messaging.test.ts, tests/exposures.test.ts.
  * Game generation: tests/gamegen.test.ts. RDAP + embeddings: lib/agent/tools/tools.test.ts.
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";

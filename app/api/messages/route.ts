@@ -5,7 +5,7 @@ import { getPool, many } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Recent Bluff Text messages for the Phone Preview drawer and the Overview alert feed. */
+/** Recent Bluff messages for the phone preview and the Overview alert feed. */
 export const GET = handle(async (req: Request) => {
   const ctx = getContext(req);
   const limit = Math.min(100, Math.max(1, Number(new URL(req.url).searchParams.get("limit")) || 40));

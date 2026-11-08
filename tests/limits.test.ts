@@ -5,7 +5,7 @@ import { MAYA_ID } from "../lib/config";
 import { POST as investigatePage } from "../app/api/investigate/page/route";
 import { agentBucket, TokenBucket } from "../lib/ratelimit";
 import { domainIntel } from "../lib/agent/tools/domainIntel";
-import { handleInbound } from "../lib/photon/inbound";
+import { handleInbound } from "../lib/messaging/inbound";
 
 let t: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => { t = await createTestDb("bluff_limits_test", { seed: true }); process.env.DATABASE_URL = t.url; });

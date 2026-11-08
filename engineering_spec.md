@@ -18,7 +18,7 @@ Design only, no code. An engineer should be able to build from this without maki
                        │    ├─ Agent service (lib/agent)  ──► Nemotron @ build.nvidia.com (tool calling)   │
                        │    │                              ──► NVIDIA embeddings (taxonomy)                │
                        │    ├─ Linker (lib/linker, SQL)                                                    │
-                       │    ├─ Messaging (lib/photon) ◄──► Photon API (iMessage / SMS / call)             │
+                       │    ├─ Messaging (lib/messaging) ──► in-app inbox (T-Mobile phone view)           │
                        │    └─ Jobs (in-process): game card generation, alert retry                        │
                        └───────────────────────────────┬───────────────────────────────────────────────────┘
                                                        │ TLS
@@ -28,7 +28,7 @@ Design only, no code. An engineer should be able to build from this without maki
  Offline: scripts/eval (Python) ──► calls /api/eval/* on the deployed app ──► writes eval/results.json (committed)
 ```
 
-**Why one Next.js app:** one deploy, one language (TypeScript) that matches Photon's TypeScript SDK, and shared types between the UI and the API. Python is only used for the offline eval and T-Mobile's baseline.
+**Why one Next.js app:** one deploy, one language (TypeScript), and shared types between the UI and the API. Python is only used for the offline eval and T-Mobile's baseline.
 
 ---
 
@@ -53,7 +53,7 @@ Every pillar reads and writes the same tables (§3). The **`Verdict`** object is
 ### 2.2 Cross-pillar data flows
 1. `POST /api/exposures` (P1) → row in `exposures` → if score < 40, `notify(exposure_alert)` (P3).
 2. `POST /api/demo/next-charge` or seeded insert → `transactions` → `linker.findCandidates(txn)` (SQL) → agent run (`trigger=txn`) → `verdicts` row with `linked` → if linked and flagged, `notify(charge_alert)` (P3).
-3. Inbound Photon `WATCH` → `exposures.watch = true` on the user's last alerted exposure (P3 → P1). Watched exposures get +0.1 on the link score.
+3. Inbound `WATCH` (texted from the phone view) → `exposures.watch = true` on the user's last alerted exposure (P3 → P1). Watched exposures get +0.1 on the link score.
 4. Game job reads the last 7 days of `verdicts` where `verdict = likely_scam`, picks the most common `category`, and generates one lookalike card (P1/P2 → P4).
 
 ### 2.3 Navigation shell and routing
@@ -140,7 +140,7 @@ All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the sh
 | `POST /api/game/generate` | demo key | `{cards[]}` | P1 job |
 | `GET /api/eval` | n/a | contents of `eval/results.json` | |
 | `POST /api/eval/link` | `{txnId}` (eval key) | `{predictedExposureId, score}` | Claim B harness |
-| `POST /api/webhooks/photon` | Photon payload **[verify shape]** | `200` fast; processing async | Verify signing secret |
+| `POST /api/demo/inbound` | `{text}` from the phone view | verdict or command reply | Demo session |
 | `DELETE /api/me` | n/a | `204` | Delete everything |
 
 **Error shape (all routes):** `{error:{code:'timeout'|'malformed'|'rate_limited'|'upstream_down'|'bad_input', message, fallback?}}`.
@@ -148,7 +148,7 @@ All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the sh
 **Mock-to-live switch:**
 - `AGENT_MODE=mock|live`. Mock reads fixtures from `fixtures/runs/<host or txn>.json` and streams the steps with realistic gaps (600–1,400 ms, first step at 400 ms, total 5–8 s).
 - `?fail=timeout|malformed|ratelimit` forces each failure shape so the UI states can be built and tested.
-- `PHOTON_MODE=mock|live`. Mock writes outbound messages to `messages` and shows them in a "Phone preview" drawer in the UI (also useful as an on-screen backup during the demo).
+- Messages are delivered in-app: outbound alerts and replies are written to `messages` and shown in the T-Mobile phone view in the top bar.
 - The UI person builds against mock from minute one. The backend flips to live per feature.
 
 ---
@@ -199,7 +199,7 @@ All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the sh
 | `exposure_lookup` | `descriptor or host` | Runs the linker (§6.2) | `[{exposure_id, host, date, score, match_score, reasons[]}]` |
 | `txn_search` | `descriptor_norm, days=90` | Prior charges + daily aggregate for that merchant | `{count, avg_cents, max_cents, last_seen, series[]}` |
 | `draft_dispute` | `txn_id, exposure_id?` | Builds the template, then asks the model for a short narrative | `{dispute_id}` |
-| `notify` | `kind, payload` | Queues a Photon message (respects rate limits and paused alerts) | `{queued:true}` |
+| `notify` | `kind, payload` | Sends the canned alert to the phone view (respects rate limits and paused alerts) | `{delivered:true}` |
 | `submit_verdict` | Verdict fields | Validates and ends the run | n/a |
 
 - **Run modes:** `page`, `message`, `txn`. Each has a short mode prompt listing which tools are expected (e.g., `txn`: txn_search → exposure_lookup → domain_intel → submit_verdict).
@@ -224,8 +224,8 @@ All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the sh
 - **card_test:** amount ≤ $2 from a descriptor never seen before.
 - **exposure_link:** link score ≥ 0.55.
 
-### 6.3 Messaging (`lib/photon`)
-- Use Photon's TypeScript SDK or REST per their docs **[verify send/receive/call API, webhook payload, signature header]**.
+### 6.3 Messaging (`lib/messaging`)
+- In-app delivery only: no SMS/text gateway. The user's T-Mobile phone view reads `messages` and posts replies to `/api/demo/inbound`.
 - **Outbound:** a `messages` row (queued) → send → update status. Retry ×3 with backoff of 1 s, 4 s and 10 s.
 - **Inbound webhook:** verify the signature → respond 200 immediately → process async:
   - parse the command (WATCH / DISPUTE / SAFE / STOP / HELP);
@@ -233,7 +233,7 @@ All JSON. Auth: a signed `bluff_uid` cookie set on first visit, mapped to the sh
   - discard the inbound body after the verdict.
 - Typing indicator if the SDK supports it.
 - Map the phone to a user. For the demo, Maya's phone = the presenter's phone, stored in an env var.
-- **Voice (P2 feature):** a Photon call to Maya's phone with a TTS summary of ≤ 25 words **[verify Photon calling setup; may require a SIP partner]**.
+- **Voice:** removed (it depended on the dropped messaging provider).
 
 ### 6.4 Confidence computation
 - Each evidence key has a direction (scam / legit) and a weight from a small fixed table, e.g., `domain_age_lt_30` +0.25 scam, `gift_card_only` +0.3 scam, `allowlisted` +0.5 legit.
@@ -294,7 +294,6 @@ A deterministic scorer over the same signals and weights from §6.4: score = 100
 | Service | Use | Config | Notes |
 |---|---|---|---|
 | NVIDIA build.nvidia.com | Nemotron (agent, game), embeddings | `NVIDIA_API_KEY`, `NEMOTRON_MODEL`, `NEMOTRON_SMALL_MODEL`, `EMBED_MODEL` | **[verify IDs, limits]** |
-| Photon | iMessage/SMS out + in, call (stretch) | `PHOTON_PROJECT_SECRET`, `PHOTON_WEBHOOK_SECRET`, `PHOTON_NUMBER`, `DEMO_USER_PHONE` | Promo HACKWITHPHOTON; **[verify SDK]** |
 | Tiger Data | Primary DB | `DATABASE_URL` (TLS) | Run migrations with plain SQL files in `db/migrations` |
 | Vultr | Hosting | n/a | 2 vCPU / 4 GB, Ubuntu, Docker Compose |
 | GoDaddy Registry | Domain | DNS A records: `bluff`, and one per store subdomain (or apex + `*`) | Use explicit subdomains so Caddy gets normal HTTP-01 certs (no wildcard cert needed) |
@@ -308,7 +307,7 @@ A deterministic scorer over the same signals and weights from §6.4: score = 100
 bluff/
   app/            Next.js routes (shell + API)
   components/     shared UI
-  lib/            agent/, linker/, photon/, db/, rules/, game/
+  lib/            agent/, linker/, messaging/, scan/, db/, rules/, game/
   extension/      MV3 extension
   stores/         8 static storefronts
   db/migrations/  SQL
@@ -326,7 +325,7 @@ bluff/
 1. Register the domain through GoDaddy Registry (MLH). Point A records at the Vultr IP.
 2. Vultr instance: Docker + Compose. Services: `web` (Next.js standalone build), `caddy` (TLS for the app host and the 8 store hosts).
 3. Tiger Data service created; run migrations; seed.
-4. Set env vars; `AGENT_MODE=live`, `PHOTON_MODE=live`; register the Photon webhook as `https://bluff.<domain>/api/webhooks/photon`.
+4. Set env vars; `AGENT_MODE=live`.
 5. Smoke test: the full core loop on a phone over cellular; forward a text; play the game; `/eval` loads.
 6. Pre-warm (§8). Print the QR code to `https://bluff.<domain>`.
 7. Repo public, README with architecture, claims, how to run, sponsor usage; demo video ≤ 2:00; Devpost tracks + MLH opt-ins.
@@ -336,6 +335,6 @@ bluff/
 ---
 
 ## 12. Team split (2 people) and contract-first order
-- **A (backend/AI):** schema + seed → agent service + tools → linker + rule flags → Photon → eval harness → deploy.
+- **A (backend/AI):** schema + seed → agent service + tools → linker + rule flags → messaging → eval harness → deploy.
 - **B (frontend/demo):** shell + tokens → `/check` RunView on mocks → `/charges` + detail + RefundBuilder → `/play` → `/eval`, `/privacy` → extension panel → storefronts → video.
 - **Contract first (by Sat 6:30pm):** the `Verdict` type, the SSE event shapes, and 3 fixture runs committed. B never waits on A.

@@ -15,7 +15,7 @@ let t: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => { t = await createTestDb("bluff_disputes_test", { seed: true }); process.env.DATABASE_URL = t.url; });
 afterAll(async () => { await closePool(); await t.drop(); });
 beforeEach(async () => {
-  process.env.PHOTON_MODE = "mock"; process.env.AGENT_MODE = "mock";
+  process.env.AGENT_MODE = "mock";
   for (const tbl of ["disputes", "messages", "exposures"]) await t.pool.query(`DELETE FROM ${tbl}`);
   await t.pool.query("DELETE FROM transactions WHERE user_id=$1 AND script_id IS NOT NULL", [MAYA_ID]);
 });

@@ -14,6 +14,6 @@ Updated: Sat Nov 7, ~4:10pm CST (~17% of T)
 | Checkpoints | hackathon-checkpoint | 8pm Sat, midnight, 6am Sun | polish_queue.md updates |
 | Submit | hackathon-submit | Sun 9am | Devpost copy, README, video |
 
-**Locked:** thesis, core loop, 4 pillars, tracks (T-Mobile, NVIDIA, Photon + Virality + MLH Tiger Data, Vultr, GoDaddy), stack (Next.js on Vultr, Tiger Data, Nemotron, Photon).
-**Open [verify]:** T-Mobile data/baseline formats · Nemotron model IDs + limits · Photon SDK calls + webhook shape · pgvector availability on Tiger Data.
+**Locked:** thesis, core loop, 4 pillars, tracks (T-Mobile, NVIDIA, Capital One + Virality + MLH Tiger Data, Vultr, GoDaddy), stack (Next.js on Vultr, Tiger Data, Nemotron, Capital One Nessie).
+**Open [verify]:** T-Mobile data/baseline formats · Nemotron model IDs + limits · pgvector availability on Tiger Data.
 **Deadlines:** Devpost registration Sat 11:00pm · final submission Sun 12:00pm.

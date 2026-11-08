@@ -15,7 +15,7 @@ let t: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => { t = await createTestDb("bluff_txn_api_test", { seed: true }); process.env.DATABASE_URL = t.url; });
 afterAll(async () => { await closePool(); await t.drop(); });
 beforeEach(async () => {
-  process.env.MOCK_SPEED = "0"; process.env.PHOTON_MODE = "mock"; process.env.DEMO_KEY = "k";
+  process.env.MOCK_SPEED = "0"; process.env.DEMO_KEY = "k";
   await t.pool.query("DELETE FROM messages"); await t.pool.query("DELETE FROM exposures");
   await t.pool.query("DELETE FROM transactions WHERE user_id=$1 AND script_id IS NOT NULL", [MAYA_ID]);
 });
@@ -51,7 +51,7 @@ describe("transactions API", () => {
 });
 
 describe("demo core loop: check → expose → simulate charge → link", () => {
-  it("fastkicks-shop: charge posts 3 days after the exposure, links to it, streams a trace and alerts by iMessage", async () => {
+  it("fastkicks-shop: charge posts 3 days after the exposure, links to it, streams a trace and alerts the phone preview", async () => {
     const exp = await exposeStore("fastkicks-shop", "watch");
     const r = await nextCharge(req("/api/demo/next-charge", "POST", { store: "fastkicks-shop" }));
     expect(r.status).toBe(201);
@@ -75,7 +75,7 @@ describe("demo core loop: check → expose → simulate charge → link", () => 
     expect(d.transaction.scripted).toBe(true);
 
     // exposure alert (at check) + charge alert (at link), in the spec's wording
-    expect(await waitFor(async () => Number((await t.pool.query("SELECT count(*) n FROM messages WHERE status='sent' AND kind='alert'")).rows[0].n) === 2)).toBe(true);
+    expect(await waitFor(async () => Number((await t.pool.query("SELECT count(*) n FROM messages WHERE status='delivered' AND kind='alert'")).rows[0].n) === 2)).toBe(true);
     const bodies = (await t.pool.query("SELECT body FROM messages WHERE kind='alert' ORDER BY created_at")).rows.map((x) => x.body);
     expect(bodies[1]).toMatch(/^\$49\.99 from FKSHP\*LLC matches fastkicks-shop, where you entered your card on [A-Z][a-z]{2} \d+\. Reply DISPUTE and I'll draft it\.$/);
   });
@@ -88,7 +88,7 @@ describe("demo core loop: check → expose → simulate charge → link", () => 
     expect((await b.json()).transaction.id).toBe(a.transaction.id);
   });
 
-  it("legit store: charge is an 'expected charge', no iMessage alert for it", async () => {
+  it("legit store: charge is an 'expected charge', no alert for it", async () => {
     await exposeStore("bayou-bakery");
     const { transaction, runId } = await (await nextCharge(req("/api/demo/next-charge", "POST", { store: "bayou-bakery" }))).json();
     expect(transaction.flags).toContain("expected_charge");

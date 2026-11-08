@@ -6,16 +6,15 @@ import { POST as investigatePage } from "../app/api/investigate/page/route";
 import { GET as streamRun } from "../app/api/runs/[runId]/stream/route";
 import { GET as listExp, POST as createExp } from "../app/api/exposures/route";
 import { PATCH as patchExp, DELETE as deleteExp } from "../app/api/exposures/[id]/route";
-import { notify, MAX_ALERTS_PER_HOUR } from "../lib/photon/notify";
-import { sendWithRetry } from "../lib/photon/send";
-import { exposureAlert, chargeAlert, listFields } from "../lib/photon/templates";
+import { notify, MAX_ALERTS_PER_HOUR } from "../lib/messaging/notify";
+import { exposureAlert, chargeAlert, listFields } from "../lib/messaging/templates";
 import { normalizeDescriptor } from "../lib/linker/normalize";
 
 let t: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => { t = await createTestDb("bluff_exposures_test", { seed: true }); process.env.DATABASE_URL = t.url; });
 afterAll(async () => { await closePool(); await t.drop(); });
 beforeEach(async () => {
-  process.env.MOCK_SPEED = "0"; process.env.PHOTON_MODE = "mock"; delete process.env.PHOTON_MOCK_FAIL;
+  process.env.MOCK_SPEED = "0";
   await t.pool.query("DELETE FROM messages"); await t.pool.query("DELETE FROM exposures"); await t.pool.query("UPDATE users SET alerts_paused=false");
 });
 
@@ -37,8 +36,8 @@ describe("exposures API", () => {
     expect(r.status).toBe(201);
     const { exposure, alert } = await r.json();
     expect(exposure).toMatchObject({ host: "fastkicks-shop", label: "fastkicks-shop", score: 18, watch: true, userAction: "watch", verdict: "likely_scam" });
-    expect(alert).toBe("queued");
-    expect(await waitFor(async () => (await t.pool.query("SELECT 1 FROM messages WHERE status='sent'")).rowCount === 1)).toBe(true);
+    expect(alert).toBe("delivered");
+    expect(await waitFor(async () => (await t.pool.query("SELECT 1 FROM messages WHERE status='delivered'")).rowCount === 1)).toBe(true);
     const msg = (await t.pool.query("SELECT body, meta, kind FROM messages")).rows[0];
     expect(msg.body).toBe("You just entered your card and card security code on fastkicks-shop, a site registered 4 days ago. Reply WATCH and I'll check for charges from it.");
     expect(msg.meta.exposure_id).toBe(exposure.id);
@@ -84,31 +83,19 @@ describe("notify choke point", () => {
   const base = { userId: MAYA_ID, body: "hi" };
   it("one alert per event; paused users are skipped; 5 per hour cap", async () => {
     const a = await notify(t.pool, { ...base, eventKey: "e1" });
-    expect(a.status).toBe("queued");
-    if (a.status === "queued") await a.done;
+    expect(a.status).toBe("delivered");
     expect((await notify(t.pool, { ...base, eventKey: "e1" }))).toEqual({ status: "skipped", reason: "duplicate" });
-    for (let i = 2; i <= MAX_ALERTS_PER_HOUR; i++) { const r = await notify(t.pool, { ...base, eventKey: `e${i}` }); if (r.status === "queued") await r.done; }
+    for (let i = 2; i <= MAX_ALERTS_PER_HOUR; i++) await notify(t.pool, { ...base, eventKey: `e${i}` });
     expect(await notify(t.pool, { ...base, eventKey: "e99" })).toEqual({ status: "skipped", reason: "rate_limited" });
     await t.pool.query("DELETE FROM messages");
     await t.pool.query("UPDATE users SET alerts_paused=true");
     expect(await notify(t.pool, { ...base, eventKey: "e100" })).toEqual({ status: "skipped", reason: "paused" });
   });
 
-  it("failed delivery is marked failed (shown as 'Text not delivered'), after retries", async () => {
-    process.env.PHOTON_MOCK_FAIL = "1";
-    const r = await notify(t.pool, { ...base, eventKey: "fail1" }, { delays: [1, 1, 1], sleep: async () => {} });
-    expect(r.status).toBe("queued");
-    if (r.status === "queued") expect(await r.done).toBe("failed");
-    expect((await t.pool.query("SELECT status FROM messages")).rows[0].status).toBe("failed");
-  });
-
-  it("sendWithRetry: backoff delays 1s/4s/10s are used and the third retry can succeed", async () => {
-    const waits: number[] = [];
-    let n = 0;
-    const sender = { send: async () => { if (++n < 4) throw new Error("x"); return { providerId: "p" }; } };
-    const r = await sendWithRetry(sender, "1", "b", undefined, async (ms) => { waits.push(ms); });
-    expect(waits).toEqual([1000, 4000, 10000]);
-    expect(r.attempts).toBe(4);
+  it("alerts are delivered in-app to the phone preview", async () => {
+    const r = await notify(t.pool, { ...base, eventKey: "inapp1" });
+    expect(r.status).toBe("delivered");
+    expect((await t.pool.query("SELECT status, phone FROM messages WHERE event_key='inapp1'")).rows[0]).toEqual({ status: "delivered", phone: "phone-preview" });
   });
 
   it("unknown user is skipped", async () => {

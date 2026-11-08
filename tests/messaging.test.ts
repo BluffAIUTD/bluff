@@ -1,15 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import http from "node:http";
-import type { AddressInfo } from "node:net";
 import { createTestDb } from "./testdb";
 import { closePool } from "../lib/db";
 import { MAYA_ID } from "../lib/config";
-import { POST as webhook } from "../app/api/webhooks/photon/route";
 import { POST as demoInbound } from "../app/api/demo/inbound/route";
-import { handleInbound, verdictReply } from "../lib/photon/inbound";
-import { parseCommand } from "../lib/photon/commands";
-import { parseInbound, signBody, verifySignature } from "../lib/photon/webhook";
-import { liveSender } from "../lib/photon/live";
+import { handleInbound, verdictReply } from "../lib/messaging/inbound";
+import { parseCommand } from "../lib/messaging/commands";
 import { postScriptedCharge, findScript } from "../lib/demo";
 import { sendChargeAlert } from "../lib/agent/hooks";
 import { notifyTool } from "../lib/agent/tools/notifyTool";
@@ -17,14 +12,13 @@ import { VerdictSchema } from "../lib/schemas";
 
 let t: Awaited<ReturnType<typeof createTestDb>>;
 const PHONE = "+15125550100";
-beforeAll(async () => { t = await createTestDb("bluff_photon_test", { seed: true }); process.env.DATABASE_URL = t.url; });
+beforeAll(async () => { t = await createTestDb("bluff_messaging_test", { seed: true }); process.env.DATABASE_URL = t.url; });
 afterAll(async () => { await closePool(); await t.drop(); });
 beforeEach(async () => {
-  process.env.MOCK_SPEED = "0"; process.env.PHOTON_MODE = "mock"; process.env.AGENT_MODE = "mock"; delete process.env.PHOTON_WEBHOOK_SECRET; delete process.env.PHOTON_MOCK_FAIL;
+  process.env.MOCK_SPEED = "0"; process.env.AGENT_MODE = "mock";
   for (const tbl of ["messages", "disputes", "exposures", "allowlist"]) await t.pool.query(tbl === "allowlist" ? "DELETE FROM allowlist WHERE user_id IS NOT NULL" : `DELETE FROM ${tbl}`);
   await t.pool.query("DELETE FROM transactions WHERE script_id IS NOT NULL");
   await t.pool.query("UPDATE users SET phone=$1, alerts_paused=false WHERE id=$2", [PHONE, MAYA_ID]);
-  // reset the SMS rate limiter bucket by using unique providers/phones per test where needed
 });
 
 let n = 0;
@@ -51,7 +45,7 @@ describe("forward-to-check", () => {
     const r = await handleInbound(t.pool, msg("Parcelo: Your package is held. Pay $1.99 redelivery fee within 12 hrs: parcelo-redeliver.help/pay"));
     expect(r.status).toBe("handled");
     expect(r.reply).toMatch(/^Likely scam \(\d+\/100, \d+% sure\)\. Why: .+\. Do: .+\. \(basic check\)$/);
-    expect(await waitFor(async () => (await outbox()).some((m) => m.status === "sent"))).toBe(true);
+    expect(await waitFor(async () => (await outbox()).some((m) => m.status === "delivered"))).toBe(true);
     const inbound = (await t.pool.query("SELECT body, verdict_id FROM messages WHERE direction='in'")).rows[0];
     expect(inbound.body).toBe("[discarded]");
     expect(inbound.verdict_id).toBeTruthy();
@@ -84,14 +78,14 @@ describe("forward-to-check", () => {
   });
 
   it("a slow check sends the holding message first, then the verdict", async () => {
-    process.env.PHOTON_HOLDING_MS = "50"; process.env.MOCK_SPEED = "0.5";
+    process.env.HOLDING_MS = "50"; process.env.MOCK_SPEED = "0.5";
     const r = await handleInbound(t.pool, msg("Pay $1.99 redelivery fee within 12 hrs parcelo-redeliver.help/pay", "+15125557777"));
-    delete process.env.PHOTON_HOLDING_MS; process.env.MOCK_SPEED = "0";
+    delete process.env.HOLDING_MS; process.env.MOCK_SPEED = "0";
     expect(r.reply).toMatch(/^Likely scam/);
     expect(await waitFor(async () => (await t.pool.query("SELECT 1 FROM messages WHERE body='Checking… this one''s taking a moment'")).rowCount === 1)).toBe(true);
   });
 
-  it("SMS flood is rate limited per number", async () => {
+  it("message flood is rate limited per sender", async () => {
     const flooder = "+15125558888";
     let limited = 0;
     for (let i = 0; i < 32; i++) { const r = await handleInbound(t.pool, msg("Is this real? Pay $1.99 fee now parcelo.top", flooder)); if (r.reply?.includes("overloaded")) limited++; }
@@ -102,7 +96,7 @@ describe("forward-to-check", () => {
 describe("reply commands", () => {
   it("WATCH sets watch on the last alerted exposure; SAFE allowlists it; STOP pauses alerts; HELP lists commands", async () => {
     const { exp } = await exposureAndCharge();
-    await t.pool.query("INSERT INTO messages (user_id, phone, direction, body, kind, status, meta) VALUES ($1,$2,'out','alert','alert','sent',$3)", [MAYA_ID, PHONE, JSON.stringify({ exposure_id: exp })]);
+    await t.pool.query("INSERT INTO messages (user_id, phone, direction, body, kind, status, meta) VALUES ($1,$2,'out','alert','alert','delivered',$3)", [MAYA_ID, PHONE, JSON.stringify({ exposure_id: exp })]);
     expect((await handleInbound(t.pool, msg("watch"))).reply).toMatch(/watch your charges.*fastkicks-shop/);
     expect((await t.pool.query("SELECT watch FROM exposures WHERE id=$1", [exp])).rows[0].watch).toBe(true);
     expect((await handleInbound(t.pool, msg("SAFE"))).reply).toMatch(/Marked fastkicks-shop as safe/);
@@ -132,62 +126,19 @@ describe("reply commands", () => {
   });
 });
 
-describe("webhook", () => {
-  const post = (payload: unknown, headers: Record<string, string> = {}) => webhook(new Request("http://x/api/webhooks/photon", { method: "POST", headers: { "content-type": "application/json", ...headers }, body: typeof payload === "string" ? payload : JSON.stringify(payload) }));
-
-  it("mock mode without a secret accepts payloads, answers 200 fast, processes async", async () => {
-    const r = await post({ from: PHONE, text: "hello bayou order ready", id: `w${Date.now()}` });
-    expect(r.status).toBe(200);
-    expect(await waitFor(async () => (await outbox()).length === 1)).toBe(true);
-  });
-
-  it("with a secret: valid HMAC passes (hex or sha256= prefix), bad/missing signature is 403 and nothing is processed", async () => {
-    process.env.PHOTON_WEBHOOK_SECRET = "s3cret";
-    const body = JSON.stringify({ from: PHONE, text: "help", id: `s${Date.now()}` });
-    expect((await post(body)).status).toBe(403);
-    expect((await post(body, { "x-photon-signature": "deadbeef" })).status).toBe(403);
-    expect((await post(body, { "x-photon-signature": signBody(body, "s3cret") })).status).toBe(200);
-    expect(verifySignature(body, `sha256=${signBody(body, "s3cret")}`, "s3cret")).toBe(true);
-    expect(verifySignature(body, null, "s3cret")).toBe(false);
-  });
-
-  it("rejects non-JSON and unrecognized payloads", async () => {
-    expect((await post("not json")).status).toBe(400);
-    expect((await post({ hello: "world" })).status).toBe(400);
-  });
-
-  it("tolerant payload parsing", () => {
-    expect(parseInbound({ sender: "+1", message: { text: "hi", id: "m1" } })).toEqual({ from: "+1", text: "hi", providerId: "m1", hasImage: false });
-    expect(parseInbound({ from: "+1", id: "x", attachments: [{ url: "u" }] })?.hasImage).toBe(true);
-    expect(parseInbound(null)).toBeNull();
-  });
-});
-
-describe("outbound live sender + phone preview", () => {
-  it("live sender posts to the configured base with bearer auth and returns the provider id", async () => {
-    let seen: { auth?: string; body?: string; url?: string } = {};
-    const srv = http.createServer((rq, rs) => { let b = ""; rq.on("data", (d) => (b += d)); rq.on("end", () => { seen = { auth: rq.headers.authorization, body: b, url: rq.url }; rs.writeHead(200, { "content-type": "application/json" }); rs.end(JSON.stringify({ id: "ph_123" })); }); });
-    await new Promise<void>((r) => srv.listen(0, r));
-    process.env.PHOTON_API_BASE = `http://127.0.0.1:${(srv.address() as AddressInfo).port}/v1`; process.env.PHOTON_PROJECT_SECRET = "proj"; process.env.PHOTON_NUMBER = "+15550001111";
-    expect(await liveSender.send("+15125550100", "hello")).toEqual({ providerId: "ph_123" });
-    expect(seen.auth).toBe("Bearer proj"); expect(seen.url).toBe("/v1/messages"); expect(JSON.parse(seen.body!)).toMatchObject({ to: "+15125550100", text: "hello" });
-    delete process.env.PHOTON_API_BASE;
-    await expect(liveSender.send("x", "y")).rejects.toThrow(/not configured/);
-    srv.close();
-  });
-
+describe("phone preview + notify tool", () => {
   it("demo inbound endpoint lets the phone preview talk to Bluff as the demo user", async () => {
     await t.pool.query("UPDATE users SET phone=NULL WHERE id=$1", [MAYA_ID]);
     const res = await demoInbound(new Request("http://x/api/demo/inbound", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "HELP" }) }));
     expect((await res.json()).reply).toContain("WATCH");
   });
 
-  it("notify tool only queues the canned charge alert and respects limits", async () => {
+  it("notify tool only sends the canned charge alert and respects limits", async () => {
     const { exp, txn } = await exposureAndCharge();
     const ctx = { userId: MAYA_ID, db: t.pool };
-    expect(await notifyTool.run({ kind: "charge_alert", txn_id: txn, exposure_id: exp }, ctx)).toEqual({ queued: true });
-    expect(await notifyTool.run({ kind: "charge_alert", txn_id: txn, exposure_id: exp }, ctx)).toEqual({ queued: false, reason: "duplicate" });
-    expect(await notifyTool.run({ kind: "text", txn_id: txn, exposure_id: exp }, ctx)).toMatchObject({ queued: false });
-    expect(await notifyTool.run({ kind: "charge_alert", txn_id: "00000000-0000-4000-8000-0000000000aa", exposure_id: exp }, ctx)).toMatchObject({ queued: false });
+    expect(await notifyTool.run({ kind: "charge_alert", txn_id: txn, exposure_id: exp }, ctx)).toEqual({ delivered: true });
+    expect(await notifyTool.run({ kind: "charge_alert", txn_id: txn, exposure_id: exp }, ctx)).toEqual({ delivered: false, reason: "duplicate" });
+    expect(await notifyTool.run({ kind: "text", txn_id: txn, exposure_id: exp }, ctx)).toMatchObject({ delivered: false });
+    expect(await notifyTool.run({ kind: "charge_alert", txn_id: "00000000-0000-4000-8000-0000000000aa", exposure_id: exp }, ctx)).toMatchObject({ delivered: false });
   });
 });

@@ -43,7 +43,7 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
       <div className="flex w-full flex-col gap-3">
         <p className="text-sm" role="status">
           Logged: <span className="font-medium">{logged.host}</span> is now in your <Link className="text-accent underline" href="/exposure">Exposure Log</Link>{logged.watch ? ", and I\u2019ll watch your charges." : "."}
-          {alert === "queued" && <span className="text-dim">{" I\u2019ve texted you an alert."}</span>}
+          {alert === "delivered" && <span className="text-dim">{" I\u2019ve sent an alert to your phone."}</span>}
         </p>
         {slug ? <Button onClick={simulate} disabled={busy === "sim"}>{busy === "sim" ? "Posting charge…" : "Simulate a charge from this store"}</Button>
           : <p className="text-xs text-dim">Charge simulation is available for the 8 demo stores.</p>}

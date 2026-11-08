@@ -4,35 +4,35 @@
 Bluff
 
 ## Tagline
-Call their bluff: Bluff connects the site where you typed your card to the charge that follows, then helps you get your money back.
+Call their bluff: Bluff checks the website behind every charge on your card and helps you get your money back.
 
 ## Elevator pitch (≤ 200 chars)
-Scams hit your statement days after the click. Bluff remembers where you entered your card, links the later charge to that site, drafts the dispute, and texts you on iMessage.
+Scams hit your statement days after the click. Bluff crawls the site behind every charge, has Nemotron read it like an investigator, links it to where you typed your card, and drafts the dispute.
 
 ## Description
 **The problem.** Scams don't happen when you click. They show up three days later on your statement. Site raters see the page, banks see the charge, text filters see the message, and the victim has to connect them alone, late, with no evidence.
 
 **What it does.** One Nemotron agent, one Exposure Log, four surfaces:
+- **Bank Scan (Capital One Nessie):** pulls your recent card transactions, crawls the website behind every charge (refund, terms, contact, checkout pages), runs an instant rules-based basic check, then a Nemotron agent reads the pages and writes a cited report. A fake store hiding in your statement gets flagged with evidence and a one-tap dispute draft.
 - **Checkout Guard** (Chrome extension and `/check`): when a page asks for your card, Bluff scores it with reasons and safer options, and logs the exposure.
 - **Charge Watch + Refund Builder:** a new charge is linked back to the exposure (abbreviated descriptors like `FKSHP*LLC` ↔ `fastkicks-shop`), flagged for price drift, duplicates and card tests, and one tap drafts a dispute letter, evidence timeline and next steps. Bluff drafts; you decide.
-- **Bluff Text (Photon iMessage):** alerts when something risky happens, and forward any suspicious text for an explained verdict. Reply WATCH, DISPUTE, SAFE, STOP or HELP.
-- **Call the Bluff:** a 60-second daily game that trains the same red flags the detector uses, with messages from the T-Mobile Safe Signal set and one card from your own bank scan.
-- **Bank Scan (Capital One Nessie):** pulls your recent card transactions, visits every merchant's website live, and a Nemotron agent rates each site you paid, so a fake store hiding in your statement gets flagged with evidence and a one-tap dispute draft.
+- **Alerts on your phone:** risky sites and linked charges show up as texts in a T-Mobile phone view; forward any suspicious text for an explained verdict, or reply WATCH, DISPUTE, SAFE, STOP or HELP.
+- **Call the Bluff:** a 60-second daily game that trains the same red flags the detector uses, with messages from our own 306-message synthetic scam/legit set and one card from your own bank scan.
 
-**How it's built.** Capital One Nessie API for accounts and purchases, an SSRF-guarded live scraper plus RDAP for each merchant site, Next.js on Vultr, Tiger Data (hypertable + continuous aggregate + pg_trgm), Nemotron tool-calling agent with a streamed trace, Photon for messaging, a Chrome MV3 extension. Verdicts are always labeled live / cached / replayed / basic, with graceful fallbacks.
+**How it's built.** Capital One Nessie API for accounts and purchases, an SSRF-guarded multi-page crawler plus RDAP, TLS, DNS and Internet Archive lookups for each merchant site, Next.js on a Vultr VPS, self-hosted TimescaleDB (hypertable + continuous aggregate + pg_trgm), a Nemotron tool-calling agent with a streamed trace, a Chrome MV3 extension. Verdicts are always labeled live / cached / replayed / basic, with graceful fallbacks.
 
 **Privacy by design.** The extension never reads what you type or the page text; only the domain, the kinds of fields and yes/no signals leave the page. Forwarded texts are discarded after the verdict. Everything is synthetic data.
 
 **Measured, honestly.** [Fill from `npm run demo:script` after the real runs. At time of writing the only measured numbers are on a synthetic stand-in set with the rules-only path; do not present them as results on T-Mobile's data or on the Nemotron agent.]
 
 ## Tracks
-- Sponsor (max 3, **pick 3 of these 4**): **T-Mobile Safe Signal**, **NVIDIA: Use Nemotron Beyond a Chatbot**, **Capital One: Best Use of Nessie**, **Photon: Best Use of Photon API** (Photon is still mock-only; Nessie is live, so Capital One is the stronger third pick unless Photon gets wired up)
+- Sponsor (max 3): **T-Mobile Safe Signal**, **NVIDIA: Use Nemotron Beyond a Chatbot**, **Capital One: Best Use of Nessie**
 - HackUTD (max 1): **Virality**
 - MLH (opt in on Devpost): **Tiger Data**, **Vultr**, **GoDaddy Registry**
 - Auto-entered: General
 
 ## Built with
-Next.js · TypeScript · Tailwind · PostgreSQL / Tiger Data (TimescaleDB, pg_trgm) · NVIDIA Nemotron (build.nvidia.com) · Capital One Nessie API · RDAP · Photon · Chrome MV3 · Vultr · Caddy · Python (eval) · Playwright
+Next.js · TypeScript · Tailwind · PostgreSQL / Tiger Data (TimescaleDB, pg_trgm) · NVIDIA Nemotron (build.nvidia.com) · Capital One Nessie API · RDAP · Internet Archive · Chrome MV3 · Vultr · Caddy · Python (eval) · Playwright
 
 ## Links to fill in
 - Live URL: [https://bluff.<domain>]
@@ -40,7 +40,7 @@ Next.js · TypeScript · Tailwind · PostgreSQL / Tiger Data (TimescaleDB, pg_tr
 - Video (≤ 2:00, demo only): [link]
 
 ## Demo video shot list (≤ 2:00, demo only; script from `npm run demo:script`)
-1. 0:00 black screen, the hook line. 2. 0:08 `fastkicks-shop` with the extension panel sliding in on the card field (record with the extension loaded). 3. 0:24 *Continue and watch my charges*, phone buzzes with the alert (screen-record the phone). 4. 0:34 *Simulate a charge*, the trace streams, the linked-charge card. 5. 0:52 *Build dispute*. 6. 1:00 `/eval` with the real numbers and the failure cases. 7. 1:12 forward a scam text, reply arrives; flip a game card and show the share grid. 8. 1:24 `/privacy`, close with "Bluff: call their bluff."
+1. 0:00 black screen, the hook line. 2. 0:08 `fastkicks-shop` with the extension panel sliding in on the card field (record with the extension loaded). 3. 0:24 *Continue and watch my charges*, the alert lands in the T-Mobile phone view. 4. 0:34 *Simulate a charge*, the trace streams, the linked-charge card. 5. 0:52 *Build dispute*. 6. 1:00 `/eval` with the real numbers and the failure cases. 7. 1:12 forward a scam text, reply arrives; flip a game card and show the share grid. 8. 1:24 `/privacy`, close with "Bluff: call their bluff."
 
 ## Before you submit (human-only items)
 - [ ] Register the team on Devpost by **Sat 11:00pm CST**; final submission locks **Sun 12:00pm CST**.

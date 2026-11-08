@@ -6,10 +6,10 @@ A = backend/AI · B = frontend/demo.
 
 ## Phase A: Setup + contract (before 33% of T)
 [ ] 1 (A+B): Get T-Mobile message set, taxonomy and baseline from the booth; confirm formats in hackathon.md. (by Sat 5:30pm)
-[ ] 2 (A+B): Sign up for Photon (HACKWITHPHOTON), get a number; NVIDIA API key + model IDs; Vultr credits; GoDaddy domain registered. (by Sat 6:00pm)
+[ ] 2 (A+B): NVIDIA API key + model IDs; Vultr credits; GoDaddy domain registered. (by Sat 6:00pm)
 [ ] 3 (A): Verdict type + SSE event shapes + 3 fixture runs committed; mock mode streams them. (by Sat 6:30pm)
 [ ] 4 (A): Tiger Data: migrations (hypertable, continuous aggregate, pg_trgm, pgvector or fallback) + seed for Maya, 8 stores, 60 txns, eval user. (by Sat 7:00pm)
-[ ] 5 (A): One Photon message sent and one received end to end on the demo phone. (by Sat 7:00pm)
+[ ] 5 (A): One alert sent and one text received end to end in the phone view. (by Sat 7:00pm)
 [ ] 6 (A): Claim A split file committed (seed 42) before any prompt tuning. (by Sat 7:30pm)
 [ ] 7 (A): Agent returns a valid Verdict for fastkicks-shop live in < 10 s, 8/10 runs schema-valid. (Checkpoint 1, Sat 8:00pm)
 [ ] 8 (B): Shell + tokens + /check RunView working on mocks (trace streams, VerdictCard). (Sat 8:00pm)
@@ -36,10 +36,10 @@ A = backend/AI · B = frontend/demo.
 [ ] 23: 3–5 event tester reactions + one sourced statistic (fetched).
 [ ] 24: Generated game cards + lookalike card.
 [ ] 25: SAFE/STOP/HELP + rate limits; delete-everything.
-[ ] 26: Voice call for the highest-risk linked charge (Photon Voice Call prize).
+[ ] 26: (removed) Voice call for the highest-risk linked charge.
 
 ## Phase E: Demo + submit
 [ ] 27: Demo script rewritten with real numbers; 3 full rehearsals on the deployed site. (Sun 9:00am)
 [ ] 28: Visual pass: same tokens/components on every page, mobile layout, loading/empty/error states. (Sun 9:30am)
 [ ] 29: Video recorded ≤ 2:00, demo only. (Sun 10:30am)
-[ ] 30: README (architecture, claims, sponsor usage, run steps) + Devpost: T-Mobile, NVIDIA, Photon, Virality + MLH Tiger Data, Vultr, GoDaddy opt-ins. Submitted. (by Sun 11:30am)
+[ ] 30: README (architecture, claims, sponsor usage, run steps) + Devpost: T-Mobile, NVIDIA, Capital One, Virality + MLH Tiger Data, Vultr, GoDaddy opt-ins. Submitted. (by Sun 11:30am)

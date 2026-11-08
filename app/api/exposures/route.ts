@@ -5,8 +5,8 @@ import { getPool, one } from "@/lib/db";
 import { getConfig } from "@/lib/config";
 import { labelFromHost } from "@/lib/linker/normalize";
 import { listExposures, toExposureDto, type ExposureRow } from "@/lib/exposures";
-import { notify } from "@/lib/photon/notify";
-import { exposureAlert } from "@/lib/photon/templates";
+import { notify } from "@/lib/messaging/notify";
+import { exposureAlert } from "@/lib/messaging/templates";
 import { domainIntel } from "@/lib/agent/tools/domainIntel";
 
 export const runtime = "nodejs";
@@ -38,8 +38,7 @@ export const POST = handle(async (req: Request) => {
       userId: ctx.userId, eventKey: `exposure:${row.id}`, verdictId: v.id, meta: { exposure_id: row.id },
       body: exposureAlert({ fieldTypes: row.field_types, host: row.host, ageDays: intel?.age_days ?? null }),
     });
-    alert = n.status === "queued" ? "queued" : `skipped:${n.reason}`;
-    if (n.status === "queued") void n.done;
+    alert = n.status === "delivered" ? "delivered" : `skipped:${n.reason}`;
   }
   return json(ctx, { exposure: toExposureDto(row), alert }, { status: 201 });
 });

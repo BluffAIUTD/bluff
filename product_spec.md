@@ -18,7 +18,7 @@
 - AC: That CTA posts the linked seeded charge for that store and routes to `/charges/[id]` with the trace streaming.
 - AC: The linked-charge card names the exposure's domain, date, score and field types.
 - AC: "Build dispute" renders the packet in < 8 s, or shows the failure state.
-- AC: If a Photon number is configured for the demo user, an iMessage alert is sent at exposure (score < 40) and at link.
+- AC: An alert is sent to the user's T-Mobile phone view at exposure (score < 40) and at link.
 
 ### P1 Checkout Guard
 **P1-1.** As a shopper, I want a verdict when a page asks for sensitive info, not on every page.
@@ -55,7 +55,7 @@
 - AC: A demo control (visible only with `?demo=1`, or always on the demo user) posts the next scripted charge.
 
 ### P3 Bluff Text
-**P3-1.** As a user, I want an iMessage when something risky happens.
+**P3-1.** As a user, I want an text when something risky happens.
 - AC: Alert on exposure with score < 40: "You just entered your {fieldTypes} on {host}, a site registered {age} days ago. Reply WATCH and I'll check for charges from it."
 - AC: Alert on a linked charge: "${amount} from {descriptor} matches {host}, where you entered your card on {date}. Reply DISPUTE and I'll draft it."
 - AC: At most 1 alert per event and 5 per hour per user.
@@ -122,7 +122,7 @@
 - Agent service with tool calling, `Verdict` schema, SSE trace
 - `/check` with 8 storefronts + text mode; exposure creation
 - `/charges`, linker SQL, exposure-link + price-drift flags, demo trigger, `/charges/[id]` with Refund Builder (template + AI letter)
-- Photon outbound alert + inbound forward-to-check + WATCH/DISPUTE
+- Phone-view outbound alert + inbound forward-to-check + WATCH/DISPUTE
 - `/play` with seeded pool, flip, score, streak, share text
 - `/eval` with Claims A and B, `/privacy` (static diagram + table)
 - Navigation shell, design tokens, seeded demo user, deployment on Vultr + domain + HTTPS
@@ -137,7 +137,7 @@
 - Stretch eval (40–50 cases, second baseline)
 
 **P2 (extras)**
-- Voice call (Photon Voice Call prize)
+- Voice call (removed)
 - Leaderboard
 - Screenshot/image forwarding
 - Real RDAP for arbitrary hosts

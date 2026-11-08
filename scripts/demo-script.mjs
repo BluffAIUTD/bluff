@@ -25,7 +25,7 @@ export function build(results) {
     `[0:34] "Three days later a charge posts. The agent pulls the merchant's history from Tiger Data, searches Maya's exposures, checks the domain, and links the charge to the exact store from Tuesday. No bank and no browser extension can make that connection." (note: the demo simulates the 3 days passing, and the app says so)`,
     `[0:52] "One tap: a dispute letter, an evidence timeline and next steps. Bluff drafts. Maya decides."`,
     `[1:00] "${proof}"`,
-    `[1:12] "Got a sketchy text? Forward it to Bluff. Verdict in seconds, in iMessage. And every day, Call the Bluff: 60 seconds of training on the same red flags."`,
+    `[1:12] "Got a sketchy text? Forward it to Bluff. Verdict in seconds, right in your messages. And every day, Call the Bluff: 60 seconds of training on the same red flags."`,
     `[1:24] "Nothing Maya types ever leaves her device. Only the domain and yes/no flags do. Bluff: call their bluff."`,
   ];
   return { warnings, lines };

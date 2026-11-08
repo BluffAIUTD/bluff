@@ -20,7 +20,7 @@ Scams don't happen when you click. They show up days later on your statement. Bl
 - Evidence level: **Assumed / anecdotal.** Collect 3–5 reactions at the event (depth plan) and one sourced statistic (e.g., FTC Consumer Sentinel online-shopping fraud figures). Cite it only if fetched from the source.
 
 ## Target user
-Everyday online shoppers and phone users (T-Mobile customers), especially people who shop from social ads and get frequent text messages. Secondary users: older relatives who'll never install five tools, but will read an iMessage.
+Everyday online shoppers and phone users (T-Mobile customers), especially people who shop from social ads and get frequent text messages. Secondary users: older relatives who'll never install five tools, but will read an text.
 
 ## Closest existing projects (novelty comparison)
 | # | Closest thing | What it does | What Bluff does that it can't |
@@ -41,13 +41,13 @@ What would reject each claim: Claim A is rejected if held-out F1 ≤ the baselin
 **Stretch claim (depth budget, not a commitment):** 40–50 hand-labeled checkout pages and texts, a second baseline (an off-the-shelf zero-shot LLM prompt with no tools), and a failure-case table.
 
 ## Pillars (4) + core loop
-**Core loop:** you give a site personal info → Bluff rates and remembers it → a charge posts → Bluff links it to the exposure → one-tap dispute packet → iMessage alert.
+**Core loop:** you give a site personal info → Bluff rates and remembers it → a charge posts → Bluff links it to the exposure → one-tap dispute packet → text alert.
 
 | Pillar | Job (serves the thesis by…) | Surface |
 |---|---|---|
 | 1. **Checkout Guard** | …catching the exposure moment and writing it to memory | Chrome extension + `/check` page |
 | 2. **Charge Watch** (+ Refund Builder) | …linking money to exposure and turning it into a dispute | Dashboard `/charges` |
-| 3. **Bluff Text** | …reaching the user where scams land (iMessage), both directions | Photon iMessage line (+ voice call stretch) |
+| 3. **Bluff Text** | …reaching the user where scams land (text), both directions | in-app text thread on the user's T-Mobile phone |
 | 4. **Call the Bluff** | …training users daily on the same red flags the detector uses | `/play` daily game |
 
 Shared backbone: **one Nemotron agent, one Exposure Log, one Tiger Data database, one design system.**
@@ -57,10 +57,10 @@ On the dashboard, a new charge posts and the agent trace streams in step by step
 
 ## Cut order (if behind)
 1. Voice call → 2. Leaderboard → 3. Screenshot forwarding (keep text) → 4. Real RDAP lookups (keep mock registry) → 5. Generated game cards (use 15 hand-written) → 6. Chrome extension (fall back to `/check` page with URL input).
-**Never cut:** the core loop, exposure-to-charge link, Refund Builder, iMessage alert, Claim A eval.
+**Never cut:** the core loop, exposure-to-charge link, Refund Builder, text alert, Claim A eval.
 
 ## Tracks
-- Sponsor (max 3): **T-Mobile Safe Signal**, **NVIDIA Nemotron**, **Photon API**
+- Sponsor (max 3): **T-Mobile Safe Signal**, **NVIDIA Nemotron**, **Capital One Nessie**
 - HackUTD (max 1): **Virality**
 - MLH (unlimited, opt in): **Tiger Data**, **Vultr**, **GoDaddy Registry**
 - Auto-considered: General

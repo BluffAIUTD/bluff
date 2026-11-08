@@ -30,12 +30,6 @@ Innovation and Creativity · Technical Complexity · Completeness · Design · I
 - Prizes: 2× RTX 5080 + $200 Brev credits / 1× RTX 5080 + $200 Brev.
 - [A] Access through build.nvidia.com hosted NIM endpoints (OpenAI-compatible, tool calling). [U] Exact model IDs and rate limits. Check at the NVIDIA booth.
 
-### Photon: Best Use of Photon API [V]
-- Sign up at app.photon.codes with promo code **HACKWITHPHOTON**. Docs and examples are in the resources link.
-- Prizes: 1st $400 + $300 credits + interview fast-track; 2nd $200 + $100; **Voice Call Winner** $300 + $100.
-- [V, from photon.codes] Photon is an agent messaging API for iMessage (plus WhatsApp, Telegram, Slack, etc.) with SMS/RCS fallback and calling. Its TypeScript SDK is spectrum-ts / chat adapters; inbound messages arrive by webhook with a signing secret.
-- [U] Exact SDK calls for send, receive and call. Read the resources link before building.
-
 ### HackUTD: Virality [V]
 Prize: portable monitors. [U] Criteria unstated. Assume shareability and evidence of spread.
 

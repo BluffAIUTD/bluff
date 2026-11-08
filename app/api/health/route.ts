@@ -10,8 +10,8 @@ export async function GET() {
   const c = getConfig();
   try {
     await getPool().query("SELECT 1");
-    return NextResponse.json({ ok: true, db: true, agentMode: c.agentMode, photonMode: c.photonMode });
+    return NextResponse.json({ ok: true, db: true, agentMode: c.agentMode });
   } catch {
-    return NextResponse.json({ ok: false, db: false, agentMode: c.agentMode, photonMode: c.photonMode }, { status: 503 });
+    return NextResponse.json({ ok: false, db: false, agentMode: c.agentMode }, { status: 503 });
   }
 }

@@ -23,10 +23,10 @@
 - **Reads:** transactions, merchant_price_daily, exposures. **Writes:** verdicts, disputes, agent_runs.
 
 #### P3. Bluff Text: "reach users where scams land"
-- **User story:** As a user who doesn't live in dashboards, I want alerts by iMessage and to forward suspicious texts for a verdict so protection works on my phone.
+- **User story:** As a user who doesn't live in dashboards, I want alerts by text and to forward suspicious texts for a verdict so protection works on my phone.
 - **Mini moment:** The judge's phone buzzes. Then forward a scam text and the verdict comes back in about 6 seconds.
 - **Thin slice:** Outbound alert on a high-risk exposure and on a linked charge. Inbound forwarded text → agent → reply with score, why and what to do. Reply commands WATCH / DISPUTE / SAFE / STOP.
-- **Depth:** Voice call for the highest-risk event (Photon Voice Call prize); daily game nudge; image/screenshot forwarding.
+- **Depth:** daily game nudge; image/screenshot forwarding.
 - **Reads:** users, verdicts. **Writes:** messages, verdicts, exposures (on WATCH).
 
 #### P4. Call the Bluff: "train the same red flags daily"
@@ -38,7 +38,7 @@
 
 ### Cross-links (≥2)
 1. **P1 → P2:** Exposure Log entries are what the charge linker searches. This is the signature link.
-2. **P2 → P3:** A linked charge triggers the iMessage alert; replying DISPUTE opens the packet.
+2. **P2 → P3:** A linked charge triggers the text alert; replying DISPUTE opens the packet.
 3. **P3 → P1:** Replying WATCH to a checkout alert sets `watch=true` on that exposure, which raises its link priority.
 4. **P1/P2 → P4:** The week's flagged patterns seed one "lookalike" card in the daily game.
 
@@ -103,7 +103,7 @@ Every step works on a phone with no extension and no account.
 ## 7. Judge Takeaways
 1. **Bluff links the site where you typed your card to the charge that follows, then builds your dispute.** (Thesis)
 2. **It's a real Nemotron agent with tools and a visible trace, measured against T-Mobile's baseline.**
-3. **Private by design, and it shows up where people are: iMessage and a 60-second daily game.**
+3. **Private by design, and it shows up where people are: text and a 60-second daily game.**
 
 ## 8. Ideal 90-Second Demo Script (live pitch; the video version stretches to ≤2:00)
 > **[0:00]** "Scams don't happen when you click. They show up three days later on your statement. This is Bluff."
@@ -118,7 +118,7 @@ Every step works on a phone with no extension and no account.
 >
 > **[1:00]** "Does it work? On T-Mobile's held-out messages, Bluff scores **[F1_A]** against the baseline's **[F1_base]**, and it links charges to their source at **[F1_B]** versus **[F1_naive]** for string matching. Here are the cases it still gets wrong." *(Replace with real numbers at Checkpoint 3, or reframe honestly.)*
 >
-> **[1:12]** "Got a sketchy text? Forward it to Bluff. Verdict in seconds, in iMessage. And every day, Call the Bluff: 60 seconds of training on the same red flags the agent uses."
+> **[1:12]** "Got a sketchy text? Forward it to Bluff. Verdict in seconds, in text. And every day, Call the Bluff: 60 seconds of training on the same red flags the agent uses."
 >
 > **[1:24]** "And nothing Maya types ever leaves her device. Only the domain and yes/no flags do. Bluff: call their bluff."
 
@@ -180,7 +180,6 @@ None of these adds a pillar or a page.
 | T-Mobile data and baseline are usable in our pipeline | Get files at the booth; load and count labels | Now → Sat 6pm |
 | Nemotron tool calling is reliable enough for a multi-step loop | Run 10 agent loops on demo storefronts; count schema-valid outputs | Checkpoint 1 (Sat 8pm) |
 | Nemotron latency fits the demo (< 10 s) | Time 10 runs; switch to a smaller model or fewer steps if slow | Checkpoint 1 |
-| Photon line can be provisioned and receive webhooks on Vultr | Send and receive one test message end to end | Sat 7pm |
 | Tiger Data setup (hypertable, continuous aggregate, pgvector) is quick | Run the schema migration and seed | Sat 7pm |
 | Extension can be loaded and detect fields on demo stores | Load unpacked; detect card field on all 3 scam stores | Checkpoint 2 |
 | Judges will actually try it on their phone | Hallway test with 3 people using the QR path | Sun morning |

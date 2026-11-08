@@ -5,7 +5,7 @@ import { ApiError } from "./errors";
 import { findCandidates, type LinkCandidate } from "./linker";
 import { chat } from "./agent/llm";
 import { domainIntel } from "./agent/tools/domainIntel";
-import { chicagoDate, listFields } from "./photon/templates";
+import { chicagoDate, listFields } from "./messaging/templates";
 
 export type TimelineItem = { kind: "exposure" | "alert" | "charge"; at: string; label: string; detail: string };
 export type DisputeDto = { id: string; txnId: string; exposureId: string | null; letter: string; timeline: TimelineItem[]; nextSteps: string[]; status: "draft" | "filed"; generatedBy: "ai" | "template"; createdAt: string };
@@ -67,7 +67,7 @@ export function buildTimeline(f: DisputeFacts): TimelineItem[] {
   const items: TimelineItem[] = [
     { kind: "exposure", at: f.exposedAt.toISOString(), label: `Entered ${listFields(f.fieldTypes)} on ${f.host}`, detail: `Bluff trust score ${f.siteScore}/100${f.siteAgeDays != null ? `, site ${f.siteAgeDays} days old` : ""}` },
   ];
-  if (f.alertAt) items.push({ kind: "alert", at: f.alertAt.toISOString(), label: "Bluff sent you an alert", detail: "iMessage warning about this site" });
+  if (f.alertAt) items.push({ kind: "alert", at: f.alertAt.toISOString(), label: "Bluff sent you an alert", detail: "Text alert about this site" });
   items.push({ kind: "charge", at: f.chargedAt.toISOString(), label: `${money(f.amountCents)} charged by ${f.descriptor}`, detail: f.matchReasons.join("; ") });
   return items.sort((a, b) => a.at.localeCompare(b.at));
 }
@@ -111,7 +111,7 @@ export async function createDispute(db: Db, userId: string, txnId: string, opts:
 
   const user = await one<{ name: string }>(db, "SELECT name FROM users WHERE id=$1", [userId]);
   const intel = await domainIntel(best.host, { userId, db }).catch(() => null);
-  const alert = await one<{ created_at: Date }>(db, "SELECT created_at FROM messages WHERE user_id=$1 AND kind='alert' AND direction='out' AND status='sent' AND meta->>'exposure_id'=$2 ORDER BY created_at LIMIT 1", [userId, best.exposureId]);
+  const alert = await one<{ created_at: Date }>(db, "SELECT created_at FROM messages WHERE user_id=$1 AND kind='alert' AND direction='out' AND status <> 'failed' AND meta->>'exposure_id'=$2 ORDER BY created_at LIMIT 1", [userId, best.exposureId]);
   const verdict = await one<{ payload: { category?: string } }>(db, "SELECT payload FROM verdicts WHERE user_id=$1 AND subject_type='txn' AND subject_id=$2 ORDER BY created_at DESC LIMIT 1", [userId, txnId]);
   const facts: DisputeFacts = {
     name: user?.name ?? "Cardholder", descriptor: t.descriptor, amountCents: t.amount_cents, chargedAt: t.ts, category: verdict?.payload.category ?? "fake_store",

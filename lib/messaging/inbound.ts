@@ -8,11 +8,12 @@ import { ApiError } from "../errors";
 import { VERDICT_TEXT, type Verdict } from "../schemas";
 import { HELP_TEXT, parseCommand } from "./commands";
 import { notify, type NotifyResult } from "./notify";
-import type { InboundMessage } from "./webhook";
+/** A text the user sends Bluff from the phone preview. */
+export type InboundMessage = { from: string; text: string; providerId: string; hasImage: boolean };
 
 export const MAX_INBOUND_CHARS = 2000;
 export const HOLDING_AFTER_MS = 10_000;
-const holdingMs = () => Number(process.env.PHOTON_HOLDING_MS) || HOLDING_AFTER_MS;
+const holdingMs = () => Number(process.env.HOLDING_MS) || HOLDING_AFTER_MS;
 
 /** P3-2 reply: "{Verdict label} ({score}/100, {confidence}% sure). Why: {top 2 evidence}. Do: {top next step}." */
 export function verdictReply(v: Verdict, opts: { basic?: boolean } = {}): string {
@@ -28,12 +29,9 @@ type Ctx = { db: pg.Pool; msg: InboundMessage; userId: string | null; phone: str
 
 async function reply(c: Ctx, body: string, verdictId?: string | null): Promise<NotifyResult> {
   if (!c.userId) {
-    // Guest: no account → store the reply row without a user and send directly.
-    const r = await c.db.query("INSERT INTO messages (user_id, phone, direction, body, kind, status, verdict_id) VALUES (NULL,$1,'out',$2,'reply','queued',$3) RETURNING id", [c.phone, body, verdictId ?? null]);
-    const { getSender, sendWithRetry } = await import("./send");
-    const done = sendWithRetry(getSender(), c.phone, body).then(async (x) => { await c.db.query("UPDATE messages SET status='sent', provider_id=$2 WHERE id=$1", [r.rows[0].id, x.providerId]); return "sent" as const; })
-      .catch(async () => { await c.db.query("UPDATE messages SET status='failed' WHERE id=$1", [r.rows[0].id]); return "failed" as const; });
-    return { status: "queued", messageId: r.rows[0].id, done };
+    // Guest (no account): the reply is stored without a user.
+    const r = await c.db.query("INSERT INTO messages (user_id, phone, direction, body, kind, status, verdict_id) VALUES (NULL,$1,'out',$2,'reply','delivered',$3) RETURNING id", [c.phone, body, verdictId ?? null]);
+    return { status: "delivered", messageId: r.rows[0].id };
   }
   return notify(c.db, { userId: c.userId, eventKey: "", body, kind: "reply", verdictId });
 }
@@ -77,7 +75,7 @@ async function runCommand(c: Ctx, cmd: ReturnType<typeof parseCommand> & string)
 }
 
 /**
- * Process one inbound text (called after the webhook has already answered 200). Idempotent per provider message id.
+ * Process one text sent to Bluff from the phone preview. Idempotent per message id.
  * The inbound body is never stored: it is discarded as soon as the verdict is produced.
  */
 export async function handleInbound(db: pg.Pool, msg: InboundMessage, opts: { userId?: string } = {}): Promise<{ status: "duplicate" | "handled"; reply?: string }> {

@@ -21,8 +21,8 @@ describe("deploy config", () => {
   });
   it(".env.example documents every variable the config reads and holds no secrets", () => {
     const env = fs.readFileSync(".env.example", "utf8");
-    for (const k of ["AGENT_MODE", "PHOTON_MODE", "DATABASE_URL", "NVIDIA_API_KEY", "NEMOTRON_MODEL", "PHOTON_PROJECT_SECRET", "PHOTON_WEBHOOK_SECRET", "SESSION_SECRET", "DEMO_KEY", "EVAL_KEY", "BASE_DOMAIN", "ACME_EMAIL"]) expect(env).toContain(`${k}=`);
+    for (const k of ["AGENT_MODE", "DATABASE_URL", "POSTGRES_PASSWORD", "NVIDIA_API_KEY", "NEMOTRON_MODEL", "NESSIE_API_KEY", "SESSION_SECRET", "DEMO_KEY", "EVAL_KEY", "BASE_DOMAIN", "ACME_EMAIL"]) expect(env).toContain(`${k}=`);
     expect(env).not.toMatch(/nvapi-|sk-[A-Za-z0-9]{10,}/);
-    for (const line of env.split("\n")) { const m = /^(NVIDIA_API_KEY|PHOTON_PROJECT_SECRET|PHOTON_WEBHOOK_SECRET)=(.*)$/.exec(line); if (m) expect(m[2].trim()).toBe(""); }
+    for (const line of env.split("\n")) { const m = /^(NVIDIA_API_KEY|NESSIE_API_KEY)=(.*)$/.exec(line); if (m) expect(m[2].trim()).toBe(""); }
   });
 });
