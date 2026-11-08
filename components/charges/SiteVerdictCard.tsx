@@ -5,9 +5,9 @@ import { Badge } from "../ui/Badge";
 import { ModeBadge, type RunMode } from "../ui/ModeBadge";
 
 const STYLE = {
-  likely_scam: { ring: "border-scam/50 bg-scam/10", title: "Merchant website looks like a scam", badge: <Badge tone="scam">Likely scam</Badge> },
-  unsure: { ring: "border-unsure/50 bg-unsure/10", title: "Merchant website looks risky", badge: <Badge tone="unsure">Unsure</Badge> },
-  looks_ok: { ring: "border-line bg-surface", title: "Merchant website looks OK", badge: <Badge tone="safe">Looks OK</Badge> },
+  likely_scam: { ring: "border-scam/50", title: "Merchant website looks like a scam", badge: <Badge tone="scam">Likely scam</Badge> },
+  unsure: { ring: "border-unsure/50", title: "Merchant website looks risky", badge: <Badge tone="unsure">Unsure</Badge> },
+  looks_ok: { ring: "brass-hairline", title: "Merchant website looks OK", badge: <Badge tone="safe">Looks OK</Badge> },
 } as const;
 
 const MODES: RunMode[] = ["live", "cached", "replayed", "basic"];
@@ -18,9 +18,9 @@ export function SiteVerdictCard({ site }: { site: SiteCheck }) {
   const s = STYLE[site.label] ?? STYLE.unsure;
   const basic = site.mode === "basic";
   return (
-    <section aria-label="Merchant website check" className={`flex flex-col gap-3 rounded-card border p-4 sm:p-6 ${s.ring}`}>
+    <section aria-label="Merchant website check" className={`stitch flex flex-col gap-3 rounded-card border bg-surface p-4 sm:p-6 [&>*]:relative [&>*]:z-10 ${s.ring}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-grotesk text-lg font-bold">{s.title}</h2>
+        <h2 className="serif text-xl font-semibold">{s.title}</h2>
         {s.badge}
         <ModeBadge mode={MODES.includes(site.mode as RunMode) ? (site.mode as RunMode) : "basic"} />
       </div>
@@ -33,17 +33,17 @@ export function SiteVerdictCard({ site }: { site: SiteCheck }) {
         <ul aria-label="Warning signs" className="flex flex-col gap-2 text-sm">
           {site.findings.slice(0, 4).map((f, i) => (
             <li key={i} className="flex gap-2">
-              <span aria-hidden className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-scam" />
+              <span aria-hidden className="mt-2 h-2 w-2 shrink-0 rotate-45 rounded-[1px] bg-scam" />
               <div className="min-w-0">
-                <p className="font-medium">{f.title}</p>
+                <p className="font-semibold">{f.title}</p>
                 {f.detail && <p className="break-words text-dim">{f.detail}</p>}
-                {f.page && <a href={f.page} target="_blank" rel="noopener noreferrer nofollow" className="inline-block max-w-full truncate font-mono text-xs text-accent underline">{pathOf(f.page)}</a>}
+                {f.page && <a href={f.page} target="_blank" rel="noopener noreferrer nofollow" className="inline-block max-w-full truncate font-mono text-xs text-brass underline">{pathOf(f.page)}</a>}
               </div>
             </li>
           ))}
         </ul>
       )}
-      <Link href="/scan" className="self-start text-sm font-medium text-accent underline">See the full bank scan</Link>
+      <Link href="/scan" className="self-start text-sm font-medium text-brass underline">See the full bank scan</Link>
     </section>
   );
 }

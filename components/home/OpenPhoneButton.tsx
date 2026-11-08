@@ -9,7 +9,7 @@ export function OpenPhoneButton() {
     b.focus();
   }
   return (
-    <button type="button" onClick={open} className="inline-flex min-h-[44px] items-center gap-2 self-start rounded-control border border-line bg-surface2 px-3 text-sm font-medium transition duration-ui hover:border-gray-4">
+    <button type="button" onClick={open} className="btn-rail chip-btn inline-flex min-h-[44px] items-center gap-2 self-start rounded-full px-5 text-sm font-semibold">
       <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: "#E20074" }} />
       Open my phone
     </button>

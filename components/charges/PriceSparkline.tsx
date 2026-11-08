@@ -12,8 +12,8 @@ export function PriceSparkline({ points, current }: { points: { day: string; sum
   return (
     <figure className="flex flex-col gap-1">
       <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} role="img" aria-label={`Price history: ${points.length} charges, latest ${money(last.sumCents)}`}>
-        <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-        {points.map((p, i) => <circle key={p.day} cx={x(i)} cy={y(p.sumCents)} r={i === points.length - 1 ? 3.5 : 2} fill="var(--accent)" />)}
+        <path d={d} fill="none" stroke="var(--brass-2)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {points.map((p, i) => <circle key={p.day} cx={x(i)} cy={y(p.sumCents)} r={i === points.length - 1 ? 3.5 : 2} fill="var(--brass-1)" />)}
       </svg>
       <figcaption className="text-xs text-dim">{points.length} days with charges · latest {money(last.sumCents)}</figcaption>
     </figure>

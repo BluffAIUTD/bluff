@@ -4,7 +4,7 @@ import { loadOverview } from "@/lib/overview";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { HomeView } from "@/components/home/HomeView";
 
-export const metadata = { title: "Bluff — your card, watched" };
+export const metadata = { title: "Your card, watched" };
 export const dynamic = "force-dynamic";
 
 export default async function Home() {

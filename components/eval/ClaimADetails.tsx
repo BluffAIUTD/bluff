@@ -7,7 +7,7 @@ const pct0 = (n: number | null | undefined) => (n == null ? "–" : `${Math.roun
 const SHORT: Record<string, string> = { baseline: "Link baseline", rules_v0: "Rules before", rules: "Rules after", live: "Live agent", rules_sample: "Rules after (sample)" };
 export const shortName = (m: Pick<EvalMethod, "id" | "name">) => SHORT[m.id] ?? m.name;
 
-const card = "overflow-x-auto rounded-card border border-line bg-surface";
+const card = "overflow-x-auto stitch rounded-card border brass-hairline bg-surface";
 const th = "px-3 py-2";
 
 /** Stated confidence vs. how often committed verdicts were right, per confidence bucket, for each method that states one. */
@@ -17,7 +17,7 @@ export function CalibrationTable({ methods, model }: { methods: EvalMethod[]; mo
   const ranges = ms[0].calibration!.buckets.map((b) => b.range);
   return (
     <section aria-label="Honest confidence" className="flex flex-col gap-3">
-      <h3 className="font-grotesk text-lg font-bold">Honest confidence: stated vs. observed</h3>
+      <h3 className="serif text-xl font-semibold">Honest confidence: stated vs. observed</h3>
       <p className="text-sm text-dim">
         For each confidence range: what Bluff said (stated) and how often it was right (observed). Lower ECE (expected calibration error) is better.
         Unsure verdicts claim nothing and are left out. Confidence comes from how many signals agree, never from the model&apos;s own say-so.
@@ -27,7 +27,7 @@ export function CalibrationTable({ methods, model }: { methods: EvalMethod[]; mo
           <thead className="text-xs uppercase tracking-wide text-dim">
             <tr><th className={th}>Confidence</th>{ms.map((m) => <th key={m.id} className={th}>{shortName(m)}</th>)}</tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody className="divide-y divide-[rgba(217,180,107,0.16)]">
             {ranges.map((range, i) => (
               <tr key={range}>
                 <th scope="row" className={`${th} font-medium`}>{range}</th>
@@ -55,15 +55,15 @@ export function PerCategoryTable({ rows, methods }: { rows: NonNullable<ClaimA["
   const ids = Object.keys(rows[0].correct);
   const name = (id: string) => { const m = methods.find((x) => x.id === id); return m ? shortName(m) : SHORT[id] ?? id; };
   return (
-    <details className="rounded-card border border-line bg-surface">
-      <summary className="cursor-pointer px-4 py-3 font-grotesk text-lg font-bold">Per category ({rows.length} categories)</summary>
+    <details className="stitch rounded-card border brass-hairline bg-surface">
+      <summary className="cursor-pointer px-4 py-3 serif text-xl font-semibold">Per category ({rows.length} categories)</summary>
       <p className="px-4 pb-2 text-sm text-dim">Correct scam/legit calls out of n. With 3–5 messages per category these are anecdotes, not rates.</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="text-xs uppercase tracking-wide text-dim">
             <tr><th className={th}>Category</th><th className={th}>n</th>{ids.map((id) => <th key={id} className={th}>{name(id)}</th>)}</tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody className="divide-y divide-[rgba(217,180,107,0.16)]">
             {rows.map((r) => (
               <tr key={r.category}>
                 <th scope="row" className={`${th} font-mono text-[13px] font-normal`}>{r.category}<span className="ml-1 text-xs text-dim">{r.label}</span></th>
@@ -81,8 +81,8 @@ export function PerCategoryTable({ rows, methods }: { rows: NonNullable<ClaimA["
 /** How the live Nemotron agent was run: model, sample, fallbacks and latency. */
 export function LiveStatsNote({ live }: { live: NonNullable<ClaimA["live"]> }) {
   return (
-    <section aria-label="Live agent run" className="rounded-card border border-line bg-surface p-4 text-sm">
-      <h3 className="mb-2 font-grotesk text-lg font-bold">Live agent run</h3>
+    <section aria-label="Live agent run" className="stitch rounded-card border brass-hairline bg-surface p-4 text-sm">
+      <h3 className="mb-2 serif text-xl font-semibold">Live agent run</h3>
       <ul className="list-disc space-y-1 pl-5 text-dim">
         <li>Model <span className="font-mono text-fg">{live.model}</span> with tools taxonomy_match, domain_intel and submit_verdict, rules fallback as deployed.</li>
         <li>{live.full_test_split ? `All ${live.n} test messages.` : `${live.n} test messages: ${live.sample}. Not the whole test split.`}</li>

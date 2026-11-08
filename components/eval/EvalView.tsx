@@ -46,14 +46,14 @@ export function EvalView({ results }: { results: EvalResults | null }) {
         </div>
       ) : <EmptyState title="Claim B not run yet" />}
 
-      <section aria-label="Method" className="rounded-card border border-line bg-surface p-4 text-sm text-dim">
-        <h3 className="mb-2 font-grotesk text-lg font-bold text-fg">How to read this</h3>
+      <section aria-label="Method" className="stitch rounded-card border brass-hairline bg-surface p-4 text-sm text-dim">
+        <h3 className="mb-2 serif text-xl font-semibold text-fg">How to read this</h3>
         <ul className="list-disc space-y-1 pl-5">
           <li>Splits are fixed and committed before any tuning. Thresholds were tuned on the dev split only; every number above is on the held-out split.</li>
           <li>Small test sets mean wide error bars. Treat differences of a few points as noise.</li>
           <li>Failure cases are listed on purpose: they show what Bluff still gets wrong.</li>
         </ul>
-        <p className="mt-3"><Link href="/privacy" className="text-accent underline">What Bluff sends and never sends</Link></p>
+        <p className="mt-3"><Link href="/privacy" className="text-brass underline">What Bluff sends and never sends</Link></p>
       </section>
     </div>
   );
