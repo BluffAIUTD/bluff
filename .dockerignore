@@ -6,6 +6,7 @@ node_modules
 !.env.example
 test-results
 extension/dist
+extension/release
 coverage
 *.md
 !README.md

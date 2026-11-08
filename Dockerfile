@@ -9,6 +9,13 @@ FROM deps AS build
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
+# Chrome extension zip, served by the app at /downloads/bluff-checkout-guard.zip (see /extension). BLUFF_APP_URL is the
+# app's public address baked into it (compose passes https://${BASE_DOMAIN}); without it no zip is built and /extension
+# shows the build command instead. Declared after `npm run build` so changing it doesn't rebuild Next.
+ARG BLUFF_APP_URL=""
+RUN mkdir -p extension/release && if [ -n "$BLUFF_APP_URL" ]; then \
+      node extension/build.mjs --outdir /tmp/bluff-extension --zip extension/release/bluff-checkout-guard.zip; \
+    else echo "BLUFF_APP_URL not set: skipping the Checkout Guard zip"; fi
 
 FROM deps AS tools
 COPY . .
@@ -25,6 +32,8 @@ COPY --from=build /app/fixtures ./fixtures
 COPY --from=build /app/stores ./stores
 COPY --from=build /app/eval/results.json ./eval/results.json
 COPY --from=build /app/db ./db
+# The Checkout Guard zip (+ its version info), read by app/downloads/bluff-checkout-guard.zip/route.ts. May be empty.
+COPY --from=build /app/extension/release ./extension/release
 RUN useradd -r -u 1001 bluff && chown -R bluff /app
 USER bluff
 EXPOSE 3000

@@ -71,10 +71,27 @@ export function computePageSignals(doc: Document, loc: { protocol: string; hostn
   });
 }
 
+/**
+ * Field types that start a check on their own: this is a *checkout* guard. A password, phone, birthday or address field
+ * alone (a login or sign-up form) only offers a click-to-check chip, so logging in somewhere never sends that domain.
+ */
+export const AUTO_RUN_TYPES: readonly Sensitive[] = ["card_number", "cvv", "ssn"];
+export const autoRuns = (types: readonly string[]) => types.some((t) => (AUTO_RUN_TYPES as readonly string[]).includes(t));
+
+/**
+ * The app's own hosts: its canonical address plus the bluff.<domain> alias (which redirects to it). Exact names only:
+ * the demo stores live on other subdomains of the same domain (fastkicks-shop.bluffai.us) and must still be checked.
+ */
+export function appHosts(appHost: string): string[] {
+  const a = appHost.toLowerCase().replace(/^www\./, "");
+  const rest = a.startsWith("bluff.") ? a.slice("bluff.".length) : null;
+  return rest && (rest.includes(".") || rest === "localhost") ? [a, rest] : [a, `bluff.${a}`];
+}
+
 /** Idle on the Bluff app itself, on hosts the user marked SAFE, and on a seed list of top retailers and banks. */
 export function shouldRun(host: string, opts: { safeHosts: string[]; allowlist: string[]; appHost: string }): boolean {
   const h = host.toLowerCase().replace(/^www\./, "");
-  if (h === opts.appHost.toLowerCase() || h.endsWith("." + opts.appHost.toLowerCase())) return false;
+  if (appHosts(opts.appHost).includes(h)) return false;
   const hit = (list: string[]) => list.some((x) => h === x || h.endsWith("." + x));
   return !hit(opts.safeHosts) && !hit(opts.allowlist);
 }
