@@ -16,7 +16,9 @@ if grep -q '^EMBED_MODEL=..*' .env && grep -q '^NVIDIA_API_KEY=..*' .env; then
   # Nemotron embeddings for taxonomy_match; a failure here only means keyword matching is used.
   docker compose --profile tools run --rm tools npm run embed-taxonomy || echo "embed-taxonomy failed; taxonomy_match falls back to keywords"
 fi
-docker compose up -d web caddy
+# Headless Chromium for JavaScript-built pages, plus host firewall rules that stop it opening connections to private ranges.
+bash scripts/deploy/render-firewall.sh || echo "render firewall rules not applied (needs root + iptables); set RENDER_ENABLED=0 in .env to skip rendering"
+docker compose up -d render web caddy
 docker compose restart caddy                                                # load a changed deploy/Caddyfile (a single-file bind mount keeps the old file until restart; certs persist)
 docker compose --profile ops up -d backup                                   # nightly pg_dump → ./backups
 

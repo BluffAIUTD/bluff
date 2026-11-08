@@ -99,7 +99,7 @@ describe("scan summary helpers", () => {
 
   it("counts a merchant with only a basic check as scanned but not reviewed by Nemotron", () => {
     const m = { key: "k", merchant: "M", host: "m.test", descriptor: "M", category: null, txns: [{ id: "t1", ts: "2026-11-06T18:00:00.000Z", amountCents: 500 }], totalCents: 500 };
-    const { summary, flagged } = summarizeScan({ merchants: [{ ...m, basic: basic(verdict(20, "likely_scam", "basic")), deep: null }], deepAvailable: false, configured: true, account: null });
+    const { summary, flagged } = summarizeScan({ merchants: [{ ...m, basic: basic(verdict(20, "likely_scam", "basic")), deep: null }], deepAvailable: false, configured: true, account: null, lastSyncAt: null });
     expect(summary).toMatchObject({ likelyScams: 1, riskyCharges: 1, atRiskCents: 500, scannedMerchants: 1, reviewedByNemotron: 0, lastScanAt: "2026-11-07T10:00:00.000Z" });
     expect(flagged[0]).toMatchObject({ mode: "basic", latestTxnId: "t1", reason: "Rules: high finding" });
   });

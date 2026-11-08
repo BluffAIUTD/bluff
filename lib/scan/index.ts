@@ -43,7 +43,7 @@ export type ScanOptions = {
   reason?: ScanReason;
 };
 export type PageLite = { path: string; type: string; title: string; words: number; status: number };
-export type CrawlLite = { origin: string; finalHost: string; https: boolean; ms: number; error?: string; ownStore: string | null; botBlocked: boolean; robots: boolean; sitemapUrls: number; pages: PageLite[]; failed: number; skippedByRobots: number };
+export type CrawlLite = { origin: string; finalHost: string; https: boolean; ms: number; error?: string; ownStore: string | null; botBlocked: boolean; robots: boolean; sitemapUrls: number; pages: PageLite[]; failed: number; skippedByRobots: number; robotsHidden: number; rendered: number };
 export type BasicPayload = { key: string; scanId: string; host: string; createdAt: string; cached: boolean; report: BasicReport; verdict: Verdict; intel: SiteIntel; crawl: CrawlLite };
 export type ScanEvent =
   | { type: "merchants"; data: { sync: SyncResult | null; syncError?: string; merchants: ScanMerchant[]; deepAvailable: boolean; reason: ScanReason; partial?: boolean; newTxnIds?: string[] } }
@@ -56,7 +56,7 @@ export type ScanEvent =
 
 export const crawlLite = (c: Crawl): CrawlLite => ({
   origin: c.origin, finalHost: c.finalHost, https: c.https, ms: c.ms, error: c.error, ownStore: c.ownStore, botBlocked: c.botBlocked, robots: c.robots.found, sitemapUrls: c.sitemapUrls,
-  pages: c.pages.map((p) => ({ path: p.path, type: p.type, title: p.title, words: p.wordCount, status: p.status })), failed: c.failed.length, skippedByRobots: c.skippedByRobots.length,
+  pages: c.pages.map((p) => ({ path: p.path, type: p.type, title: p.title, words: p.wordCount, status: p.status })), failed: c.failed.length, skippedByRobots: c.skippedByRobots.length, robotsHidden: c.robotsHidden?.length ?? 0, rendered: c.pages.filter((p) => p.rendered).length,
 });
 const basicPayload = (key: string, s: SiteScan, cached: boolean): BasicPayload => ({ key, scanId: s.id, host: s.host, createdAt: s.createdAt, cached, report: s.basic, verdict: basicVerdict(s.basic), intel: s.intel, crawl: crawlLite(s.crawl) });
 

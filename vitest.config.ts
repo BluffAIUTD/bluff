@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.test.{ts,tsx}"],
-    exclude: ["node_modules", ".next", "e2e"],
+    exclude: ["node_modules", ".next", "e2e", ".claude"],
     setupFiles: ["./vitest.setup.ts"],
     testTimeout: 20000,
     fileParallelism: false,

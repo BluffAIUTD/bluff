@@ -12,7 +12,7 @@ import { LABEL, linkText, pageUrl, toneOf, type MerchantView } from "./types";
 
 type SiteDetail = {
   pages: { url: string; path: string; type: string; title: string; words: number; status: number; emails: string[]; phones: string[]; payments: string[]; policy: { id: string; quote: string }[]; forms: string[] }[];
-  crawl: { origin: string; robots: boolean; sitemapUrls: number; ms: number; skippedByRobots: string[]; failed: { url: string; error: string }[] };
+  crawl: { origin: string; robots: boolean; sitemapUrls: number; ms: number; skippedByRobots: string[]; robotsHidden?: number; rendered?: number; failed: { url: string; error: string }[] };
   trace: StepEvent[];
 };
 
@@ -158,7 +158,7 @@ export function ScanDetail({ m }: { m: MerchantView }) {
           </div>
           <div className="rounded-card border border-line bg-surface p-4">
             <h3 className="mb-1 font-grotesk text-lg font-semibold">Pages crawled</h3>
-            <p className="mb-2 text-xs text-dim">{b.crawl.pages.length} pages in {(b.crawl.ms / 1000).toFixed(1)} s · robots.txt {b.crawl.robots ? "read and obeyed" : "none"}{b.crawl.sitemapUrls ? ` · sitemap ${b.crawl.sitemapUrls} URLs` : ""}{b.crawl.skippedByRobots ? ` · ${b.crawl.skippedByRobots} skipped by robots.txt` : ""}</p>
+            <p className="mb-2 text-xs text-dim">{b.crawl.pages.length} pages in {(b.crawl.ms / 1000).toFixed(1)} s · robots.txt {b.crawl.robots ? "read" : "none"}{b.crawl.sitemapUrls ? ` · sitemap ${b.crawl.sitemapUrls} URLs` : ""}{b.crawl.robotsHidden ? ` · ${b.crawl.robotsHidden} page${b.crawl.robotsHidden === 1 ? "" : "s"} robots.txt hides, read anyway (you asked)` : ""}{b.crawl.rendered ? ` · ${b.crawl.rendered} rendered in a headless browser` : ""}</p>
             <ul className="flex flex-col gap-1 text-sm">
               {b.crawl.pages.map((p) => {
                 const href = pageUrl(origin, p.path);
