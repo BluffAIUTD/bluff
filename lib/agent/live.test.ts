@@ -8,10 +8,12 @@ import { liveRun, MAX_ITERATIONS, reconcileLink } from "./live";
 import { VerdictSchema, type RunStreamEvent } from "../schemas";
 import type { RunInput } from "./types";
 import { normalizeDescriptor } from "../linker/normalize";
+import { scanWebsite } from "../scan/site";
+import { diskFetcher } from "../../tests/diskFetcher";
 
 type Reply = { status?: number; body?: unknown; hang?: boolean };
 let queue: Reply[] = [];
-let seen: { messages: { role: string; content: string }[] }[] = [];
+let seen: { messages: { role: string; content: string }[]; tools?: { function: { name: string } }[] }[] = [];
 let server: http.Server;
 let t: Awaited<ReturnType<typeof createTestDb>>;
 
@@ -38,13 +40,14 @@ beforeAll(async () => {
   process.env.NVIDIA_API_KEY = "test";
   process.env.NEMOTRON_MODEL = "test-model";
 });
-afterAll(async () => { server.closeAllConnections?.(); server.close(); await closePool(); await t.drop(); delete process.env.AGENT_DEADLINE_MS; });
-beforeEach(() => { queue = []; seen = []; delete process.env.AGENT_DEADLINE_MS; });
+afterAll(async () => { server.closeAllConnections?.(); server.close(); await closePool(); await t.drop(); delete process.env.AGENT_DEADLINE_MS; delete process.env.PAGE_CRAWL; });
+// The loop tests below cover page checks without a crawl (PAGE_CRAWL=0); "website review" further down turns it on.
+beforeEach(() => { queue = []; seen = []; delete process.env.AGENT_DEADLINE_MS; process.env.PAGE_CRAWL = "0"; });
 
 const page: RunInput = { kind: "page", userId: MAYA_ID, url: "https://fastkicks-shop.bluff.example.com", host: "fastkicks-shop", fieldTypes: ["card_number"], signals: {}, source: "check" };
-async function run(input: RunInput = page, fail?: "timeout") {
+async function run(input: RunInput = page, fail?: "timeout", extra: { fresh?: boolean } = {}) {
   const ev: RunStreamEvent[] = [];
-  const r = await liveRun(input, (e) => ev.push(e), { fail });
+  const r = await liveRun(input, (e) => ev.push(e), { fail, fetcher: diskFetcher, ...extra });
   return { r, ev, steps: ev.filter((e) => e.type === "step") as Extract<RunStreamEvent, { type: "step" }>[] };
 }
 
@@ -143,5 +146,70 @@ describe("live agent loop", () => {
     const base = VerdictSchema.parse({ ...goodVerdict, confidence: 0.9, confidence_reason: "x", mode: "live" });
     expect(reconcileLink(base, [], "t1").linked).toEqual({ txn_id: "t1" });
     expect(reconcileLink({ ...base, linked: { exposure_id: "e" } }, [], undefined).linked).toEqual({});
+  });
+});
+
+describe("website review: the scraped site goes to Nemotron", () => {
+  beforeEach(() => { delete process.env.PAGE_CRAWL; });
+  const siteVerdict = { ...goodVerdict, summary: "VoltDeals refunds only in store credit and steers buyers away from cards.", findings: [{ title: "Store credit only", detail: "Refund page", severity: "high", page: "/refund-policy.html" }], agrees_with_basic: true };
+  const volt: RunInput = { kind: "page", userId: MAYA_ID, url: "https://voltdeals-outlet.example/checkout", host: "voltdeals-outlet", fieldTypes: ["card_number", "cvv"], signals: { countdown_timer: false }, source: "check" };
+  const firstUser = (i = 0) => JSON.parse(seen[i].messages.find((m) => m.role === "user")!.content);
+
+  it("page check: crawls the site, sends every page's text with registry facts and the basic check, returns Nemotron's analysis", async () => {
+    queue = [msg([call("read_page", { types: ["refund"] })]), msg([call("submit_verdict", siteVerdict)])];
+    const { r, steps } = await run(volt, undefined, { fresh: true });
+    expect(steps.map((s) => s.data.tool)).toEqual([null, "crawl_site", "read_page", "submit_verdict"]);
+    expect(steps[1].data.outputSummary).toMatch(/\d+ pages read · basic check \d+ · sent to Nemotron/);
+    // the first request already carries the scraped website
+    const subject = firstUser();
+    expect(subject.subject).toBe("page");
+    expect(subject.website_data.pages.length).toBeGreaterThanOrEqual(8);
+    expect(subject.website_data.pages.map((p: { text: string }) => p.text).join(" ").toLowerCase()).toContain("store credit");
+    expect(subject.website_data.registry.domain_age_days).toBe(21);
+    expect(subject.website_data.basic_check.findings.length).toBeGreaterThan(0);
+    expect(seen[0].messages[0].content).toMatch(/page check with website review/);
+    expect(seen[0].tools!.map((x) => x.function.name).sort()).toEqual(["fetch_page", "read_page", "submit_verdict"]);
+    // read_page reads the same crawl
+    expect(seen[1].messages.some((m) => m.role === "tool" && m.content.toLowerCase().includes("store credit"))).toBe(true);
+    expect(r.mode).toBe("live");
+    expect(r.verdict.analysis?.summary).toContain("store credit");
+    expect(r.verdict.analysis?.findings[0].page).toBe("/refund-policy.html");
+  });
+
+  it("page check: a recent crawl of the same site is reused, and still sent", async () => {
+    queue = [msg([call("submit_verdict", siteVerdict)])];
+    const { steps } = await run(volt);
+    expect(steps[1].data.outputSummary).toMatch(/read earlier/);
+    expect(firstUser().website_data.pages.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it("page check: when Nemotron is down the verdict is the rules over the same crawl, with before-you-pay next steps", async () => {
+    queue = [{ status: 500, body: {} }];
+    const { r, ev } = await run(volt);
+    const err = ev.find((e) => e.type === "error") as Extract<RunStreamEvent, { type: "error" }>;
+    expect(err.data.code).toBe("upstream_down");
+    expect(r.mode).toBe("basic");
+    expect(r.verdict.verdict).toBe("likely_scam");
+    expect(r.verdict.evidence.join(" ")).not.toMatch(/Limited check/);
+    expect(r.verdict.next_steps[0]).toMatch(/Don't enter any payment details/);
+  });
+
+  it("page check: hosts that aren't websites are not crawled", async () => {
+    queue = [msg([call("submit_verdict", goodVerdict)])];
+    const { steps } = await run({ ...volt, host: "localhost" });
+    expect(steps.map((s) => s.data.tool)).not.toContain("crawl_site");
+    expect(firstUser().website_data).toBeUndefined();
+  });
+
+  it("bank scan deep review: the crawl's data is in the first request, no overview call needed", async () => {
+    const scan = await scanWebsite(t.pool, MAYA_ID, { website: "voltdeals-outlet.localhost:3000", merchant: "VoltDeals Outlet", crawl: { fetcher: diskFetcher } });
+    queue = [msg([call("submit_verdict", siteVerdict)])];
+    const { r } = await run({ kind: "site", userId: MAYA_ID, txnId: "00000000-0000-4000-8000-0000000000aa", host: scan.host, merchant: "VoltDeals Outlet", descriptor: "VOLTDEALS", scanId: scan.id });
+    expect(r.mode).toBe("live");
+    const subject = firstUser();
+    expect(subject.subject).toBe("merchant_site");
+    expect(subject.website_data.pages.length).toBe(scan.crawl.pages.length);
+    expect(subject.website_data.pages.find((p: { type: string }) => p.type === "refund").text.toLowerCase()).toContain("store credit");
+    expect(seen[0].tools!.map((x) => x.function.name)).not.toContain("site_overview");
   });
 });

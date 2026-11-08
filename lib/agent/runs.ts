@@ -7,6 +7,7 @@ import { selectRunner } from "./index";
 import { basicVerdictFor } from "./mock";
 import { txnRulesVerdict } from "./txn";
 import { siteBasicFallback } from "../scan/fallback";
+import { pageSiteReviewAvailable } from "../scan/site";
 import { subjectId, type FailureMode, type RunInput, type RunResult } from "./types";
 
 type RunState = { events: RunStreamEvent[]; listeners: Set<(e: RunStreamEvent) => void>; done: boolean; touched: number };
@@ -16,6 +17,8 @@ const runs = (g.__bluffRuns ??= new Map<string, RunState>());
 export const HARD_TIMEOUT_MS = 15_000;
 /** Deep site reviews read several crawled pages before deciding. */
 export const SITE_HARD_TIMEOUT_MS = 120_000;
+/** Page checks that crawl the site before Nemotron reviews it (the client gives up at 40 s). */
+export const PAGE_SITE_HARD_TIMEOUT_MS = 36_000;
 /** At most this many site runs talk to the model at once (a bank scan starts one per merchant). */
 const SITE_CONCURRENCY = 3;
 const siteSlots = { active: 0, queue: [] as (() => void)[] };
@@ -130,9 +133,10 @@ async function execute(runId: string, input: RunInput, opts: StartOptions) {
       const isSite = input.kind === "site";
       if (isSite) await acquireSiteSlot();
       let timer: NodeJS.Timeout | undefined;
-      const limit = (isSite ? SITE_HARD_TIMEOUT_MS : HARD_TIMEOUT_MS) + (opts.fail === "timeout" ? 60_000 : 0);
+      const pageCrawl = input.kind === "page" && pageSiteReviewAvailable(input.host);
+      const limit = (isSite ? SITE_HARD_TIMEOUT_MS : pageCrawl ? PAGE_SITE_HARD_TIMEOUT_MS : HARD_TIMEOUT_MS) + (opts.fail === "timeout" ? 60_000 : 0);
       const timeout = new Promise<"timeout">((r) => { timer = setTimeout(() => r("timeout"), limit); });
-      const raced = await Promise.race([runner(input, emit, { fail: opts.fail }), timeout]).finally(() => { if (isSite) releaseSiteSlot(); });
+      const raced = await Promise.race([runner(input, emit, { fail: opts.fail, fresh: opts.fresh }), timeout]).finally(() => { if (isSite) releaseSiteSlot(); });
       clearTimeout(timer);
       if (raced === "timeout") {
         const fallback = basicVerdictFor(input);

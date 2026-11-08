@@ -1,5 +1,7 @@
 /** Shadow-DOM side panel (slides in from the right, 360 px). Renders with textContent only: page-controlled strings are never parsed as HTML. */
-export type PanelVerdict = { score: number; verdict: string; confidence: number; confidence_reason: string; evidence: string[]; next_steps: string[]; mode: string };
+export type PanelVerdict = { score: number; verdict: string; confidence: number; confidence_reason: string; evidence: string[]; next_steps: string[]; mode: string;
+  /** Nemotron's read of the site's crawled pages (live/cached verdicts only). */
+  analysis?: { summary: string } };
 export type PanelState =
   | { phase: "running"; steps: { tool: string | null; output: string }[]; host: string }
   | { phase: "done"; verdict: PanelVerdict; verdictId: string | null; host: string; basicNote?: string }
@@ -71,6 +73,7 @@ export class Panel {
         el("p", { cls: "dim", text: v.confidence < 0.5 ? "What to check yourself" : "Do this instead" }),
         el("ol", {}, v.next_steps.map((t) => el("li", { text: t }))),
       );
+      if (v.analysis?.summary && (v.mode === "live" || v.mode === "cached")) body.insertBefore(el("p", { text: v.analysis.summary }), body.querySelector("ul"));
       if (s.basicNote) body.append(el("p", { cls: "dim", text: s.basicNote }));
       const leave = el("button", { text: "Leave" }); leave.onclick = () => this.h.onLeave();
       const cont = el("button", { text: "Continue" }); cont.onclick = () => this.h.onContinue(false); cont.disabled = !s.verdictId;

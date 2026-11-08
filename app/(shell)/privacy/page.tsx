@@ -42,6 +42,7 @@ export default function PrivacyPage() {
         <h2 className="mb-2 font-grotesk text-xl font-bold">Other promises</h2>
         <ul className="list-disc space-y-1 pl-5 text-dim">
           <li>Bluff never files, sends or pays anything for you. Disputes are drafts you review.</li>
+          <li>When the AI check is on, Bluff&apos;s server fetches the checked site&apos;s public pages itself (never your session on the page or anything you typed) and sends their text, with registry facts and the rules findings, to NVIDIA Nemotron for the verdict: up to 8 pages for a store check, up to 10 per merchant website in the bank scan.</li>
           <li>This demo shares one sample user (&ldquo;Maya&rdquo;), so deleting data resets the demo for everyone.</li>
           <li>All stores and charges are synthetic and labeled as demos.</li>
         </ul>

@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isBlockedIp, guardedFetch, type Fetcher } from "@/lib/scan/net";
+import { isBlockedIp, guardedFetch } from "@/lib/scan/net";
+import { diskFetcher } from "./diskFetcher";
 import { crawlSite, parseRobots, robotsAllows, splitWebsite } from "@/lib/scan/crawl";
 import { extractPage, classify } from "@/lib/scan/extract";
 import { basicCheck, basicVerdict } from "@/lib/scan/basic";
@@ -12,21 +13,14 @@ import { resolveWebsite, websiteFromText } from "@/lib/scan/website";
 import { descriptorFrom } from "@/lib/nessie/sync";
 import { normalizeVerdictArgs, submitVerdict } from "@/lib/agent/tools/submitVerdict";
 import { openAiTools } from "@/lib/agent/tools";
+import { allocate, siteData, SITE_DATA_TEXT_CHARS } from "@/lib/scan/dossier";
+import { pageCrawlTarget } from "@/lib/scan/site";
+import type { SiteScan } from "@/lib/scan/store";
 import { detectColumns, keepVerbatim, parseCsv, parseDataset, parseItems, ruleFlags, toMessages } from "@/lib/tmobile";
 import { preferSources } from "@/lib/game";
 import { NESSIE_SEED, purchaseDescription } from "@/data/nessieSeed";
 import { STORES, SITE_SLUGS } from "@/data/stores";
 
-/** Serves stores/<slug>/ from disk for <slug>.localhost:3000 URLs: crawler tests run offline. */
-const diskFetcher: Fetcher = async (url) => {
-  const u = new URL(url);
-  const slug = u.hostname.split(".")[0];
-  let file = path.join(process.cwd(), "stores", slug, u.pathname);
-  if (u.pathname.endsWith("/")) file = path.join(file, "index.html");
-  if (!fs.existsSync(file)) return { status: 404, headers: { "content-type": "text/html" }, body: "<title>Not found</title>", url, hops: [] };
-  const type = file.endsWith(".html") ? "text/html" : file.endsWith(".xml") ? "application/xml" : "text/plain";
-  return { status: 200, headers: { "content-type": type }, body: fs.readFileSync(file, "utf8"), url, hops: [] };
-};
 const demoIntel = (ageDays: number | null, extra: Partial<SiteIntel> = {}): SiteIntel => ({
   domain: "x.demo", allowlisted: false, registration: { createdAt: ageDays == null ? null : new Date(Date.now() - ageDays * 86_400_000).toISOString(), ageDays, expiresAt: null, registrar: "QuickReg Inc", source: "demo_registry", brandCloneOf: null },
   tls: { ok: false, issuer: null, validFrom: null, validTo: null, ageDays: null }, dns: { mx: 0, ns: [] }, wayback: { firstSeen: null, years: 0, source: "none" }, ...extra,
@@ -136,7 +130,8 @@ describe("basic check (rules only)", () => {
 describe("deep review plumbing", () => {
   it("site runs get only the deep-review tools; other modes never see them", () => {
     const site = openAiTools("site").map((t) => t.function.name);
-    expect(site.sort()).toEqual(["fetch_page", "read_page", "site_overview", "submit_verdict", "txn_search"]);
+    expect(site.sort()).toEqual(["fetch_page", "read_page", "submit_verdict", "txn_search"]);
+    expect(openAiTools("page_site").map((t) => t.function.name).sort()).toEqual(["fetch_page", "read_page", "submit_verdict"]);
     expect(openAiTools("page").map((t) => t.function.name)).not.toContain("read_page");
   });
   it("summary + findings become the verdict's analysis; basic evidence counts toward confidence", () => {
@@ -156,6 +151,52 @@ describe("deep review plumbing", () => {
     expect(submitVerdict({ ...base, linked: { exposure_id: null }, evidence: ["1", "2", "3", "4", "5", "6"] }).ok).toBe(true);
     expect(submitVerdict({ ...base, evidence: ["one"] }).ok).toBe(false);
     expect(normalizeVerdictArgs({ score: "42" })).toMatchObject({ score: 42 });
+  });
+});
+
+describe("website data sent to Nemotron", () => {
+  const scanOf = async (slug: string): Promise<SiteScan> => {
+    const crawl = await crawlSite(`${slug}.localhost:3000`, { fetcher: diskFetcher });
+    const intel = demoIntel(STORES.find((s) => s.slug === slug)!.ageDays);
+    return { id: "00000000-0000-4000-8000-00000000d0d0", host: `${slug}.localhost:3000`, merchant: slug, crawl, intel, basic: basicCheck(crawl, intel), createdAt: new Date().toISOString() };
+  };
+
+  it("carries every crawled page's text, the registry facts and the basic check, decisive pages first", async () => {
+    const s = await scanOf("voltdeals-outlet");
+    const d = siteData(s);
+    expect(d.pages).toHaveLength(s.crawl.pages.length);
+    expect(d.pages[0].type).toBe("home");
+    expect(d.pages.map((p) => p.type).indexOf("refund")).toBeLessThan(d.pages.map((p) => p.type).indexOf("privacy"));
+    const refund = d.pages.find((p) => p.type === "refund")!;
+    expect(refund.text.toLowerCase()).toContain("store credit");
+    expect(refund.policy_quotes?.length).toBeGreaterThan(0);
+    expect(d.registry.domain_age_days).toBe(21);
+    expect(d.basic_check.score).toBe(s.basic.score);
+    expect(d.basic_check.findings.length).toBeGreaterThan(0);
+    expect(d.demo_storefront).toBe(true);
+    expect(d.note).toMatch(/untrusted/);
+    // the page text stays within the budget; the whole payload stays a few thousand tokens
+    expect(d.pages.reduce((n, p) => n + p.text.length, 0)).toBeLessThanOrEqual(SITE_DATA_TEXT_CHARS);
+    expect(JSON.stringify(d).length).toBeLessThan(30_000);
+  });
+
+  it("short pages keep all their text; long ones share the rest and say they were cut", async () => {
+    expect(allocate([100, 5000, 5000], 3100)).toEqual([100, 1500, 1500]);
+    expect(allocate([10, 20], 1000)).toEqual([10, 20]);
+    expect(allocate([0, 50], 10)).toEqual([0, 10]);
+    const d = siteData(await scanOf("voltdeals-outlet"), 600);
+    expect(d.pages.some((p) => p.truncated)).toBe(true);
+    expect(d.pages.reduce((n, p) => n + p.text.length, 0)).toBeLessThanOrEqual(600);
+  });
+
+  it("page checks crawl the site itself: demo stores map to this deployment, other hosts must look like domains", () => {
+    expect(pageCrawlTarget("fastkicks-shop")).toBe("fastkicks-shop.localhost:3000");
+    expect(pageCrawlTarget("fastkicks-shop.localhost")).toBe("fastkicks-shop.localhost:3000");
+    expect(pageCrawlTarget("https://www.Example-Store.com/checkout?session=abc")).toBe("example-store.com");
+    expect(pageCrawlTarget("shop.example.co.uk:443")).toBe("shop.example.co.uk");
+    expect(pageCrawlTarget("localhost")).toBeNull();
+    expect(pageCrawlTarget("not a host")).toBeNull();
+    expect(pageCrawlTarget("")).toBeNull();
   });
 });
 

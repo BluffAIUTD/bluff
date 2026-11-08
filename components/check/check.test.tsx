@@ -23,6 +23,20 @@ describe("CheckClient", () => {
     expect(await screen.findByText("Paste a text message or link to check")).toBeInTheDocument();
     expect(f).not.toHaveBeenCalled();
   });
+  it("says when the site's pages go to Nemotron, and when only the domain was checked", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ runId: "r1", siteReview: true }), { status: 200, headers: { "content-type": "application/json" } })));
+    const { unmount } = render(<CheckClient />);
+    fireEvent.change(screen.getByLabelText("Or paste a link"), { target: { value: "https://example-store.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check link" }));
+    expect(await screen.findByText(/sending them to Nemotron for review/)).toBeInTheDocument();
+    expect(screen.queryByText(/Limited check/)).toBeNull();
+    unmount();
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ runId: "r2", siteReview: false }), { status: 200, headers: { "content-type": "application/json" } })));
+    render(<CheckClient />);
+    fireEvent.change(screen.getByLabelText("Or paste a link"), { target: { value: "https://example-store.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check link" }));
+    expect(await screen.findByText(/Limited check: page not analyzed/)).toBeInTheDocument();
+  });
   it("API failure is shown, not thrown", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code: "rate_limited", message: "Too many checks." } }), { status: 429 })));
     render(<CheckClient />);
