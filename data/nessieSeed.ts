@@ -35,3 +35,38 @@ export const NESSIE_SEED: NessieSeedMerchant[] = [
 
 /** "NETFLIX.COM · netflix.com" */
 export const purchaseDescription = (m: NessieSeedMerchant) => `${m.descriptor} · ${m.website}`;
+
+/** POST /merchants body for a seed merchant (the seed script and the live push create merchants the same way). */
+export const nessieMerchantBody = (m: NessieSeedMerchant) => ({
+  name: m.name, category: m.category,
+  address: { street_number: m.street[0], street_name: m.street[1], city: m.kind === "real" ? "Dallas" : "Demo", state: "TX", zip: m.zip },
+  geocode: { lat: 32.9857, lng: -96.7502 },
+});
+
+/**
+ * "Make a test purchase" on /scan: one tap posts a real purchase to the Nessie sandbox (scripts and the app share these).
+ * Every preset is a merchant the seed already wrote to Nessie, so its statement line matches the seeded history.
+ * `key` is what /scan?push=<key> preselects: the store slug for Bluff's own demo stores (the Chrome extension links
+ * there), the seed key otherwise.
+ */
+export type LivePushPreset = { key: string; seedKey: string; group: "scam_demo" | "legit"; label: string; amount: number; note: string };
+
+export const LIVE_PUSH_PRESETS: LivePushPreset[] = [
+  { key: "voltdeals-outlet", seedKey: "voltdeals", group: "scam_demo", label: "VoltDeals Outlet", amount: 189, note: "Fake electronics clearance" },
+  { key: "fastkicks-shop", seedKey: "fastkicks", group: "scam_demo", label: "FastKicks", amount: 50, note: "Sneaker brand clone" },
+  { key: "cinevault-trial", seedKey: "cinevault", group: "scam_demo", label: "CineVault", amount: 60, note: "$1 trial that renews high" },
+  { key: "deliveryfix-help", seedKey: "deliveryfix", group: "scam_demo", label: "DeliveryFix", amount: 2, note: "Small redelivery fee" },
+  { key: "tollpay-tx", seedKey: "tollpay", group: "scam_demo", label: "TollPay TX", amount: 12, note: "Fake unpaid toll" },
+  { key: "target", seedKey: "target", group: "legit", label: "Target", amount: 54, note: "Real retailer" },
+  { key: "netflix", seedKey: "netflix", group: "legit", label: "Netflix", amount: 15, note: "Real subscription" },
+  { key: "books", seedKey: "books", group: "legit", label: "Books to Scrape", amount: 23, note: "Public demo shop" },
+  { key: "scrapeme", seedKey: "scrapeme", group: "legit", label: "ScrapeMe", amount: 45, note: "Public demo shop" },
+];
+
+/** A preset by its key, seed key or store slug ("voltdeals-outlet", "voltdeals"). */
+export function livePushPreset(key: string | null | undefined): { preset: LivePushPreset; merchant: NessieSeedMerchant } | null {
+  const k = (key ?? "").trim().toLowerCase();
+  const preset = LIVE_PUSH_PRESETS.find((p) => p.key === k || p.seedKey === k);
+  const merchant = preset && NESSIE_SEED.find((m) => m.key === preset.seedKey);
+  return preset && merchant ? { preset, merchant } : null;
+}

@@ -8,7 +8,7 @@ import { Badge } from "../ui/Badge";
 import { ModeBadge } from "../ui/ModeBadge";
 import { AgentTrace } from "../verdict/AgentTrace";
 import { ScoreDial } from "../verdict/ScoreDial";
-import { LABEL, pageUrl, toneOf, type MerchantView } from "./types";
+import { LABEL, linkText, pageUrl, toneOf, type MerchantView } from "./types";
 
 type SiteDetail = {
   pages: { url: string; path: string; type: string; title: string; words: number; status: number; emails: string[]; phones: string[]; payments: string[]; policy: { id: string; quote: string }[]; forms: string[] }[];
@@ -63,6 +63,8 @@ export function ScanDetail({ m }: { m: MerchantView }) {
   const [showTrace, setShowTrace] = useState(false);
   const host = m.host ?? m.key;
   const ready = !!m.basic && m.phase !== "crawling";
+  // A new charge (live push or the card watcher) opens the Nemotron trace so it streams in view.
+  useEffect(() => { if (m.isNew) setShowTrace(true); }, [m.key, m.isNew]);
   useEffect(() => {
     setDetail(null);
     if (!ready) return;
@@ -73,7 +75,7 @@ export function ScanDetail({ m }: { m: MerchantView }) {
   const deep = m.deep?.verdict ?? null;
   const origin = b?.crawl.origin;
   const steps = m.steps.length ? m.steps : detail?.trace ?? [];
-  const latest = m.txns[0];
+  const latest = m.txns.find((t) => m.newTxnIds?.includes(t.id)) ?? m.txns[0];
   const aiFindings = deep?.analysis?.findings ?? [];
   const ruleFindings = b?.report.findings ?? [];
   const showAi = tab === "ai" && aiFindings.length > 0;
@@ -92,9 +94,18 @@ export function ScanDetail({ m }: { m: MerchantView }) {
           </div>
           {siteLink && <a href={siteLink} target="_blank" rel="noreferrer noopener" className="font-mono text-sm text-accent underline">{host}</a>}
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {m.txns.map((t) => <span key={t.id} className="num rounded-full border border-line bg-surface2 px-2 py-0.5 text-xs">{shortDate(t.ts)} · {money(t.amountCents)}</span>)}
+            {m.txns.map((t) => {
+              const isNew = !!m.newTxnIds?.includes(t.id);
+              return <span key={t.id} className={`num rounded-full border px-2 py-0.5 text-xs ${isNew ? "border-accent bg-accent/15 font-semibold" : "border-line bg-surface2"}`}>{isNew ? "NEW · " : ""}{shortDate(t.ts)} · {money(t.amountCents)}</span>;
+            })}
             <span className="rounded-full px-2 py-0.5 font-mono text-xs text-dim">{m.descriptor}</span>
           </div>
+          {m.link && (
+            <p className={`mt-2 inline-flex flex-wrap items-center gap-x-2 rounded-control border px-3 py-1.5 text-sm ${m.link.kind === "flagged" ? "border-scam/40 bg-scam/10" : "border-line bg-surface2"}`}>
+              <span className="font-medium">{linkText(m.link)}</span>
+              <Link href="/exposure" className="text-xs text-accent underline">Exposure log</Link>
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/charges/${latest.id}`} className="inline-flex min-h-[40px] items-center rounded-control bg-accent px-3 text-sm font-semibold text-white hover:opacity-90">

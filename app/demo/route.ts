@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   if (!isDemoKeyValid(url.searchParams.get("key"))) {
     return NextResponse.json({ error: { code: "forbidden", message: "Invalid demo key" } }, { status: 403 });
   }
-  const res = NextResponse.redirect(new URL("/?demo=1", url.origin));
+  const res = NextResponse.redirect(new URL("/scan?demo=1", url.origin));
   res.headers.append(
     "set-cookie",
     `${COOKIE_DEMO}=${encodeURIComponent(signValue("demo"))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${getConfig().isProd ? "; Secure" : ""}`,

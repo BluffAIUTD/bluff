@@ -4,7 +4,7 @@
  *   npm run nessie:seed            npm run nessie:seed -- --reset
  */
 import { DEMO_CUSTOMER, nessie, type NessieAccount, type NessieCustomer } from "../../lib/nessie/client";
-import { NESSIE_SEED, purchaseDescription } from "../../data/nessieSeed";
+import { NESSIE_SEED, nessieMerchantBody, purchaseDescription } from "../../data/nessieSeed";
 
 const DAY = 86_400_000;
 const ymd = (daysAgo: number) => new Date(Date.now() - daysAgo * DAY).toISOString().slice(0, 10);
@@ -25,7 +25,7 @@ async function main() {
       console.log(`account ${account._id} already has ${existing.length} purchases; pass --reset to recreate it`);
       return;
     }
-    // Nessie has no purchase delete, so a reset replaces the whole account.
+    // Nessie has no purchase delete (DELETE /purchases/{id} is not routed: 403, checked 2026-11-07), so a reset replaces the whole account.
     await nessie.deleteAccount(account._id);
     console.log(`deleted account ${account._id}`);
   }
@@ -35,11 +35,7 @@ async function main() {
   const known = new Map((await nessie.merchants()).map((m) => [m.name, m]));
   let n = 0;
   for (const m of NESSIE_SEED) {
-    const merchant = known.get(m.name) ?? await nessie.createMerchant({
-      name: m.name, category: m.category,
-      address: { street_number: m.street[0], street_name: m.street[1], city: m.kind === "real" ? "Dallas" : "Demo", state: "TX", zip: m.zip },
-      geocode: { lat: 32.9857, lng: -96.7502 },
-    });
+    const merchant = known.get(m.name) ?? await nessie.createMerchant(nessieMerchantBody(m));
     for (const p of m.purchases) {
       await nessie.createPurchase(account._id, { merchant_id: merchant._id, medium: "balance", purchase_date: ymd(p.daysAgo), amount: p.amount, status: "completed", description: purchaseDescription(m) });
       n++;

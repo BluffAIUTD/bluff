@@ -55,6 +55,7 @@ async function pageErrors(page) {
 
 // ---- 2. every route, phone + desktop: renders, no errors, no horizontal scroll -------------
 const ROUTES = ["/", "/check", "/charges", "/charges?demo=1", "/exposure", "/play", "/eval", "/privacy"];
+ROUTES.push("/scan", "/scan?push=voltdeals-outlet"); // bank scan + the open "make a test purchase" panel
 for (const [label, vp] of [["phone", { width: 390, height: 844 }], ["desktop", { width: 1280, height: 800 }]]) {
   const ctx = await browser.newContext({ viewport: vp });
   const p = await ctx.newPage();
