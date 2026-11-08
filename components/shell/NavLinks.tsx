@@ -44,7 +44,7 @@ export function NavLinks() {
             );
           })}
         </div>
-        <p className="relative mt-auto px-3 pb-1 text-[11px] leading-snug text-dim/80">Synthetic data only. Bluff drafts, you decide.</p>
+        <p className="relative mt-6 px-3 text-[11px] leading-snug text-dim">Synthetic data only. Bluff drafts, you decide.</p>
       </nav>
       <nav aria-label="Primary" className="rail-edge fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t brass-hairline pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.7)] lg:hidden">
         {NAV_ITEMS.filter((i) => !("desktopOnly" in i && i.desktopOnly)).map((i) => {

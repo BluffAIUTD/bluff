@@ -15,12 +15,12 @@ export const dynamic = "force-dynamic";
 /** Three cards fanned on the felt: scam, unsure, safe. Decorative; the headline carries the facts. */
 function Fan() {
   const cards: { suit: SuitKind; rot: number; x: number; y: number; word: string }[] = [
-    { suit: "scam", rot: -12, x: -64, y: 10, word: "Bluff" },
+    { suit: "scam", rot: -12, x: -84, y: 10, word: "Bluff" },
     { suit: "unsure", rot: 0, x: 0, y: -6, word: "Unsure" },
-    { suit: "safe", rot: 12, x: 64, y: 10, word: "Legit" },
+    { suit: "safe", rot: 12, x: 84, y: 10, word: "Legit" },
   ];
   return (
-    <div aria-hidden className="relative mx-auto hidden h-[210px] w-[280px] shrink-0 md:block">
+    <div aria-hidden className="relative mx-auto hidden h-[210px] w-[320px] shrink-0 md:block">
       {cards.map((c, i) => (
         <div key={c.suit} className="absolute left-1/2 top-4" style={{ transform: `translateX(calc(-50% + ${c.x}px)) translateY(${c.y}px) rotate(${c.rot}deg)`, zIndex: i === 1 ? 2 : 1 }}>
           <div className="card-face deal relative grid h-[170px] w-[118px] place-items-center rounded-[11px]" style={{ ["--i" as string]: i }}>
@@ -63,6 +63,45 @@ export default async function Overview() {
         </div>
         <Fan />
       </header>
+
+      <section aria-label="At a glance" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {[
+          { label: "Exposures this week", value: o.exposuresThisWeek, hint: "Sites where you entered info", tone: "brass" as const },
+          { label: "Charges to review", value: n, hint: "Flagged in the last two weeks", tone: (n ? "scam" : "safe") as "scam" | "safe" },
+          { label: "Recent texts", value: o.alerts.length, hint: "Alerts and replies on your phone", tone: "blue" as const },
+        ].map((t) => (
+          <div key={t.label} className="shimmer stitch flex items-center gap-4 rounded-card border brass-hairline bg-surface p-4">
+            <span className="relative z-10"><ChipDisc tone={t.tone} size={52}><text x="50" y="62" textAnchor="middle" fontSize="34" fontWeight="800" fill="#fff6e6" fontFamily="var(--font-ui)">{t.value > 99 ? "99+" : t.value}</text></ChipDisc></span>
+            <div className="relative z-10 min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-dim">{t.label}</p>
+              <p className="text-sm text-fg">{t.hint}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section aria-label="How Bluff works" className="flex flex-col gap-3">
+        <h2 className="font-grotesk uppercase text-brass">How Bluff works</h2>
+        <ol className="grid gap-4 sm:grid-cols-3">
+          {[
+            { n: "1", t: "Check a store", d: "Before you type your card, Bluff reads the site and rates it.", href: "/check", suit: "unsure" as SuitKind },
+            { n: "2", t: "Watch the charge", d: "A later charge is linked back to the site where you entered info.", href: "/charges", suit: "scam" as SuitKind },
+            { n: "3", t: "Build dispute", d: "Bluff drafts the letter and evidence. You decide what to send.", href: "/charges?f=flagged", suit: "safe" as SuitKind },
+          ].map((c, i) => (
+            <li key={c.n}>
+              <Link href={c.href} className="card-face deal shimmer relative block min-h-[150px] rounded-[14px] p-5 pl-14 transition duration-ui hover:-translate-y-0.5" style={{ ["--i" as string]: i }}>
+                <CornerIndex rank={c.n} suit={c.suit} />
+                <p className="serif relative z-10 text-xl font-bold">{c.t}</p>
+                <p className="relative z-10 mt-1 text-sm leading-relaxed text-[#4d4128]">{c.d}</p>
+              </Link>
+            </li>
+          ))}
+        </ol>
+        <div className="flex flex-wrap gap-3 pt-1">
+          <Link href="/scan" className="btn-rail chip-btn inline-flex min-h-[44px] items-center rounded-full px-5 text-sm font-semibold">Scan my transactions</Link>
+          <Link href="/play" className="btn-rail chip-btn inline-flex min-h-[44px] items-center rounded-full px-5 text-sm font-semibold">Play Call the Bluff</Link>
+        </div>
+      </section>
 
       <Section title="Needs attention" label="Needs attention">
         {n === 0 ? <p className="rounded-card border border-dashed brass-hairline p-5 text-sm text-dim">Nothing flagged in the last two weeks.</p> : (

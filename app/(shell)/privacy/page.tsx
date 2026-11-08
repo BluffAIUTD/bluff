@@ -1,7 +1,7 @@
 import { DataFlowDiagram } from "@/components/privacy/DataFlowDiagram";
 import { DeleteEverything } from "@/components/privacy/DeleteEverything";
 
-export const metadata = { title: "Privacy — Bluff" };
+export const metadata = { title: "Privacy" };
 
 const ROWS: { what: string; sent: "Sent" | "Never sent" | "Sent by you, then discarded"; note: string }[] = [
   { what: "What you type into a page (card number, CVV, password, SSN)", sent: "Never sent", note: "The extension never reads input values." },

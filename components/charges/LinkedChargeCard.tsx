@@ -10,7 +10,7 @@ export type LinkInfo = {
 };
 
 const STYLE = {
-  flagged: { ring: "rgb(224 87 76 / 0.55)", title: "Linked to a site where you entered info", badge: <Badge tone="scam">Exposure link</Badge>, suit: "scam" as SuitKind },
+  flagged: { ring: "rgb(244 123 112 / 0.55)", title: "Linked to a site where you entered info", badge: <Badge tone="scam">Exposure link</Badge>, suit: "scam" as SuitKind },
   expected: { ring: "rgb(95 207 151 / 0.5)", title: "Expected charge", badge: <Badge tone="safe">Expected charge</Badge>, suit: "safe" as SuitKind },
   possible: { ring: "rgb(232 168 58 / 0.55)", title: "Possible match, low confidence", badge: <Badge tone="unsure">Possible match</Badge>, suit: "unsure" as SuitKind },
   none: { ring: "rgba(217,180,107,0.3)", title: "No linked exposure", badge: <Badge>Not linked</Badge>, suit: "unsure" as SuitKind },

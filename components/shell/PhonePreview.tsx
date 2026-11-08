@@ -23,6 +23,8 @@ export function PhonePreview() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const bottom = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const input = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -37,6 +39,14 @@ export function PhonePreview() {
   useEffect(() => { setNow(clock()); const t = setInterval(() => setNow(clock()), 30_000); return () => clearInterval(t); }, []);
   useEffect(() => { if (open) { setSeen(msgs.length); bottom.current?.scrollIntoView({ block: "end" }); } }, [open, msgs.length]);
 
+  // Escape closes the phone and hands focus back to the button that opened it; opening moves focus into the thread.
+  useEffect(() => {
+    if (!open) return;
+    input.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); trigger.current?.focus(); } };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, mounted]);
   async function send() {
     const body = text.trim();
     if (!body || busy) return;
@@ -52,7 +62,7 @@ export function PhonePreview() {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="phone-preview" aria-label="Phone preview (T-Mobile)"
+      <button ref={trigger} type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="phone-preview" aria-label="Phone preview (T-Mobile)"
         className="btn-rail relative inline-flex min-h-[44px] items-center gap-2.5 rounded-[14px] py-1 pl-2 pr-3.5 text-sm font-semibold">
         <span aria-hidden className="relative grid h-8 w-[18px] place-items-center rounded-[5px] border border-[#e9cf8f]/70 bg-[#0b0b0d]">
           <span className="absolute inset-x-[3px] top-[4px] h-[2px] rounded bg-white/30" />
@@ -77,7 +87,7 @@ export function PhonePreview() {
               <p className="serif text-base font-semibold leading-tight">Bluff</p>
               <p className="text-[11px] text-white/60">Scam alerts · Messages</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close phone preview" className="min-h-[32px] min-w-[32px] text-white/60 hover:text-white">✕</button>
+            <button type="button" onClick={() => { setOpen(false); trigger.current?.focus(); }} aria-label="Close phone preview" className="min-h-[32px] min-w-[32px] text-white/60 hover:text-white">✕</button>
           </header>
           <div className="flex-1 space-y-2 overflow-y-auto bg-[#0b0b0d] p-3">
             {err && <p role="alert" className="text-xs text-red-400">{err}</p>}
@@ -95,7 +105,7 @@ export function PhonePreview() {
           </div>
           <form onSubmit={(e) => { e.preventDefault(); void send(); }} className="flex gap-2 border-t border-white/10 p-3">
             <label className="sr-only" htmlFor="pp-input">Text Bluff</label>
-            <input id="pp-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Forward a text or type HELP" maxLength={2000}
+            <input ref={input} id="pp-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Forward a text or type HELP" maxLength={2000}
               className="min-h-[40px] flex-1 rounded-full border border-white/15 bg-[#17171b] px-4 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/40" />
             <button type="submit" disabled={busy || !text.trim()} aria-label="Send"
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full font-bold text-white disabled:opacity-40" style={{ background: MAGENTA }}>{busy ? "…" : "↑"}</button>

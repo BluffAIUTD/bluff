@@ -11,7 +11,7 @@ function prefersReducedMotion() {
  * The trust score as a chip stack (kept under its old name so callers and tests keep working).
  * Chips drop in one by one; the number counts up in step. Instant with reduced motion or `animate={false}`.
  */
-export function ScoreDial({ score, animate = true }: { score: number; size?: number; animate?: boolean }) {
+export function ScoreDial({ score, animate = true, scale = 1 }: { score: number; size?: number; animate?: boolean; scale?: number }) {
   const final = Math.max(0, Math.min(100, Math.round(score)));
   const still = !animate || prefersReducedMotion();
   const [shown, setShown] = useState(still ? final : 0);
@@ -32,9 +32,9 @@ export function ScoreDial({ score, animate = true }: { score: number; size?: num
   const tone = toneFor(final);
   return (
     <div role="img" aria-label={`Trust score ${final} out of 100`} className="flex items-end gap-4">
-      <ChipStack score={final} topTone={tone.chip} animate={!still} replayKey={final} />
+      <ChipStack score={final} topTone={tone.chip} animate={!still} replayKey={final} scale={scale} />
       <div className="pb-1">
-        <span className={`num block text-[56px] font-bold leading-none ${tone.text}`}>{shown}</span>
+        <span className={`num block font-bold leading-none ${tone.text}`} style={{ fontSize: 56 * Math.max(scale, 0.6) }}>{shown}</span>
         <span className="mt-1 block text-[11px] font-bold uppercase tracking-[0.16em] text-dim">Trust score <span className="font-medium normal-case tracking-normal">of 100</span></span>
       </div>
     </div>

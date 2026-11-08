@@ -1,6 +1,6 @@
 export type SuitKind = "scam" | "unsure" | "safe";
 
-export const SUIT_INK: Record<SuitKind, string> = { scam: "#b3281f", unsure: "#9a5d06", safe: "#17734c" };
+export const SUIT_INK: Record<SuitKind, string> = { scam: "#b3281f", unsure: "#8a5204", safe: "#17734c" };
 
 /** Suit-like glyphs drawn for the three verdicts: diamond (scam), club (unsure), spade (safe). */
 export function Suit({ kind, className = "h-5 w-5", color }: { kind: SuitKind; className?: string; color?: string }) {

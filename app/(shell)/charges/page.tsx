@@ -6,7 +6,7 @@ import { TransactionTable } from "@/components/charges/TransactionTable";
 import { DemoControls } from "@/components/charges/DemoControls";
 import { ErrorState } from "@/components/ui/ErrorState";
 
-export const metadata = { title: "Charges — Bluff" };
+export const metadata = { title: "Charges" };
 export const dynamic = "force-dynamic";
 
 export default async function ChargesPage({ searchParams }: { searchParams: Promise<{ f?: string; demo?: string }> }) {
