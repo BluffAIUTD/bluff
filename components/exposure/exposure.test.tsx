@@ -18,6 +18,13 @@ describe("ExposureTimeline", () => {
     expect(screen.getByText("No linked charges")).toBeInTheDocument();
   });
 
+  it("a link from a reported scam text says so instead of listing entered fields", () => {
+    render(<ExposureTimeline initial={[ex({ host: "deliveryfix-help.bluffai.us", userAction: "received_link", source: "sms", fieldTypes: [], linkedCount: 0 })]} />);
+    expect(screen.getByText(/Link in a scam text you reported/)).toBeInTheDocument();
+    expect(screen.getByText("(text discarded)")).toBeInTheDocument();
+    expect(screen.queryByText(/· info$/)).toBeNull();
+  });
+
   it("watch toggle is optimistic and rolls back with an error on failure", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code: "upstream_down", message: "Nope" } }), { status: 503 })));
     render(<ExposureTimeline initial={[ex()]} />);

@@ -1,6 +1,7 @@
 import type { Db } from "../db";
 import { many } from "../db";
 import { findCandidates } from "../linker";
+import { isRiskySite, latestSiteChecks } from "../disputes";
 import type { FlagKindDto, TransactionDto } from "../types";
 
 type RuleRow = {
@@ -14,6 +15,7 @@ type RuleRow = {
  * Rule flags computed in SQL (engineering_spec §6.2):
  * price_drift: > 1.5x the prior-90-day average with ≥ 2 prior charges · duplicate: same merchant+amount within 10 min ·
  * new_subscription: trial-sized charge(s) then a real one, or a recurring charge with no history · card_test: ≤ $2 from a never-seen merchant.
+ * risky_site (not SQL): the bank scan rated the charge's merchant website likely scam, or unsure below RISKY_UNSURE_MAX.
  */
 const RULES_SQL = `
 SELECT t.id, t.ts, t.descriptor, t.descriptor_norm, t.amount_cents, t.mcc_category, t.is_recurring, t.scripted, t.script_id,
@@ -40,9 +42,13 @@ export type LinkSummary = { exposureId: string; kind: "flagged" | "expected"; ma
 
 async function build(db: Db, userId: string, txnId: string | null, limit: number): Promise<(TransactionDto & { link: LinkSummary })[]> {
   const rows = await many<RuleRow>(db, RULES_SQL, [userId, txnId, limit]);
+  // risky_site: the latest bank-scan check of the charge's merchant website (deep verdict, else basic), unless marked SAFE.
+  const sites = await latestSiteChecks(db, userId, rows.map((r) => r.website));
   const out: (TransactionDto & { link: LinkSummary })[] = [];
   for (const r of rows) {
     const flags: FlagKindDto[] = [];
+    const site = r.website ? sites.get(r.website) : undefined;
+    if (site && !site.allowlisted && isRiskySite(site)) flags.push("risky_site");
     if (r.price_drift) flags.push("price_drift");
     if (r.duplicate) flags.push("duplicate");
     if (r.new_subscription) flags.push("new_subscription");

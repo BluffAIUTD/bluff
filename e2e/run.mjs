@@ -48,6 +48,9 @@ async function pageErrors(page) {
   await p.getByRole("button", { name: /Phone preview/ }).click();
   await p.getByText(/You just entered your card/).waitFor({ timeout: 8000 });
   ok("phone preview: exposure alert text delivered", true);
+  ok("phone preview: reply chips under the latest alert", await p.getByRole("group", { name: "Quick replies" }).getByRole("button", { name: "DISPUTE" }).waitFor({ timeout: 8000 }).then(() => true, () => false));
+  await p.getByRole("tab", { name: "Messages" }).click();
+  ok("phone preview: Messages inbox lists texts to report", await p.getByText(/ParcelPoint/).waitFor({ timeout: 8000 }).then(() => true, () => false));
   ok("core loop finished in a reasonable time", Date.now() - t0 < 90000, `${((Date.now() - t0) / 1000).toFixed(1)}s`);
   ok("core loop: no console errors", errs.length === 0, errs.join(" | "));
   await ctx.close();

@@ -11,7 +11,10 @@ import { ScoreBadge } from "./ScoreBadge";
 
 const dayLabel = (iso: string) => new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "America/Chicago" }).format(new Date(iso));
 
-/** Where your info went, newest first, grouped by day. Watch toggle and delete per row. */
+/**
+ * Where your info went, newest first, grouped by day: sites where you entered info, and links from scam texts you reported
+ * on the phone (only the link's site is kept). Watch toggle and delete per row.
+ */
 export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
   const [rows, setRows] = useState(initial);
   const [err, setErr] = useState<string | null>(null);
@@ -41,7 +44,7 @@ export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
   }
 
   if (!rows.length) {
-    return <EmptyState title="No exposures yet" hint="When you tell Bluff you entered info on a site, it shows up here so later charges can be linked back." action={<Link href="/check" className="text-sm font-medium text-accent underline">Check a store</Link>} />;
+    return <EmptyState title="No exposures yet" hint="When you tell Bluff you entered info on a site, or report a scam text with a link, it shows up here so later charges can be linked back." action={<Link href="/check" className="text-sm font-medium text-accent underline">Check a store</Link>} />;
   }
   return (
     <div className="flex flex-col gap-6">
@@ -54,7 +57,9 @@ export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
               <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-surface p-4">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{r.host}</p>
-                  <p className="text-sm text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>
+                  {r.userAction === "received_link"
+                    ? <p className="text-sm text-dim">{longDateTime(r.createdAt)} · Link in a scam text you reported <span className="text-xs">(text discarded)</span></p>
+                    : <p className="text-sm text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>}
                 </div>
                 <ScoreBadge score={r.score} />
                 <span className="text-sm text-dim">{r.linkedCount ? `${r.linkedCount} linked charge${r.linkedCount > 1 ? "s" : ""}` : "No linked charges"}</span>
