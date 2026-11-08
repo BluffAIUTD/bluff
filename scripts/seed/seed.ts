@@ -3,7 +3,7 @@ import path from "node:path";
 import type pg from "pg";
 import { ALLOWLIST_HOSTS, STORES } from "../../data/stores";
 import { CARD_SEEDS } from "../../data/cards";
-import { TAXONOMY } from "../../data/taxonomy";
+import { RETIRED_TAXONOMY_IDS, TAXONOMY } from "../../data/taxonomy";
 import { EVAL_CHARGES, EVAL_EXPOSURES } from "../../data/evalLink";
 import { normalizeDescriptor } from "../../lib/linker/normalize";
 import { mayaOptions, resetAccount, seedDemoHistory } from "../../lib/accounts";
@@ -25,13 +25,7 @@ export async function seedGlobal(db: pg.Pool | pg.PoolClient, now = new Date()) 
     );
   }
   for (const h of ALLOWLIST_HOSTS) await db.query("INSERT INTO allowlist (host, user_id) VALUES ($1, NULL) ON CONFLICT DO NOTHING", [h]);
-  for (const t of TAXONOMY) {
-    await db.query(
-      `INSERT INTO taxonomy (id, name, description, examples, red_flags, is_placeholder) VALUES ($1,$2,$3,$4,$5,true)
-       ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, description=EXCLUDED.description, examples=EXCLUDED.examples, red_flags=EXCLUDED.red_flags`,
-      [t.id, t.name, t.description, t.examples, t.redFlags],
-    );
-  }
+  await seedTaxonomy(db);
   await upsertPoolCards(db, "seed", CARD_SEEDS.map((c, i) => ({
     kind: c.kind, content: c.content, is_scam: c.isScam, red_flags: c.redFlags, category: c.category,
     origin: `Bluff starter card · ${String(i + 1).padStart(2, "0")}`, difficulty: "medium", why_legit: null,
@@ -139,4 +133,23 @@ export async function seedAll(db: pg.Pool, now = new Date()) {
 /** Delete everything belonging to the template persona (cascade) and re-seed it. Visitors' accounts, the eval user and global data are untouched. */
 export async function resetDemo(db: pg.Pool, now = new Date()) {
   await resetAccount(db, MAYA_ID, mayaOptions(now));
+}
+
+/**
+ * Bluff's 25-category taxonomy (data/taxonomy.ts): upserts every row (is_placeholder=false) and removes the retired
+ * placeholder ids. Idempotent and safe on a database seeded with the old 11-row placeholder. A row whose text changed loses
+ * its embedding, so taxonomy_match uses keywords until `npm run embed-taxonomy` runs again; unchanged rows keep theirs.
+ */
+export async function seedTaxonomy(db: pg.Pool | pg.PoolClient): Promise<number> {
+  for (const t of TAXONOMY) {
+    await db.query(
+      `INSERT INTO taxonomy (id, name, description, examples, red_flags, is_placeholder) VALUES ($1,$2,$3,$4,$5,false)
+       ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, description=EXCLUDED.description, examples=EXCLUDED.examples, red_flags=EXCLUDED.red_flags,
+         is_placeholder=false,
+         embedding=CASE WHEN (taxonomy.name, taxonomy.description, taxonomy.examples, taxonomy.red_flags) IS NOT DISTINCT FROM (EXCLUDED.name, EXCLUDED.description, EXCLUDED.examples, EXCLUDED.red_flags) THEN taxonomy.embedding END`,
+      [t.id, t.name, t.description, t.examples, t.redFlags],
+    );
+  }
+  await db.query("DELETE FROM taxonomy WHERE id = ANY($1::text[])", [RETIRED_TAXONOMY_IDS]);
+  return TAXONOMY.length;
 }

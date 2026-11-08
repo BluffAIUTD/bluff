@@ -6,10 +6,10 @@ import { messageKeys, pageKeys, extractUrls } from "./signals";
 import { CARD_SEEDS } from "../../data/cards";
 
 describe("computeConfidence (§6.4)", () => {
-  it("matches the formula and clamps to 0.97", () => {
+  it("strong agreeing signals approach the 0.95 cap and never exceed it", () => {
     const r = computeConfidence(["domain_age_lt_30", "gift_card_only", "countdown_timer", "brand_clone"]);
-    // agreement 1, coverage 1 → 0.35+0.45+0.2 = 1.0 → clamp 0.97
-    expect(r.confidence).toBe(0.97);
+    // S = 0.87, agreement 1 → 0.35 + 0.6·(1 − e^(−0.87/0.18)) ≈ 0.946 → 0.95 (the cap; was 0.97 before calibration)
+    expect(r.confidence).toBe(0.95);
   });
   it("no signals → 0.35, with an honest reason", () => {
     const r = computeConfidence([]);

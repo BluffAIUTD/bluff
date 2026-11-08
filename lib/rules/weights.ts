@@ -35,15 +35,30 @@ export const KEYS: Record<string, KeyMeta> = {
   // --- message signals ---
   urgency_language: { dir: "scam", w: 0.15, evidence: "Pressure to act within hours" },
   threat_language: { dir: "scam", w: 0.15, evidence: "Threatens fines, suspension or legal action" },
-  credential_request: { dir: "scam", w: 0.3, evidence: "Asks for a PIN, password, SSN or card number" },
-  small_fee_request: { dir: "scam", w: 0.2, evidence: "Asks for a small fee to release a package or prize" },
-  lookalike_domain: { dir: "scam", w: 0.25, evidence: "Link domain imitates a real company" },
+  credential_request: { dir: "scam", w: 0.3, evidence: "Asks for a password, card number or other personal details" },
+  small_fee_request: { dir: "scam", w: 0.2, evidence: "Asks for a fee to release a package, prize, job or refund" },
+  lookalike_domain: { dir: "scam", w: 0.25, evidence: "Link uses a scam-prone domain or imitates a real company" },
   gift_card_request: { dir: "scam", w: 0.3, evidence: "Asks you to buy gift cards" },
-  phone_callback: { dir: "scam", w: 0.12, evidence: "Tells you to call an unfamiliar number" },
+  phone_callback: { dir: "scam", w: 0.2, evidence: "Tells you to call a number to cancel, dispute or unlock" },
   too_good_returns: { dir: "scam", w: 0.25, evidence: "Promises outsized returns" },
   secrecy_request: { dir: "scam", w: 0.15, evidence: "Asks you to keep it secret" },
-  no_ask: { dir: "legit", w: 0.25, evidence: "Doesn't ask for money or personal details" },
+  code_share_request: { dir: "scam", w: 0.35, evidence: "Asks you to send back a code texted to you" },
+  payment_request: { dir: "scam", w: 0.25, evidence: "Asks you to send money by app, wire or link" },
+  overpayment_refund: { dir: "scam", w: 0.25, evidence: "Claims an overpayment and wants money sent back" },
+  unsolicited_investment: { dir: "scam", w: 0.2, evidence: "Unsolicited crypto or trading opportunity" },
+  easy_money: { dir: "scam", w: 0.15, evidence: "Job pitch that promises easy money" },
+  emergency_story: { dir: "scam", w: 0.15, evidence: "Crisis story used to rush you into helping" },
+  stranger_contact: { dir: "scam", w: 0.12, evidence: "Unexpected contact from someone you haven't met" },
+  no_ask: { dir: "legit", w: 0.25, evidence: "Doesn't ask for money, codes or personal details" },
   directs_to_official_channel: { dir: "legit", w: 0.2, evidence: "Points you to your card or the official app" },
+  otp_notice: { dir: "legit", w: 0.35, evidence: "A one-time code with a warning never to share it" },
 };
+
+/** Evidence keys a message can produce (lib/rules/signals.ts messageKeys). */
+export const MESSAGE_KEYS = [
+  "urgency_language", "threat_language", "credential_request", "small_fee_request", "lookalike_domain", "gift_card_request", "phone_callback",
+  "too_good_returns", "secrecy_request", "code_share_request", "payment_request", "overpayment_refund", "unsolicited_investment", "easy_money",
+  "emergency_story", "stranger_contact", "too_good_discount", "gift_card_only", "countdown_timer", "no_ask", "directs_to_official_channel", "otp_notice",
+] as const;
 
 export function metaFor(key: string): KeyMeta | undefined { return KEYS[key]; }

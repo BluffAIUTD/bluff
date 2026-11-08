@@ -8,7 +8,7 @@ import { exposureLookup } from "./exposureLookup";
 import { txnSearch } from "./txnSearch";
 import { submitVerdict } from "./submitVerdict";
 import { capJson } from "./types";
-import { runTool, TOOLS, openAiTools } from "./index";
+import { runTool, TOOLS, openAiTools, BY_KIND } from "./index";
 import { normalizeDescriptor } from "../../linker/normalize";
 
 const NOW = new Date("2026-11-07T18:00:00Z");
@@ -79,6 +79,13 @@ describe("taxonomy_match", () => {
     expect((await taxonomyMatch("Your order is ready for pickup", ctx()))[0].category).toBe("legit_transactional");
     expect((await taxonomyMatch("", ctx())).length).toBeGreaterThanOrEqual(0);
   });
+  it("keyword fallback returns scam/legit kind and the top match's next steps", async () => {
+    const r = await taxonomyMatch("Unpaid toll of $4.15. Pay now to avoid a $50 penalty: tollpay-notice.top", ctx());
+    expect(r[0]).toMatchObject({ category: "toll_scam", kind: "scam", method: "keyword" });
+    expect(r[0].next_steps?.join(" ")).toMatch(/7726/);
+    const otp = await taxonomyMatch("Your sign-in code is 730214. Never share it with anyone.", ctx());
+    expect(otp[0]).toMatchObject({ category: "legit_otp", kind: "legit" });
+  });
   it("cosine math", () => {
     expect(cosine([1, 0], [1, 0])).toBe(1);
     expect(cosine([1, 0], [0, 1])).toBe(0);
@@ -112,7 +119,7 @@ describe("submit_verdict", () => {
   it("accepts valid args, computes confidence server-side, overrides self-reported confidence", () => {
     const r = submitVerdict({ ...args, confidence: 0.01 });
     expect(r.ok).toBe(true);
-    if (r.ok) { expect(r.verdict.confidence).toBe(0.97); expect(r.verdict.mode).toBe("live"); }
+    if (r.ok) { expect(r.verdict.confidence).toBe(0.95); expect(r.verdict.mode).toBe("live"); }
   });
   it("derives the label from the score and forces unsure when confidence < 0.5", () => {
     const r = submitVerdict({ ...args, evidence_keys: [], verdict: "likely_scam", score: 10 });
@@ -135,6 +142,11 @@ describe("registry", () => {
     expect(await runTool("nope", {}, ctx())).toEqual({ error: "unknown tool: nope" });
     const bad = { ...ctx(), db: { query: async () => { throw new Error("db down"); } } as never };
     expect(await runTool("txn_search", { descriptor_norm: "x" }, bad)).toEqual({ error: "db down" });
+  });
+  it("message runs get their own tool set; page/site/txn sets are unchanged", () => {
+    expect(BY_KIND.message).toEqual(["taxonomy_match", "domain_intel", "submit_verdict"]);
+    expect(openAiTools("message").map((t) => t.function.name).sort()).toEqual(["domain_intel", "submit_verdict", "taxonomy_match"]);
+    for (const k of ["page", "txn"]) expect(openAiTools(k).map((t) => t.function.name)).toEqual(expect.arrayContaining(["notify", "draft_dispute", "page_signals"]));
   });
   it("exposes OpenAI-compatible definitions", () => {
     expect(TOOLS.map((x) => x.name)).toEqual(expect.arrayContaining(["domain_intel", "page_signals", "taxonomy_match", "exposure_lookup", "txn_search", "submit_verdict"]));

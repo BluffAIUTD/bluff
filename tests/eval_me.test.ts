@@ -31,6 +31,18 @@ describe("GET /api/eval", () => {
     fs.writeFileSync(p, "{not json"); expect((await (await getEval(new Request("http://x"))).json()).results).toBeNull();
     fs.writeFileSync(p, JSON.stringify({ nope: 1 })); expect((await (await getEval(new Request("http://x"))).json()).results).toBeNull();
   });
+  it("the committed eval/results.json validates: Claim A on the held-out test split with before/after rules, calibration and per-category results; Claim B intact", async () => {
+    const { results } = await (await getEval(new Request("http://x"))).json();
+    const split = JSON.parse(fs.readFileSync(path.join(process.cwd(), "eval", "messages_split.json"), "utf8"));
+    const a = results.claimA;
+    expect(a.n).toBe(split.test.length);
+    expect(a.dataset).toMatch(/NOT T-Mobile data/);
+    const ids = a.methods.map((m: { id: string }) => m.id);
+    expect(ids).toEqual(expect.arrayContaining(["baseline", "rules_v0", "rules"]));
+    for (const m of a.methods.filter((x: { id: string }) => x.id !== "baseline")) expect(m.calibration.ece).toBeGreaterThanOrEqual(0);
+    expect(a.per_category.length).toBe(25);
+    expect(results.claimB.n).toBeGreaterThan(0);
+  });
 });
 
 describe("POST /api/eval/link", () => {

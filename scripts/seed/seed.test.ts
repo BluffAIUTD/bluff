@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import pg from "pg";
 import { migrate } from "../../lib/db/migrate";
-import { seedAll, resetDemo, buildMayaHistory } from "./seed";
+import { seedAll, resetDemo, buildMayaHistory, seedTaxonomy } from "./seed";
 import { EVAL_USER_ID, MAYA_ID } from "../../lib/config";
 import { EVAL_CHARGES, EVAL_EXPOSURES } from "../../data/evalLink";
 import { CARD_SEEDS } from "../../data/cards";
@@ -50,8 +50,24 @@ describe("seed", () => {
     expect(await count("SELECT count(*) n FROM game_cards WHERE day IS NULL AND source='seed'")).toBe(15);
     expect(await count("SELECT count(*) n FROM game_cards WHERE source='dataset'")).toBeGreaterThanOrEqual(300); // data/messages/bluff-messages.jsonl
     expect(await count("SELECT count(*) n FROM allowlist WHERE user_id IS NULL")).toBeGreaterThanOrEqual(50);
-    expect(await count("SELECT count(*) n FROM taxonomy WHERE is_placeholder")).toBeGreaterThan(5);
+    // Bluff's own 25-category taxonomy (data/taxonomy.ts): 17 scam rows with red flags, 8 legit rows without.
+    expect(await count("SELECT count(*) n FROM taxonomy")).toBe(25);
+    expect(await count("SELECT count(*) n FROM taxonomy WHERE is_placeholder")).toBe(0);
+    expect(await count("SELECT count(*) n FROM taxonomy WHERE cardinality(red_flags) > 0")).toBe(17);
     expect(await count("SELECT count(*) n FROM merchant_daily WHERE user_id=$1", [MAYA_ID])).toBeGreaterThan(20);
+  });
+
+  it("taxonomy upsert replaces the old placeholder rows in place and keeps embeddings only for unchanged rows", async () => {
+    await pool.query("INSERT INTO taxonomy (id, name, description, examples, red_flags, is_placeholder) VALUES ('investment','Investment','old','{}','{}',true) ON CONFLICT (id) DO NOTHING");
+    await pool.query("UPDATE taxonomy SET description='old placeholder text', is_placeholder=true, embedding='{0.1,0.2}' WHERE id='toll_scam'");
+    await pool.query("UPDATE taxonomy SET embedding='{0.3,0.4}' WHERE id='romance'");
+    expect(await seedTaxonomy(pool)).toBe(25);
+    expect(await count("SELECT count(*) n FROM taxonomy")).toBe(25);
+    expect(await count("SELECT count(*) n FROM taxonomy WHERE id='investment'")).toBe(0);
+    const row = async (id: string) => (await pool.query("SELECT description, is_placeholder, embedding FROM taxonomy WHERE id=$1", [id])).rows[0];
+    expect(await row("toll_scam")).toMatchObject({ is_placeholder: false, embedding: null });
+    expect((await row("toll_scam")).description).not.toBe("old placeholder text");
+    expect((await row("romance")).embedding).toEqual([0.3, 0.4]);
   });
 
   it("registry ages: scam stores are young, legit are old", async () => {

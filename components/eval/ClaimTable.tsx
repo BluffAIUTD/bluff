@@ -3,10 +3,11 @@ import { Badge } from "../ui/Badge";
 type Prf = { p: number; r: number; f1: number };
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
-export type ClaimRow = { method: string; n: number; prf: Prf | null; highlight?: boolean; note?: string };
+export type ClaimRow = { method: string; n: number; prf: Prf | null; highlight?: boolean; note?: string; accuracy?: number };
 
 /** One claim: method, n, precision / recall / F1 for Bluff and each baseline. Higher F1 gets a "wins" mark only if it truly is higher. */
 export function ClaimTable({ title, subtitle, rows, verdict }: { title: string; subtitle: string; rows: ClaimRow[]; verdict?: { text: string; tone: "safe" | "scam" | "unsure" } }) {
+  const acc = rows.some((r) => r.accuracy != null);
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -17,7 +18,7 @@ export function ClaimTable({ title, subtitle, rows, verdict }: { title: string; 
       <div className="overflow-x-auto rounded-card border border-line bg-surface">
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="text-xs uppercase tracking-wide text-dim">
-            <tr><th className="px-4 py-3">Method</th><th className="px-4 py-3">n</th><th className="px-4 py-3">Precision</th><th className="px-4 py-3">Recall</th><th className="px-4 py-3">F1</th></tr>
+            <tr><th className="px-4 py-3">Method</th><th className="px-4 py-3">n</th><th className="px-4 py-3">Precision</th><th className="px-4 py-3">Recall</th><th className="px-4 py-3">F1</th>{acc && <th className="px-4 py-3">Accuracy</th>}</tr>
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((r) => (
@@ -26,6 +27,7 @@ export function ClaimTable({ title, subtitle, rows, verdict }: { title: string; 
                 <td className="num px-4 py-3">{r.n}</td>
                 {r.prf ? <><td className="num px-4 py-3">{pct(r.prf.p)}</td><td className="num px-4 py-3">{pct(r.prf.r)}</td><td className="num px-4 py-3 font-bold">{pct(r.prf.f1)}</td></>
                   : <td colSpan={3} className="px-4 py-3 text-dim">Not available</td>}
+                {acc && <td className="num px-4 py-3">{r.accuracy != null ? pct(r.accuracy) : "–"}</td>}
               </tr>
             ))}
           </tbody>

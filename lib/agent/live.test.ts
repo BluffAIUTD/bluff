@@ -159,6 +159,49 @@ describe("live agent loop", () => {
   });
 });
 
+/** Every substring of `text` at least `n` characters long that appears in `stored` (the privacy check). */
+const leaked = (text: string, stored: string, n = 12) => {
+  const hits: string[] = [];
+  for (let i = 0; i + n <= text.length; i++) if (stored.includes(text.slice(i, i + n))) hits.push(text.slice(i, i + n));
+  return hits;
+};
+
+describe("message mode", () => {
+  const text = "Unpaid toll balance of $6.40 on your account. Pay within 24 hours to avoid a $50 penalty: tollpay-notice.top/pay?id=8812";
+  const sms: RunInput = { kind: "message", userId: MAYA_ID, text, source: "check" };
+  const tollVerdict = { score: 12, verdict: "likely_scam", category: "toll_scam", evidence: ["Threatens a penalty", "Pressure to pay within hours", "Link uses a scam-prone domain"], evidence_keys: ["threat_language", "urgency_language", "lookalike_domain"], next_steps: ["Block the sender", "Delete the text"] };
+
+  it("offers only taxonomy_match, domain_intel and submit_verdict; other tools are refused, not run", async () => {
+    queue = [msg([call("taxonomy_match", { text }), call("domain_intel", { host: "tollpay-notice.top" }), call("notify", { title: "x", body: text })]), msg([call("submit_verdict", tollVerdict)])];
+    const { r, steps } = await run(sms);
+    expect(seen[0].tools!.map((t) => t.function.name).sort()).toEqual(["domain_intel", "submit_verdict", "taxonomy_match"]);
+    expect(seen[0].messages.find((m) => m.role === "system")!.content).toMatch(/Mode: message/);
+    expect(steps.find((s) => s.data.tool === "notify")!.data.outputSummary).toMatch(/not available in this mode/);
+    expect(r.mode).toBe("live");
+    expect(r.verdict.category).toBe("toll_scam");
+    // the taxonomy's vetted steps come first, the model's own after
+    expect(r.verdict.next_steps[0]).toMatch(/official toll site/);
+    expect(r.verdict.next_steps.join(" ")).toMatch(/7726/);
+  });
+
+  it("privacy: the stored step summaries contain no fragment of the message (>= 12 chars)", async () => {
+    queue = [msg([call("taxonomy_match", { text }), call("domain_intel", { host: "https://tollpay-notice.top/pay?id=8812" })]), msg([call("submit_verdict", tollVerdict)])];
+    const { steps } = await run(sms);
+    const stored = steps.map((s) => `${s.data.inputSummary}\n${s.data.outputSummary}`).join("\n");
+    // The link's host is kept on purpose (it is what domain_intel looked up); nothing else from the text is.
+    expect(stored).toContain("tollpay-notice.top");
+    expect(leaked(text, stored.replaceAll("tollpay-notice.top", "<host>"))).toEqual([]);
+    expect(stored).not.toContain("8812");
+  });
+
+  it("confidence counts the server's own rule signals, not the model's self-report", async () => {
+    queue = [msg([call("submit_verdict", { ...tollVerdict, evidence_keys: [], confidence: 0.99 })])];
+    const { r } = await run(sms);
+    expect(r.verdict.confidence).toBeGreaterThan(0.8);
+    expect(r.verdict.confidence).toBeLessThan(0.99);
+  });
+});
+
 describe("website review: the scraped site goes to Nemotron", () => {
   beforeEach(() => { delete process.env.PAGE_CRAWL; });
   const siteVerdict = { ...goodVerdict, summary: "VoltDeals refunds only in store credit and steers buyers away from cards.", findings: [{ title: "Store credit only", detail: "Refund page", severity: "high", page: "/refund-policy.html" }], agrees_with_basic: true };
