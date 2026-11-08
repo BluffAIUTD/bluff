@@ -7,7 +7,7 @@ import { MAYA_ID } from "../lib/config";
 import { POST as createDisputeRoute } from "../app/api/disputes/route";
 import { PATCH as patchDispute } from "../app/api/disputes/[id]/route";
 import { GET as getTxn } from "../app/api/transactions/[id]/route";
-import { createDispute, templateNarrative, buildLetter, buildTimeline, NEXT_STEPS, type DisputeFacts } from "../lib/disputes";
+import { createDispute, disputeContext, templateNarrative, buildLetter, buildTimeline, NEXT_STEPS, type DisputeFacts } from "../lib/disputes";
 import { postScriptedCharge, findScript } from "../lib/demo";
 import { draftDisputeTool } from "../lib/agent/tools/draftDispute";
 
@@ -92,6 +92,88 @@ describe("dispute packet", () => {
     const out = (await draftDisputeTool.run({ txn_id: txnId }, { userId: MAYA_ID, db: t.pool })) as { dispute_id: string; generated_by: string };
     expect(out.generated_by).toBe("template");
     expect(out.dispute_id).toMatch(/^[0-9a-f-]{36}$/);
+  });
+});
+
+describe("dispute from bank-scan evidence (site check, no exposure)", () => {
+  const VOLT = "voltdeals-outlet.localhost:3000";
+  let ext = 0;
+  async function scanCharge(o: { score?: number; verdict?: string; deep?: boolean; basicOnly?: boolean } = {}) {
+    const txnId = (await t.pool.query(
+      "INSERT INTO transactions (ts,user_id,descriptor,descriptor_norm,amount_cents,source,external_id,merchant_name,website) VALUES (now() - interval '2 days',$1,'VOLTDEALS OUTLET','voltdeals outlet',18900,'nessie',$2,'VoltDeals Outlet',$3) RETURNING id",
+      [MAYA_ID, `disptest_${++ext}`, VOLT],
+    )).rows[0].id as string;
+    const score = o.score ?? 12, label = o.verdict ?? "likely_scam";
+    await t.pool.query("INSERT INTO site_scans (user_id, host, merchant, crawl, intel, basic, created_at) VALUES ($1,$2,'VoltDeals Outlet',$3,'{}',$4, now() - interval '1 hour')", [MAYA_ID, VOLT,
+      JSON.stringify({ origin: `http://${VOLT}` }),
+      JSON.stringify({ score: o.basicOnly ? score : 30, label: o.basicOnly ? label : "likely_scam", confidence: 0.74, category: "fake_store", findings: [
+        { id: "domain_new", severity: "high", title: "Domain registered 21 days ago", detail: "Registered 2026-10-17.", page: undefined },
+        { id: "history_claim", severity: "medium", title: "Claims to operate since 2016", detail: "But the domain was registered in 2026.", page: "/about" },
+        { id: "https_ok", severity: "good", title: "Valid HTTPS certificate", detail: "" },
+      ] })]);
+    if (!o.basicOnly) {
+      const payload = { score, verdict: label, confidence: 0.82, confidence_reason: "x", category: "fake_store", evidence: ["Domain registered 21 days ago", "Claims to operate since 2016", "Suite 0 address"], evidence_keys: [], next_steps: ["a", "b"], linked: {}, mode: "live",
+        analysis: { summary: "s", findings: [{ title: "Address is 'Suite 0'", detail: "No such suite.", severity: "high", page: "/contact" }, { title: "Claims to operate since 2016", detail: "Domain is 21 days old.", severity: "medium", page: `http://${VOLT}/about` }, { title: "Has a privacy policy", detail: "", severity: "good" }] } };
+      await t.pool.query("INSERT INTO verdicts (user_id, subject_type, subject_id, payload, mode) VALUES ($1,'site',$2,$3,'live')", [MAYA_ID, VOLT, JSON.stringify(payload)]);
+    }
+    return txnId;
+  }
+  beforeEach(async () => {
+    await t.pool.query("DELETE FROM transactions WHERE external_id LIKE 'disptest_%'");
+    await t.pool.query("DELETE FROM verdicts WHERE subject_type='site'");
+    await t.pool.query("DELETE FROM site_scans");
+    await t.pool.query("DELETE FROM allowlist WHERE user_id IS NOT NULL");
+  });
+
+  it("a likely-scam site verdict is enough: letter cites the site check, timeline lists the check (with page URLs) and the charge", async () => {
+    const txnId = await scanCharge();
+    expect(await disputeContext(t.pool, MAYA_ID, txnId)).toMatchObject({ basis: "site", site: { host: VOLT, score: 12, label: "likely_scam", mode: "live" } });
+    const res = await createDisputeRoute(req({ txnId }));
+    expect(res.status).toBe(201);
+    const { dispute } = await res.json();
+    expect(dispute).toMatchObject({ exposureId: null, txnId, status: "draft", generatedBy: "template" });
+    expect(dispute.letter).toContain("Amount: $189.00");
+    expect(dispute.letter).toContain("Reason: Suspected fraudulent online store");
+    expect(dispute.letter).toContain(`reviewed the merchant's website (${VOLT}) and rated it 12/100 (likely scam), citing: Address is 'Suite 0'; Claims to operate since 2016`);
+    expect(dispute.letter).not.toMatch(/I entered my/);
+    expect(dispute.timeline.map((x: { kind: string }) => x.kind)).toEqual(["charge", "site_check"]);
+    const check = dispute.timeline[1];
+    expect(check.label).toBe(`Bluff checked ${VOLT}: 12/100, likely scam`);
+    expect(check.detail).toMatch(/^Nemotron deep review, 82% sure\. Address is 'Suite 0'; Claims to operate since 2016\.$/);
+    expect(check.sources).toEqual([`http://${VOLT}/contact`, `http://${VOLT}/about`]);
+  });
+
+  it("basic check only (no AI review) still counts, labeled as such; the scan alert shows in the timeline", async () => {
+    const txnId = await scanCharge({ basicOnly: true, score: 24 });
+    await t.pool.query("INSERT INTO messages (user_id, phone, direction, body, kind, status, meta) VALUES ($1,'p','out','alert','alert','delivered',$2)", [MAYA_ID, JSON.stringify({ source: "scan", txn_id: "x", txn_ids: [txnId] })]);
+    const { dispute } = await (await createDisputeRoute(req({ txnId }))).json();
+    expect(dispute.timeline.map((x: { kind: string }) => x.kind)).toEqual(["charge", "site_check", "alert"]);
+    expect(dispute.timeline[1].detail).toMatch(/^Basic check \(rules only, no AI\), 74% sure\. Domain registered 21 days ago; Claims to operate since 2016\.$/);
+    expect(dispute.timeline[1].sources).toEqual([`http://${VOLT}/about`]);
+  });
+
+  it("unsure below 50 counts; unsure 60, looks OK and a site marked SAFE don't (server and page agree)", async () => {
+    let txnId = await scanCharge({ score: 45, verdict: "unsure" });
+    expect((await createDisputeRoute(req({ txnId }))).status).toBe(201);
+    await t.pool.query("DELETE FROM verdicts WHERE subject_type='site'"); await t.pool.query("DELETE FROM site_scans");
+    for (const [score, verdict] of [[60, "unsure"], [85, "looks_ok"]] as const) {
+      txnId = await scanCharge({ score, verdict });
+      expect((await disputeContext(t.pool, MAYA_ID, txnId))!.basis).toBeNull();
+      expect((await createDisputeRoute(req({ txnId }))).status).toBe(409);
+      await t.pool.query("DELETE FROM verdicts WHERE subject_type='site'"); await t.pool.query("DELETE FROM site_scans");
+    }
+    txnId = await scanCharge();
+    await t.pool.query("INSERT INTO allowlist (host, user_id) VALUES ($1,$2)", [VOLT, MAYA_ID]);
+    expect(await disputeContext(t.pool, MAYA_ID, txnId)).toMatchObject({ basis: null, site: { allowlisted: true } });
+    expect((await createDisputeRoute(req({ txnId }))).status).toBe(409);
+  });
+
+  it("an exposure-linked charge keeps its exposure basis and wording", async () => {
+    const { txnId } = await linkedCharge();
+    expect((await disputeContext(t.pool, MAYA_ID, txnId))!.basis).toBe("exposure");
+    const { dispute } = await (await createDisputeRoute(req({ txnId }))).json();
+    expect(dispute.timeline.map((x: { kind: string }) => x.kind)).toEqual(["exposure", "charge"]);
+    expect(dispute.letter).toContain("I entered my card on fastkicks-shop");
   });
 });
 

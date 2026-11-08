@@ -13,7 +13,11 @@ import { NextSteps } from "../verdict/NextSteps";
 export const SLOW_DRAFT_MS = 8000;
 
 /** Refund Builder: letter + evidence timeline + next steps. Drafts only; Bluff never files or sends anything. */
-export function RefundBuilder({ txnId, canBuild, initial }: { txnId: string; canBuild: boolean; initial: DisputeDto | null }) {
+const DOT: Record<string, string> = { charge: "bg-scam", alert: "bg-unsure", site_check: "bg-scam/60", text: "bg-[#E20074]" };
+const pathOf = (url: string) => { try { const u = new URL(url); return u.host + (u.pathname === "/" ? "" : u.pathname); } catch { return url; } };
+
+/** basisNote: what the dispute will rest on (an exposure link, a reported scam text, or the bank scan's site check). */
+export function RefundBuilder({ txnId, canBuild, initial, basisNote }: { txnId: string; canBuild: boolean; initial: DisputeDto | null; basisNote?: string }) {
   const toast = useToast();
   const [dispute, setDispute] = useState<DisputeDto | null>(initial);
   const [letter, setLetter] = useState(initial?.letter ?? "");
@@ -65,6 +69,7 @@ export function RefundBuilder({ txnId, canBuild, initial }: { txnId: string; can
       </div>
       <p role="note" className="rounded-control bg-surface2 px-3 py-2 text-sm">Bluff drafts. You decide. Not legal or financial advice.</p>
       {!canBuild && !dispute && <p className="text-sm text-dim">This charge isn&apos;t linked to a risky site, so there&apos;s nothing to dispute yet.</p>}
+      {canBuild && !dispute && basisNote && <p className="text-sm text-dim">{basisNote}</p>}
 
       {busy && (
         <div aria-busy className="flex flex-col gap-2">
@@ -95,10 +100,17 @@ export function RefundBuilder({ txnId, canBuild, initial }: { txnId: string; can
             <ol className="relative ml-2 flex flex-col gap-4 border-l border-line pl-5">
               {dispute.timeline.map((t, i) => (
                 <li key={i} className="relative">
-                  <span aria-hidden className={`absolute -left-[26px] top-1 h-3 w-3 rounded-full ${t.kind === "charge" ? "bg-scam" : t.kind === "alert" ? "bg-unsure" : "bg-accent"}`} />
+                  <span aria-hidden className={`absolute -left-[26px] top-1 h-3 w-3 rounded-full ${DOT[t.kind] ?? "bg-accent"}`} />
                   <p className="text-xs text-dim">{longDateTime(t.at)}</p>
-                  <p className="font-medium">{t.label}</p>
-                  <p className="text-sm text-dim">{t.detail}</p>
+                  <p className="break-words font-medium">{t.label}</p>
+                  <p className="break-words text-sm text-dim">{t.detail}</p>
+                  {t.sources && t.sources.length > 0 && (
+                    <ul aria-label="Pages cited" className="mt-1 flex flex-col gap-0.5">
+                      {t.sources.filter((u) => /^https?:\/\//i.test(u)).map((u) => (
+                        <li key={u}><a href={u} target="_blank" rel="noopener noreferrer nofollow" className="inline-block max-w-full truncate font-mono text-xs text-accent underline">{pathOf(u)}</a></li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               ))}
             </ol>

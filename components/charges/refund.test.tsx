@@ -66,6 +66,21 @@ describe("RefundBuilder", () => {
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 
+  it("site-check evidence: the timeline links the pages it cites; the basis note shows before drafting", () => {
+    const { unmount } = wrap(<RefundBuilder txnId="t1" canBuild initial={null} basisNote="Based on Bluff's check of the merchant website." />);
+    expect(screen.getByText("Based on Bluff's check of the merchant website.")).toBeInTheDocument();
+    unmount();
+    wrap(<RefundBuilder txnId="t1" canBuild initial={dispute({ exposureId: null, timeline: [
+      { kind: "charge", at: "2026-11-05T18:00:00Z", label: "$189.00 charged by VOLTDEALS OUTLET", detail: "Merchant website: voltdeals-outlet.bluffai.us" },
+      { kind: "site_check", at: "2026-11-07T18:00:00Z", label: "Bluff checked voltdeals-outlet.bluffai.us: 12/100, likely scam", detail: "Nemotron deep review, 82% sure.", sources: ["https://voltdeals-outlet.bluffai.us/contact", "javascript:alert(1)"] },
+    ] })} />);
+    expect(screen.getByText("Bluff checked voltdeals-outlet.bluffai.us: 12/100, likely scam")).toBeInTheDocument();
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute("href", "https://voltdeals-outlet.bluffai.us/contact");
+    expect(links[0]).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+
   it("existing filed dispute renders as filed", () => {
     wrap(<RefundBuilder txnId="t1" canBuild initial={dispute({ status: "filed", generatedBy: "ai" })} />);
     expect(screen.getAllByText("Marked as filed").length).toBeGreaterThan(0);

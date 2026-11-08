@@ -18,6 +18,10 @@ describe("ui primitives", () => {
     render(<FlagBadge kind="exposure_link" />);
     expect(screen.getByText("Exposure link")).toBeInTheDocument();
   });
+  it("labels the bank-scan risky_site flag", () => {
+    render(<FlagBadge kind="risky_site" />);
+    expect(screen.getByText("Risky site")).toHaveAttribute("title", expect.stringMatching(/bank scan/));
+  });
   it("empty and error states are accessible", () => {
     render(<><EmptyState title="Nothing yet" hint="Try it" /><ErrorState message="boom" /></>);
     expect(screen.getByText("Nothing yet")).toBeInTheDocument();

@@ -9,6 +9,8 @@ import { PATCH as patchExp, DELETE as deleteExp } from "../app/api/exposures/[id
 import { notify, MAX_ALERTS_PER_HOUR } from "../lib/messaging/notify";
 import { exposureAlert, chargeAlert, listFields } from "../lib/messaging/templates";
 import { normalizeDescriptor } from "../lib/linker/normalize";
+import { linkHost, recordReceivedLink, senderHash } from "../lib/exposures";
+import { extractUrls } from "../lib/rules/signals";
 
 let t: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => { t = await createTestDb("bluff_exposures_test", { seed: true }); process.env.DATABASE_URL = t.url; });
@@ -81,7 +83,7 @@ describe("exposures API", () => {
 
 describe("notify choke point", () => {
   const base = { userId: MAYA_ID, body: "hi" };
-  it("one alert per event; paused users are skipped; 5 per hour cap", async () => {
+  it("one alert per event; paused users are skipped; hourly cap", async () => {
     const a = await notify(t.pool, { ...base, eventKey: "e1" });
     expect(a.status).toBe("delivered");
     expect((await notify(t.pool, { ...base, eventKey: "e1" }))).toEqual({ status: "skipped", reason: "duplicate" });
@@ -108,6 +110,31 @@ describe("templates", () => {
     expect(exposureAlert({ fieldTypes: ["card_number"], host: "fastkicks-shop", ageDays: 4 })).toBe("You just entered your card on fastkicks-shop, a site registered 4 days ago. Reply WATCH and I'll check for charges from it.");
     expect(exposureAlert({ fieldTypes: [], host: "x.top", ageDays: null })).toContain("a site I couldn't verify");
     expect(chargeAlert({ amountCents: 4999, descriptor: "FKSHP*LLC", host: "fastkicks-shop", exposureAt: "2026-11-04T15:00:00Z" })).toBe("$49.99 from FKSHP*LLC matches fastkicks-shop, where you entered your card on Nov 4. Reply DISPUTE and I'll draft it.");
+    expect(chargeAlert({ amountCents: 1999, descriptor: "DLVRYFX HELP", host: "deliveryfix-help.bluffai.us", exposureAt: "2026-11-04T15:00:00Z", via: "text" })).toBe("$19.99 from DLVRYFX HELP matches deliveryfix-help.bluffai.us, the link in the scam text you reported on Nov 4. Reply DISPUTE and I'll draft it.");
     expect(listFields(["card_number", "cvv", "phone"])).toBe("card, card security code and phone number");
+  });
+});
+
+describe("link memory from reported texts", () => {
+  it("records only the link's host (no path, no body), labels it for the linker, dedupes within a day, and lists it as received_link", async () => {
+    expect(linkHost(extractUrls("Pay now: https://www.DeliveryFix-Help.bluffai.us/track?id=maya-4417 or call"))).toBe("deliveryfix-help.bluffai.us");
+    expect(linkHost(["not a link"])).toBeNull();
+    // This deployment's demo store host (BASE_DOMAIN is localhost:3000 in tests).
+    const host = linkHost(extractUrls("Pay $1.99: http://deliveryfix-help.localhost:3000/track"));
+    expect(host).toBe("deliveryfix-help.localhost:3000");
+    const a = await recordReceivedLink(t.pool, MAYA_ID, { host: host!, score: 22, verdict: "likely_scam", verdictId: null, sender: "(214) 555-0147" });
+    expect(a.created).toBe(true);
+    expect(a.exposure).toMatchObject({ url: "https://deliveryfix-help.localhost:3000", label: "deliveryfix-help", user_action: "received_link", source: "sms", watch: true, field_types: [] });
+    expect(a.exposure.sender_hash).toBe(senderHash("214-555-0147"));
+    expect(a.exposure.sender_hash).not.toBe(senderHash("(469) 555-0132"));
+    expect((await recordReceivedLink(t.pool, MAYA_ID, { host: host!, score: 22, verdict: "likely_scam", verdictId: null })).created).toBe(false);
+    const list = await (await listExp(req("/api/exposures", "GET"))).json();
+    expect(list.exposures).toHaveLength(1);
+    expect(list.exposures[0]).toMatchObject({ host: "deliveryfix-help.localhost:3000", userAction: "received_link", source: "sms", fieldTypes: [] });
+    // The linker matches the statement's abbreviated descriptor to the text's link.
+    await t.pool.query("INSERT INTO transactions (ts,user_id,descriptor,descriptor_norm,amount_cents) VALUES (now() + interval '1 day',$1,'DLVRYFX HELP',$2,1999)", [MAYA_ID, normalizeDescriptor("DLVRYFX HELP")]);
+    const linked = await (await listExp(req("/api/exposures", "GET"))).json();
+    expect(linked.exposures[0].linkedCount).toBe(1);
+    await t.pool.query("DELETE FROM transactions WHERE descriptor='DLVRYFX HELP' AND user_id=$1", [MAYA_ID]);
   });
 });

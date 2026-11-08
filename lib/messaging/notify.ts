@@ -5,7 +5,11 @@ import { one } from "../db";
  * Bluff's alerts and replies are delivered in-app: they land in the user's inbox, which the T-Mobile phone preview shows.
  * No SMS or iMessage provider is involved.
  */
-export const MAX_ALERTS_PER_HOUR = 5;
+/**
+ * Alert cap per user. A live demo pushes several charges in a few minutes (each risky one is one alert, plus the scan
+ * summary), so 12/hour leaves room for that while still stopping a runaway loop from flooding the phone.
+ */
+export const MAX_ALERTS_PER_HOUR = 12;
 /** Value of messages.phone for in-app delivery (the column predates in-app messaging). */
 export const PHONE_PREVIEW = "phone-preview";
 
@@ -23,7 +27,7 @@ export type NotifyResult =
   | { status: "delivered"; messageId: string }
   | { status: "skipped"; reason: "paused" | "duplicate" | "rate_limited" | "no_user" };
 
-/** The single choke point for outbound alerts: at most 1 alert per event, 5 per hour per user, respects STOP (alerts_paused). */
+/** The single choke point for outbound alerts: at most 1 alert per event, MAX_ALERTS_PER_HOUR per user, respects STOP (alerts_paused). */
 export async function notify(db: Db, n: NotifyInput): Promise<NotifyResult> {
   const user = await one<{ alerts_paused: boolean }>(db, "SELECT alerts_paused FROM users WHERE id=$1", [n.userId]);
   if (!user) return { status: "skipped", reason: "no_user" };

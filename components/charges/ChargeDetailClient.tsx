@@ -13,16 +13,25 @@ import { VerdictCard } from "../verdict/VerdictCard";
 import { LinkedChargeCard, type LinkInfo } from "./LinkedChargeCard";
 import { PriceSparkline } from "./PriceSparkline";
 import { RefundBuilder } from "./RefundBuilder";
-import type { DisputeDto } from "@/lib/disputes";
+import { SiteVerdictCard } from "./SiteVerdictCard";
+import type { DisputeBasisKind, DisputeDto, SiteCheck } from "@/lib/disputes";
 import { money, longDateTime } from "@/lib/format";
 
-export type Candidate = { exposureId: string; host: string; exposureAt: string; exposureScore: number; fieldTypes: string[]; reasons: string[]; days: number; kind: "flagged" | "expected" };
+export type Candidate = {
+  exposureId: string; host: string; exposureAt: string; exposureScore: number; fieldTypes: string[]; reasons: string[]; days: number; kind: "flagged" | "expected";
+  /** "text": the exposure is the link in a scam text the user reported. */
+  via?: "entered" | "text";
+};
 export type Detail = {
   transaction: TransactionDto & { scripted: boolean; scriptId: string | null };
   best: Candidate | null; otherCount: number;
   verdict: (Verdict & { id: string }) | null;
   priceHistory: { day: string; sumCents: number }[];
   dispute: DisputeDto | null;
+  /** What createDispute would base a dispute on (null: nothing to dispute). Absent on older payloads. */
+  basis?: DisputeBasisKind | null;
+  /** The bank scan's latest check of this charge's merchant website. */
+  siteCheck?: SiteCheck | null;
 };
 
 /** Decide how to present the link: the agent's decision wins; otherwise show the SQL link instantly. */
@@ -30,10 +39,19 @@ export function linkInfoFor(d: Detail, verdict: Verdict | null): LinkInfo {
   const b = d.best;
   const k = verdict?.linked?.kind;
   if (!b) return { kind: "none" };
-  const base = { host: b.host, exposureAt: b.exposureAt, exposureScore: b.exposureScore, fieldTypes: b.fieldTypes, reasons: b.reasons, otherCount: d.otherCount, days: b.days };
+  const base = { host: b.host, exposureAt: b.exposureAt, exposureScore: b.exposureScore, fieldTypes: b.fieldTypes, reasons: b.reasons, otherCount: d.otherCount, days: b.days, via: b.via };
   if (k === "possible") return { kind: "possible", ...base };
   return { kind: b.kind, ...base };
 }
+
+/** The Refund Builder's switch agrees with the server: the basis createDispute would use, else the old link rule. */
+export const canBuildDispute = (d: Detail) => (d.basis !== undefined ? d.basis !== null : d.best?.kind === "flagged");
+
+const BASIS_NOTE: Record<DisputeBasisKind, string> = {
+  exposure: "Based on the site where you entered your info and the charge that followed.",
+  received_link: "Based on the scam text you reported and the charge from the site it linked to.",
+  site: "Based on Bluff's check of the merchant website (score, findings and the pages they came from).",
+};
 
 export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Detail; runId?: string }) {
   const router = useRouter();
@@ -43,6 +61,7 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
   const [live, setLive] = useState<Verdict | null>(null);
   const t = detail.transaction;
   const verdict = live ?? detail.verdict;
+  const link = linkInfoFor(detail, verdict);
 
   async function investigate() {
     setErr(null);
@@ -64,7 +83,15 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
         </div>
       </header>
 
-      <LinkedChargeCard link={linkInfoFor(detail, verdict)} charge={{ descriptor: t.descriptor, amountCents: t.amountCents, ts: t.ts }} pending={running} />
+      {link.kind === "none" && detail.siteCheck ? (
+        // A bank-scan charge with no exposure: the merchant website's check is the evidence, not "No linked exposure".
+        <SiteVerdictCard site={detail.siteCheck} />
+      ) : (
+        <>
+          <LinkedChargeCard link={link} charge={{ descriptor: t.descriptor, amountCents: t.amountCents, ts: t.ts }} pending={running} />
+          {detail.siteCheck && <SiteVerdictCard site={detail.siteCheck} />}
+        </>
+      )}
 
       {runId ? (
         <RunView runId={runId} onRetry={investigate}
@@ -81,7 +108,7 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
       {err && <ErrorState message={err} />}
       {(runId || verdict) && !running && <Button variant="ghost" className="self-start" onClick={investigate}>Run the check again</Button>}
 
-      <RefundBuilder txnId={t.id} canBuild={detail.best?.kind === "flagged"} initial={detail.dispute} />
+      <RefundBuilder txnId={t.id} canBuild={canBuildDispute(detail)} initial={detail.dispute} basisNote={detail.basis ? BASIS_NOTE[detail.basis] : undefined} />
 
       <section aria-label="Price history" className="flex flex-col gap-2">
         <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">Price history with this merchant</h2>

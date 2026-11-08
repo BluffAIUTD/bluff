@@ -4,6 +4,8 @@ import { FIELD_LABELS, longDateTime, money, shortDate } from "@/lib/format";
 export type LinkInfo = {
   kind: "flagged" | "expected" | "possible" | "none";
   host?: string; exposureAt?: string; exposureScore?: number; fieldTypes?: string[]; reasons?: string[]; otherCount?: number; days?: number;
+  /** How the exposure happened: the user entered info on the site, or reported a scam text that linked to it. */
+  via?: "entered" | "text";
 };
 
 const STYLE = {
@@ -16,10 +18,12 @@ const STYLE = {
 /** Exposure ↔ charge connector (hero moment 2). The agent never invents a link: "none" says so plainly. */
 export function LinkedChargeCard({ link, charge, pending }: { link: LinkInfo; charge: { descriptor: string; amountCents: number; ts: string }; pending?: boolean }) {
   const s = STYLE[link.kind];
+  const text = link.via === "text";
+  const title = text && link.kind === "flagged" ? "Linked to a scam text you reported" : s.title;
   return (
     <section aria-label="Linked charge" className={`rounded-card border p-4 sm:p-6 ${s.ring}`}>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <h2 className="font-grotesk text-lg font-bold">{s.title}</h2>
+        <h2 className="font-grotesk text-lg font-bold">{title}</h2>
         {s.badge}
         {pending && <span className="text-xs text-dim">explanation loading…</span>}
       </div>
@@ -28,10 +32,10 @@ export function LinkedChargeCard({ link, charge, pending }: { link: LinkInfo; ch
       ) : (
         <div className="grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
           <div className="rounded-control bg-surface p-3">
-            <p className="text-xs uppercase tracking-wide text-dim">You entered info on</p>
-            <p className="font-medium">{link.host}</p>
+            <p className="text-xs uppercase tracking-wide text-dim">{text ? "Link in a scam text you reported" : "You entered info on"}</p>
+            <p className="break-all font-medium">{link.host}</p>
             <p className="text-sm text-dim">{link.exposureAt && longDateTime(link.exposureAt)}</p>
-            <p className="mt-1 text-sm">Score <span className="num font-bold">{link.exposureScore}</span> · {(link.fieldTypes ?? []).map((f) => FIELD_LABELS[f] ?? f).join(", ")}</p>
+            <p className="mt-1 text-sm">Score <span className="num font-bold">{link.exposureScore}</span> · {text ? "text discarded, link kept" : (link.fieldTypes ?? []).map((f) => FIELD_LABELS[f] ?? f).join(", ")}</p>
           </div>
           <svg aria-hidden viewBox="0 0 80 24" className="mx-auto my-5 h-6 w-20 rotate-90 sm:my-0 sm:rotate-0">
             <path className="connector-line" d="M2 12 H78" pathLength={100} stroke={s.line} strokeWidth="3" strokeLinecap="round" fill="none" />
