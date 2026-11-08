@@ -48,11 +48,11 @@ export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
       {err && <ErrorState message={err} />}
       {groups.map(([day, list]) => (
         <section key={day} aria-label={day} className="flex flex-col gap-3">
-          <h2 className="rule-top eyebrow pt-3 text-fg">{day}</h2>
+          <h2 className="eyebrow border-b border-line pb-2 text-fg">{day}</h2>
           <ul className="dossier divide-y divide-line">
             {list.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-5">
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                   <p className="truncate font-mono text-[15px] font-bold">{r.host}</p>
                   <p className="font-mono text-xs text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>
                 </div>

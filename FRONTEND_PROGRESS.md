@@ -9,28 +9,25 @@
 - Product fit: what happened / where / what next hierarchy, honest confidence always with its reason, mode labels (LIVE, DEMO, CACHED, REPLAYED, BASIC CHECK, Simulated) always visible, privacy copy in the footer and on Check, and the dispute packet is styled as a printable memo ending with "Bluff drafts. You decide."
 - Motion: stroke draw, stamp press, count-up. `prefers-reduced-motion` gives instant final states.
 
-## Checklist status
+## Status (round 2: expanded and polished)
+Done and verified in real Chromium at 1280 and 390 (screenshots in shots/a):
+- All pages: shell (masthead, folio nav, mobile tab bar, skip link), Overview (Thread rows on real links, marginalia), Scan, Check, Charges and detail (Thread, verdict stamp, dispute memo), Exposure, Play, Eval, Privacy, custom 404 (app/not-found.tsx) and error boundary (app/error.tsx), favicon, title template ("Page | Bluff").
+- Scan: component tests in components/scan/scan.test.tsx cover loading skeleton, empty/not-connected state, load error, merchant list ranking, merchant detail with basic and deep tiers, re-crawl (POST ?fresh=1), streamed progress via a fake EventSource, scan-start error. Fixtures are test-only. Screenshots named `scan-fixture-*` were taken with a Playwright harness that intercepts `/api/scan*` responses with fixtures (harness not committed, no fake data shipped in the app). The live app in this environment still shows the honest empty state (`desktop-scan.png`, `j6-*`).
+- Accessibility (Playwright run): skip link is first Tab stop; Tab reaches all 8 nav links; 2px focus outline present; Check flow completed by keyboard; phone preview opens as a dialog, focus moves to its input, Tab and Shift+Tab stay inside, Escape closes and returns focus to the toggle; with `reducedMotion: reduce` the thread, tags and stamp render in their final state with no animation.
+- Contrast (computed): dim text 6.1 to 6.7:1 on paper/card; vermilion, forest, amber text 4.9 to 6.0:1 on tinted badge backgrounds; navy accent 11:1. Inactive folio and eyebrow gray raised to the dim colour. Not run: an automated axe audit, screen-reader testing.
+- Print: print stylesheet hides masthead, nav, footer and everything but the dispute packet, prints the full letter (the textarea is replaced by a print-only block so nothing is clipped), timeline and next steps, white background. Checked via PDF (shots/a/print-dispute-memo.pdf).
+- Copy: em dashes removed from titles and tooltips.
+- Checks: typecheck, lint (clean), vitest 339 tests, e2e, build all pass.
 
-## Checklist status (verified in real Chromium, desktop 1280 and mobile 390)
-- F1 Shell: done. Masthead + sticky folio nav (desktop), bottom tab bar (mobile, Eval desktop-only as before), LIVE/DEMO badge, demo user, phone preview (unchanged logic, keyboard and focus work).
-- F2 Overview: done. Needs-attention rows draw a mini Thread when the linker has a real link (fetched via getTransactionDetail on the server); empty and DB-error states kept.
-- F3 Scan: restyled, all states kept. In this mock environment Capital One is not connected and there are no imported transactions, so the page shows its honest empty state (button disabled, notices visible). The merchant list, tiers and detail layout were restyled but could not be exercised with live data here.
-- F4 Check, F5 Charges and dispute packet (printable memo, Print button added), F6 Exposure, F7 Play, F8 Eval, F9 Privacy: done.
-- F10: skeletons, empty, error, disabled states kept; reduced motion gives instant final states; no horizontal overflow; no console or network errors in shoot.cjs and journey runs.
+## Not verified / limits
+- Live Nessie scan and live Nemotron deep results were not available (mock mode); the Scan UI was verified with fixtures only.
+- Real-browser printing on paper, Safari and Firefox, and screen readers were not tested. Only Chromium.
+- Full-page screenshots show the fixed mobile tab bar mid-page; that is a capture artifact.
 
-## Verification
-typecheck, lint, vitest (334 tests), `E2E_BASE=http://localhost:3101 npm run e2e` (all pass), `npm run build` pass. Component tests needed no changes.
-
-## Changes beyond restyle
-- Removed components/shell/Icon.tsx and the nav icon field (nav now uses folio numbers). VerdictCard gained optional `animate` and `exhibitFrom` props. Added components/thread/{Pin,MiniThread}.tsx. Fonts: Fraunces, Hanken Grotesk, JetBrains Mono via next/font/google. No package.json changes.
-
-## Assumptions and tradeoffs
-- Light theme only (dark removed). Paper grain is an inline SVG noise in CSS.
-- Stamp plays on mount of a verdict card (live runs); stored verdicts on a charge page render without animation.
-- The pull-quote is Nemotron's site summary when present; otherwise the confidence reason is set as the quote.
-
-## Blockers
-None in the backend. Note: scripted demo charges are dated a few days after the exposure, so dates can appear in the future relative to the clock.
+## Round 1 notes
+- Removed components/shell/Icon.tsx and the nav icon field. VerdictCard has optional `animate` and `exhibitFrom` props. Added components/thread/{Pin,MiniThread}.tsx. No package.json changes.
+- Light theme only. Stamp plays when a live verdict card mounts; stored verdicts render statically.
+- Scripted demo charges are dated a few days after the exposure, so dates can be later than the clock (backend demo data).
 
 ## Restart
 `cd /home/user/bluff-wt/a && nohup npx next dev -p 3101 > /tmp/claude-0/a.log 2>&1 &`

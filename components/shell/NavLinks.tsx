@@ -16,7 +16,7 @@ export function NavLinks() {
               <li key={i.href}>
                 <Link href={i.href} aria-current={on ? "page" : undefined}
                   className={`group relative flex min-h-[44px] items-center gap-2 px-3 text-[15px] transition duration-ui ${on ? "font-semibold text-fg" : "text-dim hover:text-fg"}`}>
-                  <span className={`folio ${on ? "text-scam" : "text-gray-4"}`}>{folio(n)}</span>
+                  <span className={`folio ${on ? "text-scam" : "text-gray-5"}`}>{folio(n)}</span>
                   {i.label}
                   <span aria-hidden className={`absolute inset-x-3 -bottom-px h-[3px] ${on ? "bg-ink" : "bg-transparent group-hover:bg-gray-3"}`} />
                 </Link>
@@ -32,7 +32,7 @@ export function NavLinks() {
             <Link key={i.href} href={i.href} aria-current={on ? "page" : undefined}
               className={`relative flex min-h-[58px] flex-col items-center justify-center gap-[3px] text-[11px] ${on ? "font-semibold text-fg" : "text-dim"}`}>
               <span aria-hidden className={`absolute inset-x-2 -top-[2px] h-[3px] ${on ? "bg-scam" : "bg-transparent"}`} />
-              <span className={`folio ${on ? "text-scam" : "text-gray-4"}`}>{folio(n)}</span>
+              <span className={`folio ${on ? "text-scam" : "text-gray-5"}`}>{folio(n)}</span>
               {i.label}
             </Link>
           );

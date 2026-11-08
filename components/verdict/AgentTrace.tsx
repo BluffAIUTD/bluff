@@ -9,7 +9,7 @@ export function AgentTrace({ steps, running, totalMs, slow, label }: { steps: St
     <section aria-label="Agent trace" className="dossier p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between border-b border-line pb-2">
         <h3 className="eyebrow">{label ?? "Agent trace"}</h3>
-        <span className="eyebrow text-gray-4">Field log</span>
+        <span className="eyebrow text-gray-5">Field log</span>
       </div>
       <ol role="log" aria-live="polite" className="flex flex-col font-mono text-[13px]">
         {steps.map((s) => (

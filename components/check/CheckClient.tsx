@@ -53,7 +53,7 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStore]);
 
-  const field = "min-h-[48px] w-full rounded-control border border-ink bg-white px-3 font-mono text-[14px] outline-none placeholder:text-gray-4 focus:border-accent focus:ring-2 focus:ring-accent/30";
+  const field = "min-h-[48px] w-full rounded-control border border-ink bg-white px-3 font-mono text-[14px] outline-none placeholder:text-gray-5 focus:border-accent focus:ring-2 focus:ring-accent/30";
   return (
     <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_280px]">
       <div className="flex min-w-0 flex-col gap-10">
@@ -64,7 +64,7 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
         </header>
 
         <section aria-labelledby="stores-h" className="flex flex-col gap-3">
-          <h2 id="stores-h" className="eyebrow">Demo stores <span className="normal-case tracking-normal text-gray-4">· demo sites, not real</span></h2>
+          <h2 id="stores-h" className="eyebrow">Demo stores <span className="normal-case tracking-normal text-gray-5">· demo sites, not real</span></h2>
           <StorePicker selected={store} onPick={pick} disabled={starting} />
         </section>
 
@@ -72,7 +72,7 @@ export function CheckClient({ initialStore }: { initialStore?: string }) {
           <label htmlFor="url" className="eyebrow">Or paste a link</label>
           <div className="flex flex-wrap gap-2 sm:flex-nowrap">
             <input id="url" inputMode="url" autoCapitalize="none" autoCorrect="off" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example-store.com" className={field} />
-            <Button type="submit" disabled={starting}>Check link</Button>
+            <Button type="submit" disabled={starting} className="shrink-0 whitespace-nowrap">Check link</Button>
           </div>
         </form>
 

@@ -1,7 +1,7 @@
 import { readEvalResults } from "@/lib/eval";
 import { EvalView } from "@/components/eval/EvalView";
 
-export const metadata = { title: "Proof — Bluff" };
+export const metadata = { title: "Proof" };
 export const dynamic = "force-dynamic";
 
 export default function EvalPage() {

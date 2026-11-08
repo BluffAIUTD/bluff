@@ -9,9 +9,10 @@ export const dynamic = "force-dynamic";
 export default function ShellLayout({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
+      <a href="#main" className="no-print sr-only z-50 bg-ink px-4 py-3 font-semibold text-paper focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
       <TopBar />
       <NavLinks />
-      <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-8 pt-8 lg:pt-10">{children}</main>
+      <main id="main" tabIndex={-1} className="mx-auto w-full outline-none max-w-6xl px-4 pb-8 pt-8 lg:pt-10">{children}</main>
       <footer className="no-print mx-auto mb-24 mt-12 max-w-6xl px-4 lg:mb-10">
         <div className="rule-top flex flex-col gap-2 pt-4 text-xs text-dim sm:flex-row sm:justify-between">
           <p className="max-w-xl">All people, stores and charges are synthetic. Bluff reads public pages and the shape of what you tell it, never what you typed. It drafts; it never files, sends or pays.</p>

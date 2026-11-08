@@ -86,7 +86,8 @@ export function RefundBuilder({ txnId, canBuild, initial }: { txnId: string; can
             <div>
               <label htmlFor="letter" className="eyebrow mb-2 block">Letter (edit before you send it)</label>
               <textarea id="letter" value={letter} onChange={(e) => setLetter(e.target.value)} rows={18}
-                className="w-full resize-y rounded-[2px] border border-gray-3 bg-white p-5 font-mono text-[13px] leading-[1.75] shadow-[inset_0_1px_0_rgb(0_0_0/.03)] outline-none focus:border-accent" />
+                className="no-print w-full resize-y rounded-[2px] border border-gray-3 bg-white p-5 font-mono text-[13px] leading-[1.75] shadow-[inset_0_1px_0_rgb(0_0_0/.03)] outline-none focus:border-accent" />
+            <pre aria-hidden className="print-only whitespace-pre-wrap font-mono text-[12px] leading-relaxed">{letter}</pre>
             </div>
             <div className="no-print flex flex-wrap gap-3">
               <Button onClick={copy}>Copy letter</Button>

@@ -91,7 +91,7 @@ export function GameClient({ day }: { day?: string }) {
       <header className="flex flex-wrap items-end justify-between gap-2 border-b-2 border-ink pb-5">
         <div>
           <p className="eyebrow">Daily game</p>
-          <h1 className="font-display text-[38px] font-semibold leading-[1.05] tracking-tight sm:text-5xl">Call the Bluff <span className="text-gray-4">#{data.n}</span></h1>
+          <h1 className="font-display text-[38px] font-semibold leading-[1.05] tracking-tight sm:text-5xl">Call the Bluff <span className="text-gray-5">#{data.n}</span></h1>
           <p className="mt-1 text-dim">Is it legit, or a bluff? Five cards, about a minute.</p>
         </div>
         <p className="eyebrow">Streak <span className="numeral ml-1 align-middle text-3xl text-fg">{data.streak}</span></p>

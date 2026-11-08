@@ -52,7 +52,7 @@ export function GameCard({ card, reveal }: { card: CardData; reveal?: Reveal }) 
               </div>
               <Body card={card} reveal={reveal} />
               {reveal.redFlags.length > 0
-                ? <ul className="flex flex-col gap-1 text-sm">{reveal.redFlags.map((f) => <li key={f.span}><span className="font-medium text-scam">&ldquo;{f.span}&rdquo;</span> — {f.why}</li>)}</ul>
+                ? <ul className="flex flex-col gap-1 text-sm">{reveal.redFlags.map((f) => <li key={f.span}><span className="font-medium text-scam">&ldquo;{f.span}&rdquo;</span>: {f.why}</li>)}</ul>
                 : <p className="text-sm text-dim">No red flags: nothing here asks for secrets, money or a rushed click.</p>}
             </>
           )}

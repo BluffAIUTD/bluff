@@ -1,7 +1,7 @@
 import { DataFlowDiagram } from "@/components/privacy/DataFlowDiagram";
 import { DeleteEverything } from "@/components/privacy/DeleteEverything";
 
-export const metadata = { title: "Privacy — Bluff" };
+export const metadata = { title: "Privacy" };
 
 const ROWS: { what: string; sent: "Sent" | "Never sent" | "Sent by you, then discarded"; note: string }[] = [
   { what: "What you type into a page (card number, CVV, password, SSN)", sent: "Never sent", note: "The extension never reads input values." },
@@ -25,15 +25,15 @@ export default function PrivacyPage() {
         <DataFlowDiagram />
         <section aria-label="What is sent" className="flex flex-col gap-4">
           <div className="rule-top pt-3"><h2 className="font-display text-2xl font-semibold">What leaves your device</h2></div>
-          <div className="dossier overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead className="eyebrow border-b border-ink"><tr><th className="px-4 py-3 font-medium">Data</th><th className="px-4 py-3 font-medium">Leaves your device?</th><th className="px-4 py-3 font-medium">Notes</th></tr></thead>
-              <tbody className="divide-y divide-line">
+          <div className="dossier">
+            <table className="w-full text-left text-sm">
+              <thead className="eyebrow hidden border-b border-ink sm:table-header-group"><tr><th className="px-4 py-3 font-medium">Data</th><th className="px-4 py-3 font-medium">Leaves your device?</th><th className="px-4 py-3 font-medium">Notes</th></tr></thead>
+              <tbody className="block divide-y divide-line sm:table-row-group">
                 {ROWS.map((r) => (
-                  <tr key={r.what}>
-                    <th scope="row" className="px-4 py-3 font-medium">{r.what}</th>
-                    <td className={`px-4 py-3 font-mono text-xs font-bold uppercase tracking-wide ${r.sent === "Never sent" ? "text-safe" : r.sent === "Sent" ? "text-unsure" : "text-fg"}`}>{r.sent}</td>
-                    <td className="px-4 py-3 text-dim">{r.note}</td>
+                  <tr key={r.what} className="block px-4 py-3 sm:table-row sm:p-0">
+                    <th scope="row" className="block font-medium sm:table-cell sm:px-4 sm:py-3">{r.what}</th>
+                    <td className={`block pt-1 sm:table-cell sm:px-4 sm:py-3 font-mono text-xs font-bold uppercase tracking-wide ${r.sent === "Never sent" ? "text-safe" : r.sent === "Sent" ? "text-unsure" : "text-fg"}`}>{r.sent}</td>
+                    <td className="block pt-1 text-dim sm:table-cell sm:px-4 sm:py-3">{r.note}</td>
                   </tr>
                 ))}
               </tbody>

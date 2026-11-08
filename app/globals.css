@@ -5,11 +5,11 @@
 :root {
   --ink: #1b1a17;
   --paper: #f3eee3;
-  --scam: #c7341c;
+  --scam: #b32d17;
   --unsure: #8f5a00;
   --safe: #1f6b52;
   --accent: #22314a;
-  --scam-rgb: 199 52 28;
+  --scam-rgb: 179 45 23;
   --unsure-rgb: 143 90 0;
   --safe-rgb: 31 107 82;
   --accent-rgb: 34 49 74;
@@ -32,7 +32,7 @@
   --border: #d6cdb8;
   --rule: #1b1a17;
   --text: var(--ink);
-  --text-dim: #5e5848;
+  --text-dim: #5a5444;
 }
 
 mark { background-color: rgb(var(--scam-rgb) / 0.18); color: inherit; }
@@ -95,7 +95,14 @@ h1, h2, h3 { font-family: var(--font-display), Georgia, serif; font-variation-se
   .stamp-press { transform: rotate(-4deg); }
 }
 
+.print-only { display: none; }
 @media print {
   body::before, .no-print { display: none !important; }
-  body { background: #fff; }
+  .print-only { display: block !important; }
+  html, body { background: #fff !important; color: #000; }
+  .dossier { box-shadow: none; border: 0; background: #fff; }
+  main { padding: 0 !important; max-width: none !important; }
+  #dispute-packet .grid { display: block; }
+  #dispute-packet section { break-inside: avoid; margin-top: 1.5rem; }
+  @page { margin: 18mm; }
 }
