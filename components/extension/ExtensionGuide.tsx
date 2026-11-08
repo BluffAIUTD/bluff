@@ -75,10 +75,10 @@ function Download({ app, zip }: Pick<ExtensionGuideProps, "app" | "zip">) {
 export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
   const appHost = new URL(app).host;
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <header className="flex flex-col gap-3">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brass">Chrome extension · optional</p>
-        <h1 className="text-4xl font-semibold tracking-tight">Checkout Guard for Chrome</h1>
+        <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">Checkout Guard for Chrome</h1>
         <p className="max-w-2xl text-dim">
           Bluff checks a store the moment it asks for your card, before you pay. If you pay anyway, Bluff remembers the site, so a later
           charge on your card links straight back to it.
@@ -95,7 +95,7 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
           {HOW.map((h, i) => (
             <li key={h.title} className="card-face deal relative min-h-[140px] rounded-[14px] py-4 pl-14 pr-4" style={{ ["--i" as string]: i }}>
               <CornerIndex rank={i + 1} suit={(["unsure", "scam", "safe"] as const)[i % 3]} />
-              <h3 className="serif text-xl font-bold">{h.title}</h3>
+              <h3 className="font-sans text-lg font-bold tracking-tight">{h.title}</h3>
               <p className="mt-1 text-sm leading-snug text-[#4d4128]">{h.body}</p>
             </li>
           ))}
@@ -106,11 +106,11 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
         <h2 className={SECTION}>Exactly what it sends</h2>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
-            <h3 className="serif text-xl font-semibold text-unsure">Sent to Bluff</h3>
+            <h3 className="font-sans text-lg font-bold tracking-tight text-unsure">Sent to Bluff</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-dim">{SENT.map((s) => <li key={s}>{s}</li>)}</ul>
           </div>
           <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
-            <h3 className="serif text-xl font-semibold text-safe">Never sent</h3>
+            <h3 className="font-sans text-lg font-bold tracking-tight text-safe">Never sent</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-dim">{NEVER_SENT.map((s) => <li key={s}>{s}</li>)}</ul>
           </div>
         </div>
@@ -142,13 +142,13 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
         <div className="grid gap-3 sm:grid-cols-2">
           <a href={stores.scam} target="_blank" rel="noopener" className="shimmer stitch flex flex-col gap-1 rounded-card border brass-hairline bg-surface p-5 transition duration-ui hover:bg-white/[0.04] [&>*]:relative [&>*]:z-10">
             <Badge tone="scam">Scam pattern</Badge>
-            <span className="serif mt-1 text-xl font-bold">FastKicks</span>
+            <span className="mt-1 text-lg font-bold">FastKicks</span>
             <span className="text-sm text-dim">Built from common fake-store tricks. Expect a warning.</span>
             <span className="truncate text-xs text-dim">{new URL(stores.scam).host}</span>
           </a>
           <a href={stores.legit} target="_blank" rel="noopener" className="shimmer stitch flex flex-col gap-1 rounded-card border brass-hairline bg-surface p-5 transition duration-ui hover:bg-white/[0.04] [&>*]:relative [&>*]:z-10">
             <Badge tone="safe">Legit</Badge>
-            <span className="serif mt-1 text-xl font-bold">Bayou Bakery</span>
+            <span className="mt-1 text-lg font-bold">Bayou Bakery</span>
             <span className="text-sm text-dim">An ordinary small shop, for comparison.</span>
             <span className="truncate text-xs text-dim">{new URL(stores.legit).host}</span>
           </a>

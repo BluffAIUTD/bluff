@@ -60,7 +60,7 @@ export function LivePush({ initialPreset, defaultOpen, disabled, tracked, onPush
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="livepush-body"
         className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-2 text-left">
         <span className="min-w-0">
-          <span id="livepush-h" className="serif block text-lg font-semibold">Try it: make a purchase on Maya&apos;s test card</span>
+          <span id="livepush-h" className="block text-base font-bold tracking-tight">Try it: make a purchase on Maya&apos;s test card</span>
           {!open && <span className="block truncate text-xs text-dim">Posts a real purchase to the Capital One Nessie sandbox. Bluff checks it like any new charge.</span>}
         </span>
         <span aria-hidden className={`shrink-0 text-brass transition duration-ui ${open ? "rotate-180" : ""}`}>▾</span>
@@ -97,7 +97,7 @@ export function LivePush({ initialPreset, defaultOpen, disabled, tracked, onPush
               <input type="checkbox" checked={fresh} onChange={(e) => setFresh(e.target.checked)} className="h-4 w-4 accent-[var(--brass-2)]" />
               <span>Fresh Nemotron review <span className="text-xs text-dim">(off: reuse one from the last 24 h)</span></span>
             </label>
-            <Button onClick={charge} disabled={busy || disabled || !valid} className="ml-auto">{busy ? "Charging…" : `Charge the card $${valid ? dollars : "–"}`}</Button>
+            <Button variant="secondary" onClick={charge} disabled={busy || disabled || !valid} className="ml-auto">{busy ? "Charging…" : `Charge the card $${valid ? dollars : "–"}`}</Button>
           </div>
           {!valid && <p className="text-xs text-unsure">Nessie stores whole dollars: enter 1 to 999.</p>}
           {disabled && <p className="text-xs text-dim">Capital One Nessie isn&apos;t connected on this server.</p>}

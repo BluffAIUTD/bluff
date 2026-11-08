@@ -93,7 +93,7 @@ export function GameClient({ day }: { day?: string }) {
   const reveal = reveals[card.id];
   const last = i + 1 >= data.cards.length;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-7">
       <Header data={data} />
       <HowToPlay />
       {data.practice && <PracticeNote data={data} />}
@@ -139,7 +139,7 @@ function Header({ data }: { data: GameState }) {
     <header className="flex flex-wrap items-end justify-between gap-2">
       <div>
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brass">Daily game</p>
-        <h1 className="text-4xl font-semibold tracking-tight">Call the Bluff <span className="text-dim">#{data.n}</span></h1>
+        <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">Call the Bluff <span className="text-dim">#{data.n}</span></h1>
         <p className="text-dim">{data.isToday ? "Today's five messages, the same for everyone. Legit, or a bluff?" : `The puzzle from ${prettyDay(data.day)}.`}</p>
       </div>
       <p className="text-sm text-dim">Streak <span className="num font-bold text-fg">🔥 {data.streak}</span></p>
@@ -176,7 +176,7 @@ function Archive({ data }: { data: GameState }) {
     <nav aria-label="Past puzzles" className="flex flex-col gap-3 border-t border-dashed brass-hairline pt-4">
       <h2 className="font-grotesk uppercase text-dim">Past puzzles (practice)</h2>
       <ul className="flex flex-wrap gap-2">
-        {!data.isToday && <li><Link href="/play" className="btn-brass inline-flex min-h-[44px] items-center rounded-full px-4 text-sm">Today&apos;s puzzle</Link></li>}
+        {!data.isToday && <li><Link href="/play" className="btn-rail inline-flex min-h-[44px] items-center rounded-full px-4 text-sm font-semibold">Today&apos;s puzzle</Link></li>}
         {days.map((a) => (
           <li key={a.day}>
             <Link href={`/play?d=${a.day}`} className="btn-rail inline-flex min-h-[44px] items-center gap-1 rounded-full px-4 text-sm font-semibold">
@@ -202,7 +202,7 @@ function Finished({ data, done, toast }: { data: GameState; done: Finish; toast:
   }
   const byId = Object.fromEntries(data.progress.map((p) => [p.cardId, p]));
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-7">
       <Header data={data} />
       {done.practice && <PracticeNote data={data} />}
       <section aria-label="Result" className="stitch flex flex-col gap-4 rounded-card border brass-hairline bg-surface p-5 sm:p-8 [&>*]:relative [&>*]:z-10">

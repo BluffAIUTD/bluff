@@ -17,7 +17,7 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
   let rows: ExposureDto[] | null = null;
   try { rows = await listExposures(getPool(), await currentUserId()); } catch { rows = null; }
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <CheckClient initialStore={store} />
 
       <Link href="/extension" className="shimmer stitch flex items-center gap-3 rounded-card border brass-hairline bg-surface p-4 text-sm transition duration-ui hover:bg-white/[0.04] [&>*]:relative [&>*]:z-10">
@@ -28,7 +28,7 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
 
       <section id="exposures" aria-labelledby="exposures-h" className="flex scroll-mt-24 flex-col gap-3">
         <div>
-          <h2 id="exposures-h" className="serif text-2xl font-semibold">Sites you used your card on</h2>
+          <h2 id="exposures-h" className="font-sans text-lg font-bold tracking-tight">Sites you used your card on</h2>
           <p className="text-sm text-dim">Sites where you told Bluff you entered your card or personal info, so a later charge can be linked back. Bluff keeps the site&apos;s address and which kinds of fields it asked for, never what you typed.</p>
         </div>
         {rows === null ? <ErrorState title="Couldn't load your sites" message="The database isn't reachable. Try again in a moment." />

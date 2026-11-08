@@ -70,11 +70,11 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-2">
         <p className="text-sm text-dim">{longDateTime(t.ts)}</p>
         <div className="flex flex-wrap items-baseline gap-x-4">
-          <h1 className="text-4xl font-semibold tracking-tight">{t.descriptor}</h1>
+          <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">{t.descriptor}</h1>
           <span className="num text-3xl font-bold brass-text">{money(t.amountCents)}</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -101,7 +101,7 @@ export function ChargeDetailClient({ detail, runId: initialRun }: { detail: Deta
         <VerdictCard verdict={verdict} subtitle="Charge check" flip={false} />
       ) : (
         <div className="flex flex-col items-start gap-2">
-          <Button onClick={investigate}>Investigate this charge</Button>
+          <Button variant="secondary" onClick={investigate}>Investigate this charge</Button>
           <p className="text-xs text-dim">Bluff runs its agent over your history and Exposure Log.</p>
         </div>
       )}

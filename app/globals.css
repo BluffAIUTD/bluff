@@ -8,14 +8,14 @@
 :root {
   --ink: #15130f;
   --paper: #f4ecd8;
-  --scam: #f47b70;
-  --unsure: #e8a83a;
-  --safe: #5fcf97;
-  --accent: #d9b46b;
-  --scam-rgb: 244 123 112;
-  --unsure-rgb: 232 168 58;
-  --safe-rgb: 95 207 151;
-  --accent-rgb: 217 180 107;
+  --scam: #ffa097;
+  --unsure: #f4bf5e;
+  --safe: #7fe0ae;
+  --accent: #e8c681;
+  --scam-rgb: 255 160 151;
+  --unsure-rgb: 244 191 94;
+  --safe-rgb: 127 224 174;
+  --accent-rgb: 232 198 129;
   --gray-1: #f2eee2;
   --gray-2: #d9d3c1;
   --gray-3: #b7c3b5;
@@ -36,15 +36,16 @@
   --card-ink: #1c1a15;
 
   --bg: #082318;
-  --surface: rgba(3, 17, 10, 0.5);
-  --surface-2: rgba(255, 244, 214, 0.06);
-  --border: rgba(217, 180, 107, 0.26);
+  /* One raised surface: a lighter felt panel (or ivory stock) sits on the darker felt stage. */
+  --surface: #174d3c;
+  --surface-2: rgba(255, 244, 214, 0.07);
+  --border: rgba(217, 180, 107, 0.34);
   --text: #f6efdc;
-  --text-dim: #b4c4b2;
+  --text-dim: #cfdccc;
 
-  --radius-control: 10px;
-  --radius-card: 18px;
-  --motion-ui: 180ms;
+  --radius-control: 12px;
+  --radius-card: 22px;
+  --motion-ui: 160ms;
   --motion-flip: 800ms;
   --ease-flip: cubic-bezier(0.3, 0.9, 0.25, 1);
   --font-sans-ui: var(--font-ui), system-ui, sans-serif;
@@ -54,18 +55,21 @@
 
 /* The felt: grain, weave and layered light painted straight on the document (not fixed), so it is identical in
    full-page captures and never repaints on scroll. Light pools are fixed-size so long pages do not stretch them. */
-html { background-color: #0b3224; }
+html { background-color: #082a1f; }
 body {
   color: var(--text); font-family: var(--font-sans-ui); -webkit-font-smoothing: antialiased; min-height: 100vh;
-  background-color: #0b3224;
+  background-color: #0a2d21;
   background-image:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.5'/></svg>"),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 4px),
     repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 4px),
-    radial-gradient(ellipse 1500px 620px at 50% -60px, #1f6f4e 0%, rgba(20, 90, 62, 0) 72%),
-    radial-gradient(ellipse 1100px 700px at 85% 40%, rgba(16, 78, 54, 0.55) 0%, rgba(8, 40, 28, 0) 70%);
-  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat;
-  background-size: 180px 180px, auto, auto, 100% 100%, 100% 100%;
+    /* vignette: the table falls away toward the left and right edges */
+    linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0, rgba(0, 0, 0, 0) 16%, rgba(0, 0, 0, 0) 84%, rgba(0, 0, 0, 0.42) 100%),
+    /* the pool of light over the middle of the table */
+    radial-gradient(ellipse 980px 560px at 58% 250px, rgba(46, 138, 98, 0.62) 0%, rgba(30, 106, 74, 0.28) 45%, rgba(10, 45, 33, 0) 75%),
+    radial-gradient(ellipse 1500px 520px at 50% -80px, rgba(24, 92, 64, 0.7) 0%, rgba(10, 45, 33, 0) 72%);
+  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 180px 180px, auto, auto, 100% 100%, 100% 100%, 100% 100%;
   background-attachment: scroll;
 }
 
@@ -83,11 +87,16 @@ mark { background-color: rgb(var(--scam-rgb) / 0.28); color: inherit; }
 .btn-brass:focus-visible { outline-color: #fff6d8; box-shadow: 0 0 0 5px rgba(10, 30, 20, 0.9); }
 
 /* ---- surfaces ------------------------------------------------------------------------------------------------ */
-.bg-surface { box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.06), inset 0 0 36px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(0, 0, 0, 0.3); }
+.bg-surface {
+  background-image: linear-gradient(180deg, rgba(255, 246, 220, 0.07), rgba(255, 246, 220, 0) 55%);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.1), 0 14px 30px -16px rgba(0, 0, 0, 0.65), 0 2px 5px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 200ms ease, transform 200ms ease, background-color 200ms ease;
+}
 .bg-surface2 { background-image: linear-gradient(180deg, rgba(255, 244, 214, 0.035), transparent); }
+a.bg-surface:hover, .bg-surface.shimmer:hover { box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.14), 0 20px 36px -16px rgba(0, 0, 0, 0.7), 0 3px 8px rgba(0, 0, 0, 0.3); transform: translateY(-2px); }
 .stitch { position: relative; }
 .stitch::after { /* stitched edge, inset from the rail */
-  content: ""; position: absolute; inset: 7px; border-radius: calc(var(--radius-card) - 6px); border: 1px dashed rgba(217, 180, 107, 0.22); pointer-events: none;
+  content: ""; position: absolute; inset: 8px; border-radius: calc(var(--radius-card) - 8px); border: 1px dashed rgba(217, 180, 107, 0.16); pointer-events: none;
 }
 .rail-edge { background: linear-gradient(180deg, var(--walnut-2), var(--walnut-1) 40%, var(--walnut-0)); box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.6); }
 .rail-edge::before { /* wood grain */
@@ -106,6 +115,10 @@ mark { background-color: rgb(var(--scam-rgb) / 0.28); color: inherit; }
   border: 1px solid rgba(120, 90, 30, 0.35);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 14px 28px -10px rgba(0, 0, 0, 0.7), 0 3px 6px rgba(0, 0, 0, 0.35);
 }
+/* Cards that are links or buttons rise a little on hover and settle on press. */
+a.card-face, button.card-face { transition: transform 200ms cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 200ms ease; }
+a.card-face:hover, button.card-face:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 22px 34px -12px rgba(0, 0, 0, 0.75), 0 4px 8px rgba(0, 0, 0, 0.35); }
+a.card-face:active, button.card-face:active { transform: translateY(0); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 16px -8px rgba(0, 0, 0, 0.7), 0 2px 3px rgba(0, 0, 0, 0.3); transition-duration: 90ms; }
 .card-back {
   color: var(--brass-1);
   background:
@@ -137,7 +150,14 @@ mark { background-color: rgb(var(--scam-rgb) / 0.28); color: inherit; }
   box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.14), 0 2px 0 #0b0805, 0 6px 14px -8px rgba(0, 0, 0, 0.8);
 }
 .btn-rail:hover:not(:disabled) { border-color: rgba(241, 216, 148, 0.8); }
-.btn-rail:active:not(:disabled) { transform: translateY(1px); }
+.btn-rail { transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+.btn-rail:hover:not(:disabled) { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.18), 0 3px 0 #0b0805, 0 12px 20px -8px rgba(0, 0, 0, 0.85); }
+.btn-rail:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.1), 0 0 0 #0b0805, 0 3px 8px -4px rgba(0, 0, 0, 0.7); }
+/* Quiet buttons: a dark ink button for the main action on an ivory card, and a segmented control (ivory when on). */
+.btn-ink { background: linear-gradient(180deg, #2f2418, #1c150d); color: var(--brass-1); border: 1px solid rgba(217, 180, 107, 0.55); box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.16), 0 2px 0 #0b0805, 0 8px 16px -8px rgba(0, 0, 0, 0.8); transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+.btn-ink:hover:not(:disabled) { border-color: var(--brass-1); transform: translateY(-1px); }
+.btn-ink:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.1), 0 0 0 #0b0805; }
+.seg-on { background: linear-gradient(180deg, var(--ivory), var(--ivory-2)); color: var(--card-ink); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 4px 10px -4px rgba(0, 0, 0, 0.6); }
 .btn-scam { color: #fff; background: linear-gradient(180deg, #e6665a, #b8362d); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 #6e1a14, 0 8px 18px -8px rgba(0, 0, 0, 0.7); }
 .btn-scam:active:not(:disabled) { transform: translateY(1px); }
 .field { background: rgba(2, 12, 7, 0.55); border: 1px solid rgba(217, 180, 107, 0.3); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45); color: var(--text); }
@@ -155,9 +175,9 @@ mark { background-color: rgb(var(--scam-rgb) / 0.28); color: inherit; }
 .shimmer:hover::after { opacity: 1; animation: bluff-sheen 1.1s ease-out forwards; }
 
 /* ---- chips ----------------------------------------------------------------------------------------------------- */
-.chip-btn { position: relative; transition: transform var(--motion-ui) ease, filter var(--motion-ui) ease; }
+.chip-btn { position: relative; transition: transform 160ms cubic-bezier(0.2, 0.8, 0.3, 1), filter 160ms ease, box-shadow 160ms ease; }
 .chip-btn:hover:not(:disabled) { transform: translateY(-2px); }
-.chip-btn:active:not(:disabled) { transform: translateY(1px) scale(0.985); }
+.chip-btn:active:not(:disabled) { transform: translateY(1px) scale(0.985); transition-duration: 80ms; }
 .chip-btn:hover:not(:disabled) .chip-disc { transform: rotate(35deg); }
 .chip-disc { transition: transform 420ms var(--ease-flip); }
 
@@ -168,20 +188,22 @@ mark { background-color: rgb(var(--scam-rgb) / 0.28); color: inherit; }
 @keyframes bluff-draw { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
 .connector-line { stroke-dasharray: 100; animation: bluff-draw 700ms ease-out forwards; }
 @keyframes chip-drop {
-  0% { transform: translate3d(0, -150px, 0) scale(1.04); opacity: 0; }
-  55% { opacity: 1; }
-  72% { transform: translate3d(0, 3px, 0); }
-  86% { transform: translate3d(0, -2px, 0); }
+  0% { transform: translate3d(0, -120px, 0); opacity: 0; }
+  50% { opacity: 1; }
+  74% { transform: translate3d(0, 2px, 0); }
+  88% { transform: translate3d(0, -1px, 0); }
   100% { transform: translate3d(0, 0, 0); opacity: 1; }
 }
-.chip-drop { animation: chip-drop 640ms cubic-bezier(0.3, 0.7, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 85ms + 120ms); }
+.chip-drop { animation: chip-drop 440ms cubic-bezier(0.3, 0.7, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 100ms); }
+/* A chip landing in its spot: a short arc, a small overshoot, then it settles flat. */
 @keyframes chip-place {
-  0% { transform: translate3d(var(--from-x, -60px), var(--from-y, -90px), 0) rotate(-40deg) scale(1.15); opacity: 0.2; }
-  60% { opacity: 1; }
-  80% { transform: translate3d(0, 2px, 0) rotate(8deg) scale(1); }
+  0% { transform: translate3d(var(--from-x, -60px), var(--from-y, -90px), 0) rotate(-35deg) scale(1.12); opacity: 0.2; }
+  55% { opacity: 1; }
+  78% { transform: translate3d(0, 1px, 0) rotate(5deg) scale(0.985); }
+  90% { transform: translate3d(0, -1px, 0) rotate(-1.5deg) scale(1.008); }
   100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); opacity: 1; }
 }
-.chip-place { animation: chip-place 700ms cubic-bezier(0.3, 0.8, 0.3, 1) both; }
+.chip-place { animation: chip-place 480ms cubic-bezier(0.3, 0.8, 0.3, 1) both; }
 @keyframes deal { from { transform: translate3d(-30px, -20px, 0) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
 .deal { animation: deal 520ms cubic-bezier(0.25, 0.8, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 110ms); }
 @keyframes rise { from { transform: translate3d(0, 10px, 0); opacity: 0; } to { transform: none; opacity: 1; } }

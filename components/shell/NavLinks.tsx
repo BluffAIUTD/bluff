@@ -44,7 +44,7 @@ export function NavLinks() {
             );
           })}
         </div>
-        <p className="relative mt-6 px-3 text-[11px] leading-snug text-dim">Synthetic data only. Bluff drafts, you decide.</p>
+        <p className="relative mt-6 border-t border-dashed brass-hairline px-3 pt-4 text-xs leading-relaxed text-[#d8e3d5]">Synthetic data only.<br />Bluff drafts, you decide.</p>
       </nav>
       <nav aria-label="Primary" className="rail-edge fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t brass-hairline pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.7)] lg:hidden">
         {NAV_ITEMS.map((i) => {

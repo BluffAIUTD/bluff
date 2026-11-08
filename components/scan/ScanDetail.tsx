@@ -107,7 +107,7 @@ export function ScanDetail({ m }: { m: MerchantView }) {
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/charges/${latest.id}`} className="btn-brass inline-flex min-h-[44px] items-center rounded-full px-5 text-sm">
+          <Link href={`/charges/${latest.id}`} className="btn-ink inline-flex min-h-[44px] items-center rounded-full px-5 text-sm font-semibold">
             {(deep ?? b?.verdict)?.verdict === "looks_ok" ? "View charge" : "Dispute this charge"}
           </Link>
         </div>
@@ -128,10 +128,10 @@ export function ScanDetail({ m }: { m: MerchantView }) {
 
       <section className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="serif text-xl font-semibold">What we found</h3>
+          <h3 className="font-sans text-lg font-bold tracking-tight">What we found</h3>
           <div role="tablist" aria-label="Findings source" className="flex rounded-full border brass-hairline bg-black/25 p-0.5 text-sm">
-            <button role="tab" aria-selected={tab === "ai"} onClick={() => setTab("ai")} className={`rounded-full px-4 py-1.5 font-semibold ${tab === "ai" ? "btn-brass" : "text-dim"}`}>AI ({aiFindings.length})</button>
-            <button role="tab" aria-selected={tab === "rules"} onClick={() => setTab("rules")} className={`rounded-full px-4 py-1.5 font-semibold ${tab === "rules" ? "btn-brass" : "text-dim"}`}>Rules ({ruleFindings.length})</button>
+            <button role="tab" aria-selected={tab === "ai"} onClick={() => setTab("ai")} className={`rounded-full px-4 py-1.5 font-semibold ${tab === "ai" ? "seg-on" : "text-dim"}`}>AI ({aiFindings.length})</button>
+            <button role="tab" aria-selected={tab === "rules"} onClick={() => setTab("rules")} className={`rounded-full px-4 py-1.5 font-semibold ${tab === "rules" ? "seg-on" : "text-dim"}`}>Rules ({ruleFindings.length})</button>
           </div>
         </div>
         {tab === "ai" && !aiFindings.length && <p className="py-2 text-sm text-dim">{deepRunning ? "Waiting for the deep analysis…" : "No AI findings for this site yet. Switch to Rules."}</p>}
@@ -143,8 +143,8 @@ export function ScanDetail({ m }: { m: MerchantView }) {
       {i && b && (
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
-            <h3 className="serif mb-2 text-xl font-semibold">Site facts</h3>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+            <h3 className="font-sans mb-2 text-lg font-bold tracking-tight">Site facts</h3>
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
               <dt className="whitespace-nowrap text-dim">Domain age</dt><dd>{fmtAge(i.registration.ageDays)}{i.registration.createdAt ? ` (since ${i.registration.createdAt.slice(0, 10)})` : ""}{i.registration.source === "demo_registry" ? " · demo registry" : ""}</dd>
               <dt className="whitespace-nowrap text-dim">Registrar</dt><dd className="break-words">{i.registration.registrar ?? "unknown"}</dd>
               <dt className="whitespace-nowrap text-dim">First archived</dt><dd>{i.wayback.firstSeen ?? (i.wayback.source === "archive.org" ? "never" : "n/a")}</dd>
@@ -156,7 +156,7 @@ export function ScanDetail({ m }: { m: MerchantView }) {
             </dl>
           </div>
           <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
-            <h3 className="serif mb-1 text-xl font-semibold">Pages crawled</h3>
+            <h3 className="font-sans mb-1 text-lg font-bold tracking-tight">Pages crawled</h3>
             <p className="mb-2 text-xs text-dim">{b.crawl.pages.length} pages in {(b.crawl.ms / 1000).toFixed(1)} s · robots.txt {b.crawl.robots ? "read" : "none"}{b.crawl.sitemapUrls ? ` · sitemap ${b.crawl.sitemapUrls} URLs` : ""}{b.crawl.robotsHidden ? ` · ${b.crawl.robotsHidden} page${b.crawl.robotsHidden === 1 ? "" : "s"} robots.txt hides, read anyway (you asked)` : ""}{b.crawl.rendered ? ` · ${b.crawl.rendered} rendered in a headless browser` : ""}</p>
             <ul className="flex flex-col gap-1 text-sm">
               {b.crawl.pages.map((p) => {

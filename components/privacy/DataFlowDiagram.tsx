@@ -9,7 +9,7 @@ function Box({ title, tone = "neutral", children }: { title: string; tone?: "neu
   const border = tone === "safe" ? "border-dashed border-safe/70 bg-safe/10" : tone === "accent" ? "border-accent/70 bg-accent/10" : "brass-hairline bg-black/25";
   return (
     <div className={`min-w-0 flex-1 rounded-card border p-3 ${border}`}>
-      <p className="serif text-base font-semibold">{title}</p>
+      <p className="font-sans text-lg font-bold tracking-tight">{title}</p>
       <div className="mt-1 text-xs leading-relaxed text-dim">{children}</div>
     </div>
   );

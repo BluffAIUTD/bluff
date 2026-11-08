@@ -13,7 +13,7 @@ export function TableMessage({ rank, suit = "unsure", title, message, actions }:
         <Suit kind={suit} className="h-20 w-20" />
       </div>
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-5xl">{title}</h1>
         <p className="text-dim">{message}</p>
       </div>
       {actions && <div className="flex flex-wrap justify-center gap-3">{actions}</div>}

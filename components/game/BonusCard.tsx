@@ -34,7 +34,7 @@ export function BonusCard({ bonus }: { bonus: Bonus }) {
   return (
     <section aria-label="Bonus card" className="flex flex-col gap-3">
       <div>
-        <h2 className="serif text-2xl font-semibold">Bonus: a charge from your own Capital One scan</h2>
+        <h2 className="font-sans text-lg font-bold tracking-tight">Bonus: a charge from your own Capital One scan</h2>
         <p className="text-sm text-dim">Only you see this card. It isn&apos;t scored and isn&apos;t in your share grid.</p>
       </div>
       <GameCard card={bonus.card} reveal={reveal ?? undefined} />

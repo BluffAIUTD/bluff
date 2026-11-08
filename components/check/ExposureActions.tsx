@@ -78,7 +78,7 @@ export function ExposureActions({ verdictId, url, host, onLeave }: { verdictId: 
             {alert === "delivered" && <span className="text-dim">{" I’ve sent an alert to your phone."}</span>}
           </p>
         </div>
-        {slug ? <Button className="self-start" onClick={simulate} disabled={busy === "sim"}>{busy === "sim" ? "Posting charge…" : "Simulate a charge from this store"}</Button>
+        {slug ? <Button variant="secondary" className="self-start" onClick={simulate} disabled={busy === "sim"}>{busy === "sim" ? "Posting charge…" : "Simulate a charge from this store"}</Button>
           : <p className="text-xs text-dim">Charge simulation is available for the {STORES.length} demo stores.</p>}
         {err && <ErrorState message={err} />}
       </div>
