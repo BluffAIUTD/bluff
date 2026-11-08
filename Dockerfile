@@ -8,7 +8,8 @@ RUN npm ci
 FROM deps AS build
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# next/font downloads Google Fonts at build time and occasionally gets an empty response: retry instead of failing the deploy.
+RUN npm run build || (sleep 10 && npm run build) || (sleep 30 && npm run build)
 # Chrome extension zip, served by the app at /downloads/bluff-checkout-guard.zip (see /extension). BLUFF_APP_URL is the
 # app's public address baked into it (compose passes https://${BASE_DOMAIN}); without it no zip is built and /extension
 # shows the build command instead. Declared after `npm run build` so changing it doesn't rebuild Next.
