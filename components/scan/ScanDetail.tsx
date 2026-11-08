@@ -17,7 +17,7 @@ type SiteDetail = {
 };
 
 const SEV: Record<string, { dot: string; label: string }> = {
-  high: { dot: "bg-scam", label: "High risk" }, medium: { dot: "bg-unsure", label: "Medium" }, low: { dot: "bg-gray-400", label: "Low" },
+  high: { dot: "bg-scam", label: "High risk" }, medium: { dot: "bg-unsure", label: "Medium" }, low: { dot: "bg-gray-4", label: "Low" },
   good: { dot: "bg-safe", label: "Good sign" }, info: { dot: "bg-accent", label: "Note" },
 };
 const fmtAge = (d: number | null) => (d == null ? "unknown" : d < 365 ? `${d} days` : `${Math.floor(d / 365)} years`);
@@ -27,7 +27,7 @@ function Finding({ f, origin }: { f: { title: string; detail?: string; severity:
   const s = SEV[f.severity] ?? SEV.info;
   return (
     <li className="flex gap-3 py-2.5">
-      <span aria-label={s.label} title={s.label} className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${s.dot}`} />
+      <span aria-label={s.label} title={s.label} className={`mt-1.5 h-2.5 w-2.5 shrink-0 ${s.dot}`} />
       <div className="min-w-0 flex-1">
         <p className="font-medium leading-snug">{f.title}</p>
         {f.detail && <p className="mt-0.5 break-words text-sm text-dim">{f.detail}</p>}
@@ -41,15 +41,15 @@ function Tier({ title, sub, score, label, children, mode }: { title: string; sub
   const tone = toneOf(label);
   const border = tone === "scam" ? "border-scam/50" : tone === "unsure" ? "border-unsure/50" : tone === "safe" ? "border-safe/40" : "border-line";
   return (
-    <section className={`flex min-w-0 flex-col gap-3 rounded-card border bg-surface p-4 ${border}`}>
+    <section className={`flex min-w-0 flex-col gap-3 dossier border p-4 ${border}`}>
       <header className="flex items-start justify-between gap-2">
-        <div><h3 className="font-grotesk text-sm font-semibold uppercase tracking-wide text-dim">{title}</h3><p className="text-xs text-dim">{sub}</p></div>
+        <div><h3 className="eyebrow">{title}</h3><p className="mt-0.5 text-xs text-dim">{sub}</p></div>
         {mode && <ModeBadge mode={mode as never} />}
       </header>
       {score != null && label ? (
         <div className="flex items-center gap-4">
           <ScoreDial score={score} size={112} />
-          <div><p className={`font-grotesk text-xl font-bold ${tone === "scam" ? "text-scam" : tone === "unsure" ? "text-unsure" : "text-safe"}`}>{LABEL[label]}</p></div>
+          <div><p className={`font-display text-2xl font-semibold ${tone === "scam" ? "text-scam" : tone === "unsure" ? "text-unsure" : "text-safe"}`}>{LABEL[label]}</p></div>
         </div>
       ) : null}
       {children}
@@ -86,18 +86,18 @@ export function ScanDetail({ m }: { m: MerchantView }) {
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-grotesk text-2xl font-bold tracking-tight">{m.merchant}</h2>
+            <h2 className="font-display text-3xl font-semibold tracking-tight">{m.merchant}</h2>
             {b?.crawl.ownStore && <Badge>Bluff demo storefront</Badge>}
             {b?.report.stats.selfDescribedDemo && !b.crawl.ownStore && <Badge tone="accent">Public demo shop</Badge>}
           </div>
-          {siteLink && <a href={siteLink} target="_blank" rel="noreferrer noopener" className="font-mono text-sm text-accent underline">{host}</a>}
+          {siteLink && <a href={siteLink} target="_blank" rel="noreferrer noopener" className="font-mono text-sm text-accent underline underline-offset-4">{host}</a>}
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {m.txns.map((t) => <span key={t.id} className="num rounded-full border border-line bg-surface2 px-2 py-0.5 text-xs">{shortDate(t.ts)} · {money(t.amountCents)}</span>)}
+            {m.txns.map((t) => <span key={t.id} className="num rounded-[3px] border border-line bg-surface2 px-2 py-0.5 text-xs">{shortDate(t.ts)} · {money(t.amountCents)}</span>)}
             <span className="rounded-full px-2 py-0.5 font-mono text-xs text-dim">{m.descriptor}</span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/charges/${latest.id}`} className="inline-flex min-h-[40px] items-center rounded-control bg-accent px-3 text-sm font-semibold text-white hover:opacity-90">
+          <Link href={`/charges/${latest.id}`} className="inline-flex min-h-[44px] items-center rounded-control bg-ink px-4 text-sm font-semibold text-paper hover:bg-gray-6">
             {(deep ?? b?.verdict)?.verdict === "looks_ok" ? "View charge" : "Dispute this charge"}
           </Link>
         </div>
@@ -116,12 +116,12 @@ export function ScanDetail({ m }: { m: MerchantView }) {
         </Tier>
       </div>
 
-      <section className="rounded-card border border-line bg-surface p-4">
+      <section className="dossier p-4">
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-grotesk text-lg font-semibold">What we found</h3>
-          <div role="tablist" aria-label="Findings source" className="flex rounded-control border border-line p-0.5 text-sm">
-            <button role="tab" aria-selected={tab === "ai"} onClick={() => setTab("ai")} className={`rounded-control px-3 py-1 ${tab === "ai" ? "bg-surface2 font-medium" : "text-dim"}`}>AI ({aiFindings.length})</button>
-            <button role="tab" aria-selected={tab === "rules"} onClick={() => setTab("rules")} className={`rounded-control px-3 py-1 ${tab === "rules" ? "bg-surface2 font-medium" : "text-dim"}`}>Rules ({ruleFindings.length})</button>
+          <h3 className="font-display text-xl font-semibold">What we found</h3>
+          <div role="tablist" aria-label="Findings source" className="flex border border-ink text-sm">
+            <button role="tab" aria-selected={tab === "ai"} onClick={() => setTab("ai")} className={`min-h-[36px] px-3 py-1 ${tab === "ai" ? "bg-ink font-medium text-paper" : "text-dim"}`}>AI ({aiFindings.length})</button>
+            <button role="tab" aria-selected={tab === "rules"} onClick={() => setTab("rules")} className={`min-h-[36px] px-3 py-1 ${tab === "rules" ? "bg-ink font-medium text-paper" : "text-dim"}`}>Rules ({ruleFindings.length})</button>
           </div>
         </div>
         {tab === "ai" && !aiFindings.length && <p className="py-2 text-sm text-dim">{deepRunning ? "Waiting for the deep analysis…" : "No AI findings for this site yet. Switch to Rules."}</p>}
@@ -132,8 +132,8 @@ export function ScanDetail({ m }: { m: MerchantView }) {
 
       {i && b && (
         <section className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-card border border-line bg-surface p-4">
-            <h3 className="mb-2 font-grotesk text-lg font-semibold">Site facts</h3>
+          <div className="dossier p-4">
+            <h3 className="mb-2 font-display text-xl font-semibold">Site facts</h3>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
               <dt className="text-dim">Domain age</dt><dd>{fmtAge(i.registration.ageDays)}{i.registration.createdAt ? ` (since ${i.registration.createdAt.slice(0, 10)})` : ""}{i.registration.source === "demo_registry" ? " · demo registry" : ""}</dd>
               <dt className="text-dim">Registrar</dt><dd className="break-words">{i.registration.registrar ?? "unknown"}</dd>
@@ -145,15 +145,15 @@ export function ScanDetail({ m }: { m: MerchantView }) {
               {b.report.stats.companies.length > 0 && <><dt className="text-dim">Company</dt><dd className="break-words">{b.report.stats.companies.join(" · ")}</dd></>}
             </dl>
           </div>
-          <div className="rounded-card border border-line bg-surface p-4">
-            <h3 className="mb-1 font-grotesk text-lg font-semibold">Pages crawled</h3>
+          <div className="dossier p-4">
+            <h3 className="mb-1 font-display text-xl font-semibold">Pages crawled</h3>
             <p className="mb-2 text-xs text-dim">{b.crawl.pages.length} pages in {(b.crawl.ms / 1000).toFixed(1)} s · robots.txt {b.crawl.robots ? "read and obeyed" : "none"}{b.crawl.sitemapUrls ? ` · sitemap ${b.crawl.sitemapUrls} URLs` : ""}{b.crawl.skippedByRobots ? ` · ${b.crawl.skippedByRobots} skipped by robots.txt` : ""}</p>
             <ul className="flex flex-col gap-1 text-sm">
               {b.crawl.pages.map((p) => {
                 const href = pageUrl(origin, p.path);
                 return (
                   <li key={p.path} className="flex min-w-0 items-center gap-2">
-                    <span className="w-16 shrink-0 rounded bg-surface2 px-1.5 text-center text-[11px] uppercase tracking-wide text-dim">{p.type}</span>
+                    <span className="w-16 shrink-0 rounded-[2px] bg-surface2 px-1.5 text-center font-mono text-[10px] uppercase tracking-wide text-dim">{p.type}</span>
                     {href ? <a href={href} target="_blank" rel="noreferrer noopener" className="min-w-0 flex-1 truncate font-mono text-xs hover:underline" title={p.title}>{p.path}</a> : <span className="min-w-0 flex-1 truncate font-mono text-xs">{p.path}</span>}
                     <span className="num shrink-0 text-xs text-dim">{p.words}w</span>
                   </li>
@@ -166,7 +166,7 @@ export function ScanDetail({ m }: { m: MerchantView }) {
 
       {steps.length > 0 && (
         <section>
-          <button type="button" onClick={() => setShowTrace((s) => !s)} aria-expanded={showTrace} className="text-sm font-medium text-accent underline">
+          <button type="button" onClick={() => setShowTrace((s) => !s)} aria-expanded={showTrace} className="text-sm font-medium text-accent underline underline-offset-4">
             {showTrace ? "Hide" : "Show"} Nemotron agent trace ({steps.length} steps)
           </button>
           {showTrace && <div className="mt-3"><AgentTrace steps={steps} running={deepRunning} label={`Deep analysis · ${host}`} /></div>}

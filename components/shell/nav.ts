@@ -1,15 +1,16 @@
 export const NAV_ITEMS = [
-  { href: "/", label: "Overview", icon: "home" },
-  { href: "/scan", label: "Scan", icon: "search" },
-  { href: "/check", label: "Check", icon: "shield" },
-  { href: "/charges", label: "Charges", icon: "card" },
-  { href: "/exposure", label: "Exposure", icon: "eye" },
-  { href: "/play", label: "Play", icon: "cards" },
-  { href: "/eval", label: "Eval", icon: "chart", desktopOnly: true },
-  { href: "/privacy", label: "Privacy", icon: "lock" },
+  { href: "/", label: "Overview" },
+  { href: "/scan", label: "Scan" },
+  { href: "/check", label: "Check" },
+  { href: "/charges", label: "Charges" },
+  { href: "/exposure", label: "Exposure" },
+  { href: "/play", label: "Play" },
+  { href: "/eval", label: "Eval", desktopOnly: true },
+  { href: "/privacy", label: "Privacy" },
 ] as const;
 
-export type NavIcon = (typeof NAV_ITEMS)[number]["icon"];
+/** Two-digit folio number for a nav item, by its place in the full list: 01 Overview ... 08 Privacy. */
+export const folio = (index: number) => String(index + 1).padStart(2, "0");
 
 /** `/` is active only on exactly `/`; others on their prefix. */
 export function isActive(pathname: string, href: string): boolean {

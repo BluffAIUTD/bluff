@@ -6,7 +6,7 @@ export function StorePicker({ selected, onPick, disabled }: { selected: string |
     <div role="group" aria-label="Demo stores" className="flex flex-wrap gap-2">
       {STORES.map((s) => (
         <button key={s.slug} type="button" disabled={disabled} onClick={() => onPick(s.slug)} aria-pressed={selected === s.slug}
-          className={`min-h-[44px] rounded-full border px-4 text-sm font-medium transition duration-ui disabled:opacity-50 ${selected === s.slug ? "border-accent bg-accent/20" : "border-line bg-surface hover:border-gray-4"}`}>
+          className={`min-h-[44px] rounded-control border px-3.5 font-mono text-[13px] transition duration-ui disabled:opacity-50 ${selected === s.slug ? "border-ink bg-ink font-bold text-paper" : "border-gray-3 bg-surface hover:border-ink"}`}>
           {s.slug}
         </button>
       ))}

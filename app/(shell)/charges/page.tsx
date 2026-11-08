@@ -18,15 +18,16 @@ export default async function ChargesPage({ searchParams }: { searchParams: Prom
   const shown = flaggedOnly ? rows.filter((r) => r.flags.length > 0) : rows;
   const q = demo === "1" ? "&demo=1" : "";
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight">Charges</h1>
-          <p className="text-dim">{rows.filter((r) => r.flags.length).length} flagged of {rows.length}. Capital One (Nessie sandbox) plus synthetic history. <Link href="/scan" className="font-medium text-accent underline">Scan merchant websites</Link></p>
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b-2 border-ink pb-5">
+        <div className="max-w-2xl">
+          <p className="eyebrow">Ledger</p>
+          <h1 className="font-display text-[38px] font-semibold leading-[1.05] tracking-tight sm:text-5xl">Charges</h1>
+          <p className="mt-2 text-dim"><span className="num text-fg">{rows.filter((r) => r.flags.length).length}</span> flagged of <span className="num text-fg">{rows.length}</span>. Capital One (Nessie sandbox) plus synthetic history. <Link href="/scan" className="font-medium text-accent underline underline-offset-4">Scan merchant websites</Link></p>
         </div>
-        <div role="tablist" aria-label="Filter" className="flex rounded-control border border-line p-1 text-sm">
-          <Link role="tab" aria-selected={!flaggedOnly} href={`/charges${demo === "1" ? "?demo=1" : ""}`} className={`rounded-control px-3 py-2 ${!flaggedOnly ? "bg-surface2 font-medium" : "text-dim"}`}>All</Link>
-          <Link role="tab" aria-selected={flaggedOnly} href={`/charges?f=flagged${q}`} className={`rounded-control px-3 py-2 ${flaggedOnly ? "bg-surface2 font-medium" : "text-dim"}`}>Flagged</Link>
+        <div role="tablist" aria-label="Filter" className="flex border border-ink text-sm">
+          <Link role="tab" aria-selected={!flaggedOnly} href={`/charges${demo === "1" ? "?demo=1" : ""}`} className={`min-h-[40px] px-4 py-2 ${!flaggedOnly ? "bg-ink font-semibold text-paper" : "text-dim hover:text-fg"}`}>All</Link>
+          <Link role="tab" aria-selected={flaggedOnly} href={`/charges?f=flagged${q}`} className={`min-h-[40px] border-l border-ink px-4 py-2 ${flaggedOnly ? "bg-ink font-semibold text-paper" : "text-dim hover:text-fg"}`}>Flagged</Link>
         </div>
       </header>
       {demo === "1" && <DemoControls />}

@@ -17,13 +17,13 @@ type SyncInfo = { customer: { name: string }; accounts: { nickname: string; last
 const PHASE_TEXT: Record<Phase, string> = { idle: "", queued: "Queued", resolving: "Finding website", crawling: "Crawling site", deep: "Nemotron reviewing", done: "", error: "Failed" };
 
 function Dot({ tone }: { tone: string }) {
-  const c = tone === "scam" ? "bg-scam" : tone === "unsure" ? "bg-unsure" : tone === "safe" ? "bg-safe" : "bg-gray-500";
+  const c = tone === "scam" ? "bg-scam" : tone === "unsure" ? "bg-unsure" : tone === "safe" ? "bg-safe" : "bg-gray-4";
   return <span aria-hidden className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${c}`} />;
 }
 function MiniScore({ who, v, pending }: { who: string; v?: { score: number; verdict: string } | null; pending?: boolean }) {
   const tone = toneOf(v?.verdict);
   const cls = tone === "scam" ? "text-scam border-scam/40 bg-scam/10" : tone === "unsure" ? "text-unsure border-unsure/40 bg-unsure/10" : tone === "safe" ? "text-safe border-safe/40 bg-safe/10" : "text-dim border-line";
-  return <span className={`num inline-flex min-w-[54px] shrink-0 items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${cls}`}>{who}{" "}{v ? v.score : pending ? <span className="skeleton inline-block h-2 w-3" /> : "–"}</span>;
+  return <span className={`num inline-flex min-w-[54px] shrink-0 items-center justify-center gap-1 rounded-[3px] border px-1.5 py-0.5 text-xs font-semibold ${cls}`}>{who}{" "}{v ? v.score : pending ? <span className="skeleton inline-block h-2 w-3" /> : "–"}</span>;
 }
 
 export function ScanClient() {
@@ -107,13 +107,13 @@ export function ScanClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink pb-5">
         <div className="max-w-2xl">
-          <p className="mb-1 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-dim">
+          <p className="eyebrow mb-3 inline-flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-safe" /> Capital One {account ? `· ${account}` : "· Nessie API"}
           </p>
-          <h1 className="font-grotesk text-3xl font-bold tracking-tight sm:text-4xl">Who did you really pay?</h1>
-          <p className="mt-1 text-dim">Bluff pulls your recent card transactions, crawls the website behind every charge, runs a rules-based basic check, then has a Nemotron agent read the pages for what rules miss.</p>
+          <h1 className="font-display text-[38px] font-semibold leading-[1.05] tracking-tight sm:text-5xl">Who did you really pay?</h1>
+          <p className="mt-3 text-lg leading-relaxed text-dim">Bluff pulls your recent card transactions, crawls the website behind every charge, runs a rules-based basic check, then has a Nemotron agent read the pages for what rules miss.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {items.some((m) => m.basic) && !scanning && <Button variant="secondary" onClick={() => start(true)}>Re-crawl everything</Button>}
@@ -122,27 +122,27 @@ export function ScanClient() {
       </header>
 
       {err && <ErrorState title="Scan problem" message={err} />}
-      {notice && <p role="status" className="rounded-control border border-unsure/40 bg-unsure/10 px-3 py-2 text-sm">{notice}</p>}
-      {!configured && <p role="status" className="rounded-control border border-line bg-surface px-3 py-2 text-sm text-dim">Capital One isn&apos;t connected on this server (NESSIE_API_KEY). Showing transactions already imported.</p>}
-      {!deepAvailable && <p role="status" className="rounded-control border border-line bg-surface px-3 py-2 text-sm text-dim">Deep analysis is off (no Nemotron key). You&apos;ll get the basic check only.</p>}
+      {notice && <p role="status" className="border-l-4 border-unsure bg-unsure/10 px-4 py-2 text-sm">{notice}</p>}
+      {!configured && <p role="status" className="border-l-4 border-gray-3 bg-surface px-4 py-2 text-sm text-dim">Capital One isn&apos;t connected on this server (NESSIE_API_KEY). Showing transactions already imported.</p>}
+      {!deepAvailable && <p role="status" className="border-l-4 border-gray-3 bg-surface px-4 py-2 text-sm text-dim">Deep analysis is off (no Nemotron key). You&apos;ll get the basic check only.</p>}
 
       <section aria-label="Summary" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[["Transactions", String(stats.txns), `${items.length} merchants · last 45 days`, ""], ["Likely scams", String(stats.scam), `${stats.unsure} more unsure`, stats.scam ? "text-scam" : ""],
           ["Money at risk", money(stats.risk), "on flagged or unsure sites", stats.risk ? "text-scam" : ""], ["Sites analyzed", `${stats.crawled}/${items.length}`, `${stats.aiLive} reviewed by Nemotron${stats.deepDone > stats.aiLive ? ` · ${stats.deepDone - stats.aiLive} basic only` : ""}`, ""]].map(([l, v, h, c]) => (
-          <div key={l} className="rounded-card border border-line bg-surface p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-dim">{l}</div>
-            <div className={`num mt-1 font-grotesk text-2xl font-bold ${c}`}>{v}</div>
-            <div className="mt-0.5 truncate text-xs text-dim">{h}</div>
+          <div key={l} className="dossier p-4">
+            <div className="eyebrow">{l}</div>
+            <div className={`numeral mt-2 text-[38px] font-semibold ${c}`}>{v}</div>
+            <div className="mt-2 truncate text-xs text-dim">{h}</div>
           </div>
         ))}
       </section>
 
       {scanning && (
-        <section aria-label="Progress" className="grid gap-2 rounded-card border border-line bg-surface p-4 sm:grid-cols-2">
-          {[["Basic check (crawl + rules)", stats.crawled, "bg-accent"], ["Deep analysis (Nemotron)", stats.deepDone, "bg-safe"]].map(([l, n, c]) => (
+        <section aria-label="Progress" className="dossier grid gap-4 p-4 sm:grid-cols-2">
+          {[["Basic check (crawl + rules)", stats.crawled, "bg-ink"], ["Deep analysis (Nemotron)", stats.deepDone, "bg-safe"]].map(([l, n, c]) => (
             <div key={l as string}>
               <div className="mb-1 flex justify-between text-xs text-dim"><span>{l}</span><span className="num">{n}/{items.length}</span></div>
-              <div className="h-2 overflow-hidden rounded-full bg-surface2"><div className={`h-full rounded-full transition-all duration-500 ${c}`} style={{ width: `${pct(n as number)}%` }} /></div>
+              <div className="h-1.5 overflow-hidden bg-surface2"><div className={`h-full transition-all duration-500 ${c}`} style={{ width: `${pct(n as number)}%` }} /></div>
             </div>
           ))}
         </section>
@@ -150,8 +150,8 @@ export function ScanClient() {
 
       {loading && <div className="flex flex-col gap-2">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-14 w-full" />)}</div>}
       {!loading && !items.length && (
-        <div className="rounded-card border border-line bg-surface p-8 text-center">
-          <p className="font-grotesk text-xl font-semibold">No transactions yet</p>
+        <div className="dossier p-8 text-center">
+          <p className="font-display text-2xl italic">No transactions yet</p>
           <p className="mt-1 text-dim">Press <strong className="text-fg">Scan my transactions</strong> to import them from Capital One and check every merchant.</p>
         </div>
       )}
@@ -168,10 +168,10 @@ export function ScanClient() {
               return (
                 <li key={m.key}>
                   <button type="button" onClick={() => setSelected(m.key)} aria-current={on ? "true" : undefined}
-                    className={`flex w-full flex-col gap-1.5 rounded-card border px-3 py-2.5 text-left transition duration-ui ${on ? "border-accent bg-accent/10" : tone === "scam" ? "border-scam/40 bg-surface hover:bg-surface2" : "border-line bg-surface hover:bg-surface2"}`}>
+                    className={`flex w-full flex-col gap-1.5 rounded-card border px-3 py-2.5 text-left transition duration-ui ${on ? "border-ink bg-surface shadow-[3px_3px_0_var(--ink)]" : tone === "scam" ? "border-scam/50 bg-surface hover:bg-surface2" : "border-line bg-surface hover:bg-surface2"}`}>
                     <div className="flex items-center gap-2">
                       <Dot tone={tone} />
-                      <span className="min-w-0 flex-1 truncate font-medium">{m.merchant}</span>
+                      <span className="min-w-0 flex-1 truncate font-display text-[17px] font-semibold">{m.merchant}</span>
                       <span className="num text-sm">{money(m.totalCents)}</span>
                     </div>
                     <div className="flex w-full min-w-0 items-center gap-2 pl-[18px]">
@@ -187,7 +187,7 @@ export function ScanClient() {
             })}
           </ul>
           <div className="hidden min-w-0 lg:block">
-            {current ? <ScanDetail m={current} /> : <div className="rounded-card border border-dashed border-line p-10 text-center text-dim">Pick a merchant to see what Bluff found.</div>}
+            {current ? <ScanDetail m={current} /> : <div className="rounded-card border border-dashed border-gray-3 p-10 text-center text-dim">Pick a merchant to see what Bluff found.</div>}
           </div>
         </div>
       )}

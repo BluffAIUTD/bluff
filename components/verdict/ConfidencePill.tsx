@@ -4,9 +4,9 @@ import { Badge } from "../ui/Badge";
 export function ConfidencePill({ confidence, reason }: { confidence: number; reason: string }) {
   const pct = Math.round(confidence * 100);
   return (
-    <div className="flex flex-col gap-1">
-      <Badge tone={confidence < 0.5 ? "unsure" : "neutral"}>{pct}% sure</Badge>
-      <p className="text-xs text-dim">{reason}</p>
+    <div className="flex flex-col gap-2">
+      <div><Badge tone={confidence < 0.5 ? "unsure" : "neutral"}>{pct}% sure</Badge></div>
+      <p className="border-l-2 border-ink pl-3 font-display text-[17px] italic leading-snug text-fg">{reason}</p>
     </div>
   );
 }

@@ -53,7 +53,7 @@ export function PhonePreview() {
   return (
     <>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="phone-preview" aria-label="Phone preview (T-Mobile)"
-        className="relative inline-flex min-h-[44px] items-center gap-2 rounded-control border border-line px-3 text-sm font-medium text-dim hover:text-fg">
+        className="relative inline-flex min-h-[44px] items-center gap-2 rounded-control border border-ink px-3 text-sm font-medium text-fg hover:bg-ink hover:text-paper">
         <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: MAGENTA }} />
         Phone
         {!open && unread > 0 && <span className="absolute -right-1 -top-1 rounded-full px-1.5 text-[10px] font-bold text-white" style={{ background: MAGENTA }}>{unread}</span>}
@@ -69,9 +69,9 @@ export function PhonePreview() {
             </span>
           </div>
           <header className="flex items-center gap-3 border-b border-white/10 px-4 py-2">
-            <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full font-grotesk text-sm font-bold" style={{ background: MAGENTA }}>B</span>
+            <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full font-display text-sm font-bold" style={{ background: MAGENTA }}>B</span>
             <div className="min-w-0 flex-1">
-              <p className="font-grotesk text-sm font-semibold leading-tight">Bluff</p>
+              <p className="font-display text-sm font-semibold leading-tight">Bluff</p>
               <p className="text-[11px] text-white/60">Scam alerts · Messages</p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close phone preview" className="min-h-[32px] min-w-[32px] text-white/60 hover:text-white">✕</button>

@@ -41,25 +41,25 @@ export function ExposureTimeline({ initial }: { initial: ExposureDto[] }) {
   }
 
   if (!rows.length) {
-    return <EmptyState title="No exposures yet" hint="When you tell Bluff you entered info on a site, it shows up here so later charges can be linked back." action={<Link href="/check" className="text-sm font-medium text-accent underline">Check a store</Link>} />;
+    return <EmptyState title="No exposures yet" hint="When you tell Bluff you entered info on a site, it shows up here so later charges can be linked back." action={<Link href="/check" className="text-sm font-medium text-accent underline underline-offset-4">Check a store</Link>} />;
   }
   return (
     <div className="flex flex-col gap-6">
       {err && <ErrorState message={err} />}
       {groups.map(([day, list]) => (
-        <section key={day} aria-label={day} className="flex flex-col gap-2">
-          <h2 className="font-grotesk text-sm font-medium uppercase tracking-wide text-dim">{day}</h2>
-          <ul className="flex flex-col gap-2">
+        <section key={day} aria-label={day} className="flex flex-col gap-3">
+          <h2 className="rule-top eyebrow pt-3 text-fg">{day}</h2>
+          <ul className="dossier divide-y divide-line">
             {list.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-surface p-4">
+              <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-5">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{r.host}</p>
-                  <p className="text-sm text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>
+                  <p className="truncate font-mono text-[15px] font-bold">{r.host}</p>
+                  <p className="font-mono text-xs text-dim">{longDateTime(r.createdAt)} · {r.fieldTypes.map((f) => FIELD_LABELS[f] ?? f).join(", ") || "info"}</p>
                 </div>
                 <ScoreBadge score={r.score} />
-                <span className="text-sm text-dim">{r.linkedCount ? `${r.linkedCount} linked charge${r.linkedCount > 1 ? "s" : ""}` : "No linked charges"}</span>
+                <span className={`text-sm ${r.linkedCount ? "font-medium text-scam" : "text-dim"}`}>{r.linkedCount ? `${r.linkedCount} linked charge${r.linkedCount > 1 ? "s" : ""}` : "No linked charges"}</span>
                 <label className="flex min-h-[44px] items-center gap-2 text-sm">
-                  <input type="checkbox" checked={r.watch} disabled={busy === r.id} onChange={() => toggle(r)} className="h-5 w-5 accent-[var(--accent)]" />
+                  <input type="checkbox" checked={r.watch} disabled={busy === r.id} onChange={() => toggle(r)} className="h-5 w-5 accent-[var(--ink)]" />
                   Watch
                 </label>
                 <Button variant="ghost" onClick={() => remove(r)} disabled={busy === r.id} aria-label={`Delete ${r.host}`}>Delete</Button>

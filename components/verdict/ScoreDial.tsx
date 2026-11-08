@@ -27,16 +27,23 @@ export function ScoreDial({ score, size = 168, animate = true }: { score: number
   }, [final, animate]);
 
   const tone = toneFor(shown);
+  const w = Math.round(size * 1.35);
+  const x = shown * 2;
   return (
-    <div role="img" aria-label={`Trust score ${final} out of 100`} className="relative" style={{ width: size, height: size * 0.62 }}>
-      <svg viewBox="0 0 120 70" width={size} height={size * 0.58} aria-hidden>
-        <path d="M10 62 A50 50 0 0 1 110 62" fill="none" stroke="var(--gray-6)" strokeWidth="10" strokeLinecap="round" pathLength={100} />
-        <path d="M10 62 A50 50 0 0 1 110 62" fill="none" stroke={tone.stroke} strokeWidth="10" strokeLinecap="round" pathLength={100} strokeDasharray={`${shown} 100`} />
-      </svg>
-      <div className="absolute inset-x-0 bottom-0 text-center">
-        <span className={`num text-4xl font-bold leading-none ${tone.text}`}>{shown}</span>
-        <span className="block text-[11px] uppercase tracking-wide text-dim">Trust score</span>
+    <div role="img" aria-label={`Trust score ${final} out of 100`} className="flex flex-col gap-2" style={{ width: w }}>
+      <span className="eyebrow" aria-hidden>Trust score</span>
+      <div className="flex items-end gap-1.5" aria-hidden>
+        <span className={`numeral font-semibold ${tone.text}`} style={{ fontSize: Math.round(size * 0.56) }}>{shown}</span>
+        <span className="num pb-1 text-xs text-dim">/100</span>
       </div>
+      <svg viewBox="0 0 200 26" width="100%" aria-hidden className="overflow-visible">
+        <rect x="0" y="12" width="78" height="4" fill="var(--scam)" opacity=".55" />
+        <rect x="80" y="12" width="58" height="4" fill="var(--unsure)" opacity=".55" />
+        <rect x="140" y="12" width="60" height="4" fill="var(--safe)" opacity=".55" />
+        {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((t) => <line key={t} x1={t * 2} x2={t * 2} y1="18" y2={t % 50 === 0 ? 24 : 21} stroke="var(--ink)" strokeWidth="1" />)}
+        <path d={`M${x - 5} 0 L${x + 5} 0 L${x} 9 Z`} fill="var(--ink)" />
+        <line x1={x} x2={x} y1="9" y2="16" stroke="var(--ink)" strokeWidth="1.5" />
+      </svg>
     </div>
   );
 }

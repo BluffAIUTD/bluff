@@ -19,7 +19,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
     setTimeout(() => setDone(false), 1500);
   }
   return (
-    <button type="button" onClick={copy} className="min-h-[32px] rounded-control border border-line px-2 text-xs font-medium text-dim hover:text-fg">
+    <button type="button" onClick={copy} className="min-h-[32px] rounded-control border border-gray-3 px-2 text-xs font-medium text-dim hover:text-fg">
       {done ? "Copied" : label}
     </button>
   );

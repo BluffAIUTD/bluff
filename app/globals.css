@@ -3,63 +3,99 @@
 @tailwind utilities;
 
 :root {
-  --ink: #0e1014;
-  --paper: #f6f4ef;
-  --scam: #e5484d;
-  --unsure: #f5a524;
-  --safe: #2f9e6e;
-  --accent: #5b5bd6;
-  --scam-rgb: 229 72 77;
-  --unsure-rgb: 245 165 36;
-  --safe-rgb: 47 158 110;
-  --accent-rgb: 91 91 214;
-  --gray-1: #f2f2f3;
-  --gray-2: #e3e3e6;
-  --gray-3: #c8c8ce;
-  --gray-4: #8e8e98;
-  --gray-5: #55555f;
-  --gray-6: #2a2a31;
-  --radius-control: 8px;
-  --radius-card: 16px;
+  --ink: #1b1a17;
+  --paper: #f3eee3;
+  --scam: #c7341c;
+  --unsure: #8f5a00;
+  --safe: #1f6b52;
+  --accent: #22314a;
+  --scam-rgb: 199 52 28;
+  --unsure-rgb: 143 90 0;
+  --safe-rgb: 31 107 82;
+  --accent-rgb: 34 49 74;
+  --gray-1: #ebe5d6;
+  --gray-2: #d6cdb8;
+  --gray-3: #b9ae94;
+  --gray-4: #8a8068;
+  --gray-5: #5e5848;
+  --gray-6: #3a3629;
+  --radius-control: 3px;
+  --radius-card: 4px;
   --motion-ui: 180ms;
-  --motion-dial: 600ms;
+  --motion-dial: 700ms;
   --motion-flip: 400ms;
-  color-scheme: dark;
-}
-
-/* Dark is the default theme (ink surfaces); light is optional via data-theme. */
-:root {
-  --bg: var(--ink);
-  --surface: #161920;
-  --surface-2: #1d212a;
-  --border: var(--gray-6);
-  --text: var(--paper);
-  --text-dim: var(--gray-3);
-}
-:root[data-theme="light"] {
   color-scheme: light;
+
   --bg: var(--paper);
-  --surface: #ffffff;
-  --surface-2: var(--gray-1);
-  --border: var(--gray-2);
+  --surface: #fbf8f1;
+  --surface-2: #ebe5d6;
+  --border: #d6cdb8;
+  --rule: #1b1a17;
   --text: var(--ink);
-  --text-dim: var(--gray-5);
+  --text-dim: #5e5848;
 }
 
-mark { background-color: rgb(var(--scam-rgb) / 0.3); color: inherit; }
+mark { background-color: rgb(var(--scam-rgb) / 0.18); color: inherit; }
 
 html, body { background: var(--bg); color: var(--text); }
-body { font-family: var(--font-inter), system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-h1, h2, h3, .num { font-family: var(--font-grotesk), system-ui, sans-serif; }
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "kern";
+  position: relative;
+  min-height: 100vh;
+}
+/* Paper grain: a tiled SVG noise, CSS only, multiplied over the page. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body > * { position: relative; z-index: 1; }
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--font-display), Georgia, serif; font-variation-settings: "opsz" 72, "SOFT" 30; letter-spacing: -0.01em; }
+.font-display { font-family: var(--font-display), Georgia, serif; font-variation-settings: "opsz" 72, "SOFT" 30; }
+.num { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.numeral { font-family: var(--font-display), Georgia, serif; font-variation-settings: "opsz" 144, "SOFT" 0; font-variant-numeric: lining-nums; letter-spacing: -0.04em; line-height: .9; }
 
-@keyframes bluff-pulse { 0%, 100% { opacity: .55 } 50% { opacity: 1 } }
-.skeleton { background: var(--surface-2); border-radius: var(--radius-control); animation: bluff-pulse 1.2s ease-in-out infinite; }
+/* Exhibit labels and eyebrows: mono, small caps feel. */
+.eyebrow { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); }
+.exhibit { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text); }
+.folio { font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; font-weight: 500; letter-spacing: .06em; }
+.rule-top { border-top: 2px solid var(--rule); }
+.rule-hair { border-top: 1px solid var(--border); }
+.dossier { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: 0 1px 0 rgb(27 26 23 / .04), 0 8px 24px -16px rgb(60 45 20 / .25); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+@keyframes bluff-pulse { 0%, 100% { opacity: .5 } 50% { opacity: 1 } }
+.skeleton { background: var(--surface-2); border-radius: 2px; animation: bluff-pulse 1.2s ease-in-out infinite; }
+
+/* The Thread */
+@keyframes bluff-draw { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
+@keyframes thread-drop { from { transform: scaleY(0) } to { transform: scaleY(1) } }
+@keyframes thread-tag { from { opacity: 0; transform: translateY(-6px) } to { opacity: 1; transform: none } }
+@keyframes thread-pin { 0% { transform: scale(0) } 70% { transform: scale(1.35) } 100% { transform: scale(1) } }
+@keyframes thread-twang { 0%, 100% { transform: translateY(0) } 30% { transform: translateY(1.5px) } 60% { transform: translateY(-1px) } }
+.connector-line { stroke-dasharray: 100; stroke-dashoffset: 0; animation: bluff-draw 900ms cubic-bezier(.6,0,.2,1) both; }
+.thread-twang { animation: thread-twang 420ms 900ms ease-out both; }
+.thread-plumb { transform-origin: top; animation: thread-drop 450ms 850ms ease-out both; }
+.thread-tag { animation: thread-tag 380ms ease-out both; }
+.thread-pin { animation: thread-pin 320ms 850ms ease-out both; }
+.thread-pin-start { animation: thread-pin 320ms 0ms ease-out both; }
+
+/* Verdict stamp: presses in once. */
+@keyframes stamp-press { 0% { opacity: 0; transform: rotate(-14deg) scale(2.2) } 55% { opacity: 1; transform: rotate(-4deg) scale(.94) } 75% { transform: rotate(-4deg) scale(1.03) } 100% { opacity: 1; transform: rotate(-4deg) scale(1) } }
+.stamp { display: inline-block; border: 3px double currentColor; padding: .35rem .8rem .3rem; border-radius: 4px; font-family: var(--font-mono), monospace; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; font-size: 13px; transform: rotate(-4deg); background: rgb(251 248 241 / .6); }
+.stamp-press { animation: stamp-press 520ms cubic-bezier(.2,.9,.3,1.2) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .connector-line { animation: none; stroke-dashoffset: 0; }
+  .thread-twang, .thread-plumb, .thread-tag, .thread-pin, .thread-pin-start, .stamp-press { animation: none !important; opacity: 1; transform: none; }
+  .stamp-press { transform: rotate(-4deg); }
 }
 
-@keyframes bluff-draw { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
-.connector-line { stroke-dasharray: 100; animation: bluff-draw 600ms ease-out forwards; }
+@media print {
+  body::before, .no-print { display: none !important; }
+  body { background: #fff; }
+}
