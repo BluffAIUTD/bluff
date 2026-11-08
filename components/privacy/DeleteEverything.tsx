@@ -17,7 +17,7 @@ export function DeleteEverything() {
   return (
     <div className="flex flex-col gap-3">
       <Button variant="danger" onClick={run} disabled={state === "busy"} className="self-start">{state === "busy" ? "Deleting…" : "Delete everything"}</Button>
-      {state === "done" && <p role="status" className="text-sm text-safe">Done. Your exposures, verdicts, texts, disputes and game data are gone, and your account starts over from the sample card history.</p>}
+      {state === "done" && <p role="status" className="text-sm text-[#8fe3b8]">Done. Your exposures, verdicts, texts, disputes and game data are gone, and your account starts over from the sample card history.</p>}
       {err && <ErrorState message={err} />}
     </div>
   );

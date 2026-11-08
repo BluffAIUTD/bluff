@@ -11,16 +11,16 @@ export function ClaimTable({ title, subtitle, rows, verdict }: { title: string; 
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="font-grotesk text-xl font-bold">{title}</h2>
+        <h2 className="serif text-2xl font-semibold">{title}</h2>
         {verdict && <Badge tone={verdict.tone}>{verdict.text}</Badge>}
       </div>
       <p className="text-sm text-dim">{subtitle}</p>
-      <div className="overflow-x-auto rounded-card border border-line bg-surface">
+      <div className="overflow-x-auto stitch rounded-card border brass-hairline bg-surface">
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="text-xs uppercase tracking-wide text-dim">
             <tr><th className="px-4 py-3">Method</th><th className="px-4 py-3">n</th><th className="px-4 py-3">Precision</th><th className="px-4 py-3">Recall</th><th className="px-4 py-3">F1</th>{acc && <th className="px-4 py-3">Accuracy</th>}</tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody className="divide-y divide-[rgba(217,180,107,0.16)]">
             {rows.map((r) => (
               <tr key={r.method} className={r.highlight ? "bg-accent/10" : ""}>
                 <th scope="row" className="px-4 py-3 font-medium">{r.method}{r.note && <span className="block text-xs font-normal text-dim">{r.note}</span>}</th>

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { CopyButton } from "@/components/shell/CopyButton";
+import { CornerIndex } from "../table/PlayingCardFace";
 import { EXTENSION_ZIP_URL, type ExtensionZip } from "./download";
 
 export type ExtensionGuideProps = {
@@ -11,8 +12,8 @@ export type ExtensionGuideProps = {
   stores: { scam: string; legit: string };
 };
 
-const SECTION = "font-grotesk text-sm font-medium uppercase tracking-wide text-dim";
-const PRIMARY = "inline-flex min-h-[48px] items-center justify-center rounded-control bg-accent px-5 font-semibold text-white transition duration-ui hover:brightness-110";
+const SECTION = "font-grotesk uppercase text-brass";
+const PRIMARY = "btn-brass chip-btn inline-flex min-h-[52px] items-center justify-center rounded-full px-6 text-[15px] transition duration-ui";
 
 const HOW = [
   { title: "Wakes up only at checkout", body: "It stays quiet until a page asks for your card number, CVV or Social Security number. On login and sign-up forms it only shows a small “Check this site with Bluff” button, and sends nothing unless you click it." },
@@ -36,8 +37,8 @@ const NEVER_SENT = [
 
 function Step({ n, children }: { n: number; children: ReactNode }) {
   return (
-    <li className="flex gap-3 rounded-card border border-line bg-surface p-4">
-      <span aria-hidden className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-accent/20 font-grotesk text-sm font-bold text-[#b9b9ff]">{n}</span>
+    <li className="stitch flex gap-3 rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
+      <span aria-hidden className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-dashed border-accent/70 bg-black/30 text-sm font-bold text-brass">{n}</span>
       <div className="min-w-0 flex-1 text-sm">{children}</div>
     </li>
   );
@@ -47,10 +48,10 @@ function Download({ app, zip }: Pick<ExtensionGuideProps, "app" | "zip">) {
   if (!zip) {
     const cmd = `BLUFF_APP_URL=${app} npm run ext:zip`;
     return (
-      <div className="rounded-card border border-dashed border-line p-4 text-sm text-dim" role="status">
+      <div className="rounded-card border border-dashed brass-hairline p-4 text-sm text-dim" role="status">
         <p>The download isn&apos;t built on this server yet. From the repo, run:</p>
         <div className="mt-2 flex items-center gap-2">
-          <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-control bg-surface2 px-3 py-2 font-mono text-xs text-fg">{cmd}</code>
+          <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-control bg-black/40 px-3 py-2 font-mono text-xs text-fg">{cmd}</code>
           <CopyButton text={cmd} />
         </div>
         <p className="mt-2">Then reload this page. (The Docker image builds it automatically.)</p>
@@ -65,7 +66,7 @@ function Download({ app, zip }: Pick<ExtensionGuideProps, "app" | "zip">) {
         <a href={EXTENSION_ZIP_URL} download className={PRIMARY}>Download for Chrome</a>
         <span className="text-sm text-dim">.zip · {kb} KB{zip.version ? ` · version ${zip.version}` : ""} · desktop Chrome and other Chromium browsers</span>
       </div>
-      {otherApp && <p role="status" className="rounded-control border border-unsure/40 bg-unsure/10 px-3 py-2 text-sm">This build checks stores with {otherApp}, not this site.</p>}
+      {otherApp && <p role="status" className="rounded-control border border-unsure/50 bg-unsure/10 px-4 py-2.5 text-sm">This build checks stores with {otherApp}, not this site.</p>}
     </div>
   );
 }
@@ -76,15 +77,15 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <p className="text-sm text-dim">Chrome extension · optional</p>
-        <h1 className="font-grotesk text-3xl font-bold tracking-tight sm:text-4xl">Checkout Guard for Chrome</h1>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-brass">Chrome extension · optional</p>
+        <h1 className="text-4xl font-semibold tracking-tight">Checkout Guard for Chrome</h1>
         <p className="max-w-2xl text-dim">
           Bluff checks a store the moment it asks for your card, before you pay. If you pay anyway, Bluff remembers the site, so a later
           charge on your card links straight back to it.
         </p>
         <Download app={app} zip={zip} />
         <p className="text-sm text-dim">
-          No Chrome, or on a phone? <Link href="/check" className="text-accent underline">Use Check a site</Link>: paste a store link and get the same check with nothing to install.
+          No Chrome, or on a phone? <Link href="/check" className="text-brass underline">Use Check a site</Link>: paste a store link and get the same check with nothing to install.
         </p>
       </header>
 
@@ -92,10 +93,10 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
         <h2 className={SECTION}>How it works</h2>
         <ol className="grid gap-3 md:grid-cols-3">
           {HOW.map((h, i) => (
-            <li key={h.title} className="rounded-card border border-line bg-surface p-4">
-              <p className="num text-xs text-dim">{i + 1}</p>
-              <h3 className="mt-1 font-grotesk text-lg font-bold">{h.title}</h3>
-              <p className="mt-1 text-sm text-dim">{h.body}</p>
+            <li key={h.title} className="card-face deal relative min-h-[140px] rounded-[14px] py-4 pl-14 pr-4" style={{ ["--i" as string]: i }}>
+              <CornerIndex rank={i + 1} suit={(["unsure", "scam", "safe"] as const)[i % 3]} />
+              <h3 className="serif text-xl font-bold">{h.title}</h3>
+              <p className="mt-1 text-sm leading-snug text-[#4d4128]">{h.body}</p>
             </li>
           ))}
         </ol>
@@ -104,18 +105,18 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
       <section aria-label="What it sends" className="flex flex-col gap-3">
         <h2 className={SECTION}>Exactly what it sends</h2>
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-card border border-line bg-surface p-4">
-            <h3 className="font-grotesk text-lg font-bold text-unsure">Sent to Bluff</h3>
+          <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
+            <h3 className="serif text-xl font-semibold text-unsure">Sent to Bluff</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-dim">{SENT.map((s) => <li key={s}>{s}</li>)}</ul>
           </div>
-          <div className="rounded-card border border-line bg-surface p-4">
-            <h3 className="font-grotesk text-lg font-bold text-safe">Never sent</h3>
+          <div className="stitch rounded-card border brass-hairline bg-surface p-4 [&>*]:relative [&>*]:z-10">
+            <h3 className="serif text-xl font-semibold text-safe">Never sent</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-dim">{NEVER_SENT.map((s) => <li key={s}>{s}</li>)}</ul>
           </div>
         </div>
         <p className="max-w-3xl text-sm text-dim">
           Bluff&apos;s server then visits the store&apos;s public pages itself, like any shopper could, and sends their text to NVIDIA Nemotron for the review.{" "}
-          <Link href="/privacy" className="text-accent underline">Privacy</Link> lists everything Bluff keeps.
+          <Link href="/privacy" className="text-brass underline">Privacy</Link> lists everything Bluff keeps.
         </p>
       </section>
 
@@ -139,15 +140,15 @@ export function ExtensionGuide({ app, zip, stores }: ExtensionGuideProps) {
       <section aria-label="Try it" className="flex flex-col gap-3">
         <h2 className={SECTION}>Try it on a demo store</h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          <a href={stores.scam} target="_blank" rel="noopener" className="flex flex-col gap-1 rounded-card border border-line bg-surface p-4 transition duration-ui hover:bg-surface2">
+          <a href={stores.scam} target="_blank" rel="noopener" className="shimmer stitch flex flex-col gap-1 rounded-card border brass-hairline bg-surface p-5 transition duration-ui hover:bg-white/[0.04] [&>*]:relative [&>*]:z-10">
             <Badge tone="scam">Scam pattern</Badge>
-            <span className="mt-1 font-grotesk text-lg font-bold">FastKicks</span>
+            <span className="serif mt-1 text-xl font-bold">FastKicks</span>
             <span className="text-sm text-dim">Built from common fake-store tricks. Expect a warning.</span>
             <span className="truncate text-xs text-dim">{new URL(stores.scam).host}</span>
           </a>
-          <a href={stores.legit} target="_blank" rel="noopener" className="flex flex-col gap-1 rounded-card border border-line bg-surface p-4 transition duration-ui hover:bg-surface2">
+          <a href={stores.legit} target="_blank" rel="noopener" className="shimmer stitch flex flex-col gap-1 rounded-card border brass-hairline bg-surface p-5 transition duration-ui hover:bg-white/[0.04] [&>*]:relative [&>*]:z-10">
             <Badge tone="safe">Legit</Badge>
-            <span className="mt-1 font-grotesk text-lg font-bold">Bayou Bakery</span>
+            <span className="serif mt-1 text-xl font-bold">Bayou Bakery</span>
             <span className="text-sm text-dim">An ordinary small shop, for comparison.</span>
             <span className="truncate text-xs text-dim">{new URL(stores.legit).host}</span>
           </a>

@@ -36,27 +36,27 @@ const PRIVACY_GROUPS: { title: string; rows: Row[] }[] = [
   },
 ];
 
-const TONE: Record<Tone, string> = { never: "text-safe", sent: "text-unsure", discarded: "text-fg" };
+const TONE: Record<Tone, string> = { never: "text-[#8fe3b8]", sent: "text-[#f5c46b]", discarded: "text-fg" };
 
 export default function PrivacyPage() {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="font-grotesk text-3xl font-bold tracking-tight">Private by design</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">Private by design</h1>
         <p className="mt-1 max-w-2xl text-dim">Bluff reads the shape of a page, never what you typed into it. To check your card, its server reads your sandbox charges and the merchants&apos; public websites. Forwarding a message is your choice, and the message is dropped as soon as the verdict is made.</p>
       </header>
       <DataFlowDiagram />
       <section aria-labelledby="sent-h" className="flex flex-col gap-3">
-        <h2 id="sent-h" className="font-grotesk text-xl font-bold">What goes where</h2>
-        <div className="overflow-x-auto rounded-card border border-line bg-surface">
+        <h2 id="sent-h" className="serif text-2xl font-semibold">What goes where</h2>
+        <div className="stitch overflow-x-auto rounded-card border brass-hairline bg-surface">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-dim"><tr><th className="px-4 py-3">Data</th><th className="px-4 py-3">Where it goes</th><th className="px-4 py-3">Notes</th></tr></thead>
             {PRIVACY_GROUPS.map((g) => (
-              <tbody key={g.title} className="divide-y divide-line border-t border-line">
-                <tr><th colSpan={3} scope="colgroup" className="bg-surface2 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-dim">{g.title}</th></tr>
+              <tbody key={g.title} className="divide-y divide-[rgba(217,180,107,0.16)] border-t brass-hairline">
+                <tr><th colSpan={3} scope="colgroup" className="bg-white/[0.05] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-brass">{g.title}</th></tr>
                 {g.rows.map((r) => (
                   <tr key={r.what}>
-                    <th scope="row" className="px-4 py-3 font-medium">{r.what}</th>
+                    <th scope="row" className="px-4 py-3 font-semibold">{r.what}</th>
                     <td className={`px-4 py-3 font-semibold ${TONE[r.tone]}`}>{r.where}</td>
                     <td className="px-4 py-3 text-dim">{r.note}</td>
                   </tr>
@@ -66,8 +66,8 @@ export default function PrivacyPage() {
           </table>
         </div>
       </section>
-      <section aria-labelledby="promises-h" className="rounded-card border border-line bg-surface p-4 text-sm">
-        <h2 id="promises-h" className="mb-2 font-grotesk text-xl font-bold">Other promises</h2>
+      <section aria-labelledby="promises-h" className="stitch rounded-card border brass-hairline bg-surface p-5 text-sm [&>*]:relative [&>*]:z-10">
+        <h2 id="promises-h" className="serif mb-2 text-2xl font-semibold">Other promises</h2>
         <ul className="list-disc space-y-1 pl-5 text-dim">
           <li>Bluff never files, sends or pays anything for you. Disputes are drafts you review.</li>
           <li>When the AI check is on, Bluff&apos;s server fetches the checked site&apos;s public pages itself (never your session on the page or anything you typed) and sends their text, with registry facts and the rules findings, to NVIDIA Nemotron for the verdict: up to 8 pages for a store check, up to 10 per merchant website in the bank scan.</li>
@@ -76,10 +76,10 @@ export default function PrivacyPage() {
           <li>Texts from Bluff appear in the in-app phone preview. No real SMS is sent and no T-Mobile customer data is used.</li>
           <li>All stores and charges are synthetic and labeled as demos.</li>
         </ul>
-        <p className="mt-3"><Link href="/eval" className="font-medium text-accent underline">Proof: how well Bluff works</Link> <span className="text-dim">(measured claims, with the failures shown)</span></p>
+        <p className="mt-3"><Link href="/eval" className="font-semibold text-brass underline">Proof: how well Bluff works</Link> <span className="text-dim">(measured claims, with the failures shown)</span></p>
       </section>
       <section aria-labelledby="delete-h" className="flex flex-col gap-3">
-        <h2 id="delete-h" className="font-grotesk text-xl font-bold">Delete everything</h2>
+        <h2 id="delete-h" className="serif text-2xl font-semibold">Delete everything</h2>
         <p className="text-sm text-dim">Clears your exposures, verdicts, texts, disputes, crawls and game data, then starts your account over from the demo card history. Only your account is affected.</p>
         <DeleteEverything />
       </section>

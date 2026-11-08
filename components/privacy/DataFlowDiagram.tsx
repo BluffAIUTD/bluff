@@ -6,10 +6,10 @@ const LABEL =
   "public pages, and sends that page text with that merchant's own charge dates and amounts to NVIDIA Nemotron for its review.";
 
 function Box({ title, tone = "neutral", children }: { title: string; tone?: "neutral" | "safe" | "accent"; children: ReactNode }) {
-  const border = tone === "safe" ? "border-safe/60 bg-safe/10" : tone === "accent" ? "border-accent/60 bg-accent/10" : "border-line bg-surface2";
+  const border = tone === "safe" ? "border-dashed border-safe/70 bg-safe/10" : tone === "accent" ? "border-accent/70 bg-accent/10" : "brass-hairline bg-black/25";
   return (
     <div className={`min-w-0 flex-1 rounded-card border p-3 ${border}`}>
-      <p className="font-grotesk text-sm font-bold">{title}</p>
+      <p className="serif text-base font-semibold">{title}</p>
       <div className="mt-1 text-xs leading-relaxed text-dim">{children}</div>
     </div>
   );
@@ -18,7 +18,7 @@ function Box({ title, tone = "neutral", children }: { title: string; tone?: "neu
 function Arrow({ label }: { label: string }) {
   return (
     <div className="flex shrink-0 items-center justify-center gap-2 py-1 text-[11px] font-semibold text-fg md:flex-col md:gap-0 md:px-1 md:py-0">
-      <span className="inline-block rotate-90 text-lg leading-none text-accent md:rotate-0">→</span>
+      <span className="inline-block rotate-90 text-lg leading-none text-brass md:rotate-0">→</span>
       <span>{label}</span>
     </div>
   );
@@ -29,7 +29,7 @@ export function DataFlowDiagram() {
   return (
     <figure role="img" aria-label={LABEL} className="flex max-w-4xl flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <p className="font-grotesk text-xs font-medium uppercase tracking-wide text-dim">Checkout Guard extension</p>
+        <p className="font-grotesk uppercase text-brass">Checkout Guard extension</p>
         <div className="flex flex-col md:flex-row md:items-stretch">
           <Box title="Your device" tone="safe">
             <p>Stays here: what you type (card, CVV, password), your input values, the page text and the page&apos;s path or query.</p>
@@ -42,7 +42,7 @@ export function DataFlowDiagram() {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <p className="font-grotesk text-xs font-medium uppercase tracking-wide text-dim">Card watch (bank scan)</p>
+        <p className="font-grotesk uppercase text-brass">Card watch (bank scan)</p>
         <div className="flex flex-col md:flex-row md:items-stretch">
           <Box title="Capital One Nessie">
             <p>Sandbox account with synthetic charges. No real card data.</p>

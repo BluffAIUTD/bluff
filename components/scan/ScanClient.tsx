@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiFailure } from "@/lib/client/api";
 import { money } from "@/lib/format";
 import type { StepEvent, Verdict } from "@/lib/schemas";
-import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { ErrorState } from "../ui/ErrorState";
 import { ChipStack } from "../table/ChipStack";
