@@ -213,8 +213,12 @@ a.card-face:active, button.card-face:active { transform: translateY(0); box-shad
 .flip-scene { perspective: 1400px; }
 .flip-card { display: grid; transform-style: preserve-3d; transition: transform var(--motion-flip) var(--ease-flip); will-change: transform; }
 .flip-card[data-flipped="true"] { transform: rotateY(180deg); }
-.flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(0deg); transition: visibility 0s linear calc(var(--motion-flip) * 0.16); }
 .flip-face.back-side { transform: rotateY(180deg); }
+/* iOS Safari ignores backface-visibility for positioned / z-indexed descendants, so the hidden face's text bleeds through
+   mirrored. Also hide the face that's turned away; the delay lands it where --ease-flip crosses 90°. */
+.flip-card[data-flipped="true"] > .flip-face:not(.back-side),
+.flip-card:not([data-flipped="true"]) > .flip-face.back-side { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; transition-delay: 0ms !important; }
